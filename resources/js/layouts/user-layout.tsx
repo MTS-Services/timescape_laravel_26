@@ -11,7 +11,7 @@ interface AppLayoutProps {
     breadcrumbs?: BreadcrumbItem[];
 }
 
-export default function AppLayout({ breadcrumbs, children }: AppLayoutProps) {
+export default function UserLayout({ breadcrumbs, children }: AppLayoutProps) {
     const [isCollapsed, setIsCollapsed] = React.useState(false);
 
     return (
