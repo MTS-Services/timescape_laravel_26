@@ -1,6 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-
 import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
+import { useCallback, useMemo, useState } from 'react';
 
 interface TwoFactorSetupData {
     svg: string;

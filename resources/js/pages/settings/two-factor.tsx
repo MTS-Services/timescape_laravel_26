@@ -1,8 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
-import { ShieldBan, ShieldCheck } from 'lucide-react';
-import { useState } from 'react';
-
-import Heading from '@/components/heading';
+import HeadingSmall from '@/components/heading-small';
 import TwoFactorRecoveryCodes from '@/components/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +8,9 @@ import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { disable, enable, show } from '@/routes/two-factor';
 import { type BreadcrumbItem } from '@/types';
+import { Form, Head } from '@inertiajs/react';
+import { ShieldBan, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
 
 interface TwoFactorProps {
     requiresConfirmation?: boolean;
@@ -49,8 +48,7 @@ export default function TwoFactor({
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <Heading
-                        variant="small"
+                    <HeadingSmall
                         title="Two-Factor Authentication"
                         description="Manage your two-factor authentication settings"
                     />

@@ -4,8 +4,9 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-
 import { initializeTheme } from './hooks/use-appearance';
+import ErrorFallback from './components/error-fallback';
+import { ErrorBoundary } from 'react-error-boundary';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -21,12 +22,25 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <App {...props} />
+                <ErrorBoundary
+                    FallbackComponent={ErrorFallback}
+                    onReset={() => {
+                        // This logic resets the state of your app so the error doesn't loop
+                        window.location.href = '/';
+                    }}
+                >
+                    <App {...props} />
+                </ErrorBoundary>
             </StrictMode>,
         );
     },
     progress: {
         color: '#4B5563',
+    },
+    defaults: {
+        future: {
+            useDialogForErrorModal: true,
+        },
     },
 });
 
