@@ -10,10 +10,23 @@ export function getCardBackgroundColor(
     isDisabled: boolean,
     isCurrentMonth: boolean
 ): string {
-    if (!isCurrentMonth) return 'bg-muted/30';
-    if (isDisabled) return 'bg-muted/50';
-    if (isWeekend) return 'bg-red-50 dark:bg-red-950/20';
-    return 'bg-background';
+    // Weekend cards are always red, regardless of disabled state
+    if (isWeekend) {
+        return 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30';
+    }
+
+    // Not in current month
+    if (!isCurrentMonth) {
+        return 'bg-muted/30 border-muted';
+    }
+
+    // Disabled (past dates)
+    if (isDisabled) {
+        return 'bg-muted/50 border-muted';
+    }
+
+    // Normal weekday
+    return 'bg-background border-border';
 }
 
 export function getOptionColorClasses(

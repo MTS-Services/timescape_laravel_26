@@ -8,47 +8,80 @@ import { AvailabilityHeader } from '@/components/availability/availability-heade
 import { CalendarGrid } from '@/components/availability/calendar-grid';
 import { RequirementsBanner } from '@/components/availability/requirements-banner';
 import type {
-    AvailabilityPageProps,
     AvailabilitySelections,
+    AvailabilityRequirements,
 } from '@/types/availability';
-import AdminLayout from '@/layouts/admin-layout';
+
+interface PageProps {
+    auth: {
+        user: {
+            id: number;
+            name: string;
+            email: string;
+        };
+    };
+    initialSelections: AvailabilitySelections;
+    requirements: AvailabilityRequirements;
+    currentYear?: number;
+    currentMonth?: number;
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+}
 
 export default function AvailabilityScheduler() {
-    const { props } = usePage<{
-        auth: { user: { name: string; email: string } };
-        flash: { success?: string; error?: string };
-        initialSelections: AvailabilitySelections;
-        requirements: any;
-        currentYear?: number;
-        currentMonth?: number;
-    }>();
+    const { auth, initialSelections, requirements, currentYear, currentMonth, flash } =
+        usePage<PageProps>().props;
 
     const [currentDate, setCurrentDate] = useState(() => {
-        if (props.currentYear && props.currentMonth) {
-            return new Date(props.currentYear, props.currentMonth - 1, 1);
+        if (currentYear && currentMonth) {
+            return new Date(currentYear, currentMonth - 1, 1);
         }
         return new Date();
     });
 
     const [selections, setSelections] = useState<AvailabilitySelections>(
-        props.initialSelections || {}
+        initialSelections || {}
     );
     const [calendarDays, setCalendarDays] = useState<Date[]>([]);
     const [isSaving, setIsSaving] = useState(false);
 
+    // Update calendar days when current date changes
     useEffect(() => {
         const days = generateCalendarDays(currentDate);
         setCalendarDays(days);
     }, [currentDate]);
 
+    // Update selections when props change
     useEffect(() => {
-        if (props.flash?.success) {
-            toast.success(props.flash.success);
+        setSelections(initialSelections || {});
+    }, [initialSelections]);
+
+    // Show success/error messages
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success);
         }
-        if (props.flash?.error) {
-            toast.error(props.flash.error);
+        if (flash?.error) {
+            toast.error(flash.error);
         }
-    }, [props.flash]);
+    }, [flash]);
+
+    const fetchMonthData = (date: Date) => {
+        router.get(
+            route('availability.index'),
+            {
+                year: date.getFullYear(),
+                month: date.getMonth() + 1,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['initialSelections', 'requirements', 'currentYear', 'currentMonth'],
+            }
+        );
+    };
 
     const handlePrevMonth = () => {
         const newDate = addMonths(currentDate, -1);
@@ -68,25 +101,6 @@ export default function AvailabilityScheduler() {
         fetchMonthData(today);
     };
 
-    const fetchMonthData = (date: Date) => {
-        router.get(
-            '/availability/month',
-            {
-                year: date.getFullYear(),
-                month: date.getMonth() + 1,
-            },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['initialSelections', 'requirements'],
-                onSuccess: (page: any) => {
-                    setSelections(page.props.availabilities || {});
-                },
-            }
-        );
-        console.log('Fetched data for', date);
-    };
-
     const handleSelectionChange = (dateKey: string, optionId: string | null) => {
         setSelections((prev) => ({
             ...prev,
@@ -97,7 +111,7 @@ export default function AvailabilityScheduler() {
     const handleSave = () => {
         setIsSaving(true);
         router.post(
-            '/availability',
+            route('availability.store'),
             {
                 selections,
                 year: currentDate.getFullYear(),
@@ -115,6 +129,7 @@ export default function AvailabilityScheduler() {
             }
         );
     };
+
     const getUserInitials = (name: string) => {
         return name
             .split(' ')
@@ -123,13 +138,15 @@ export default function AvailabilityScheduler() {
             .toUpperCase()
             .substring(0, 2);
     };
+
     return (
-        <AdminLayout>
+        <>
             <Head title="Availability Scheduler" />
+
             <div className="min-h-screen bg-background py-8">
                 <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-8 flex items-center justify-between">
+                    <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className="rounded-lg bg-destructive px-4 py-2 text-xl font-bold text-destructive-foreground">
                                 TIMESCAPE
@@ -147,13 +164,13 @@ export default function AvailabilityScheduler() {
                         <div className="flex items-center gap-4">
                             <div className="text-right">
                                 <p className="text-sm font-medium text-foreground">
-                                    {props.auth.user.name}
+                                    {auth.user.name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">Staff</p>
                             </div>
                             <Avatar>
                                 <AvatarFallback>
-                                    {getUserInitials(props.auth.user.name)}
+                                    {getUserInitials(auth.user.name)}
                                 </AvatarFallback>
                             </Avatar>
                             <Button
@@ -167,8 +184,8 @@ export default function AvailabilityScheduler() {
                     </div>
 
                     {/* Requirements Banner */}
-                    {props.requirements && (
-                        <RequirementsBanner requirements={props.requirements} />
+                    {requirements && (
+                        <RequirementsBanner requirements={requirements} />
                     )}
 
                     {/* Calendar */}
@@ -187,6 +204,6 @@ export default function AvailabilityScheduler() {
                     />
                 </div>
             </div>
-        </AdminLayout>
+        </>
     );
 }

@@ -7,6 +7,7 @@ import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
 import ErrorFallback from './components/error-fallback';
 import { ErrorBoundary } from 'react-error-boundary';
+import { Toaster } from 'sonner';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -30,6 +31,12 @@ createInertiaApp({
                     }}
                 >
                     <App {...props} />
+                    <Toaster
+                        position="top-right"
+                        richColors
+                        closeButton
+                        expand={false}
+                    />
                 </ErrorBoundary>
             </StrictMode>,
         );

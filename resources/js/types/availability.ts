@@ -16,13 +16,6 @@ export interface AvailabilityRequirements {
     all_requirements_met: boolean;
 }
 
-export interface AvailabilityPageProps {
-    initialSelections: AvailabilitySelections;
-    requirements: AvailabilityRequirements;
-    currentYear?: number;
-    currentMonth?: number;
-}
-
 export interface User {
     id: number;
     name: string;

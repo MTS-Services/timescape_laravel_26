@@ -21,14 +21,14 @@ export function AvailabilityOptionComponent({
     return (
         <div className={cn('flex items-center space-x-2', colors.container)}>
             <Checkbox
-                id={option.id}
+                id={`${option.id}-${Math.random()}`}
                 checked={isSelected}
                 disabled={isDisabled}
                 onCheckedChange={(checked) => onChange(option.id, Boolean(checked))}
                 className={cn(colors.checkbox, 'h-4 w-4')}
             />
             <Label
-                htmlFor={option.id}
+                htmlFor={`${option.id}-${Math.random()}`}
                 className={cn(
                     'text-xs cursor-pointer select-none',
                     colors.label,

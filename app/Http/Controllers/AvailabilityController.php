@@ -65,31 +65,4 @@ class AvailabilityController extends Controller
             'requirements' => $requirements,
         ]);
     }
-
-    public function getMonth(Request $request)
-    {
-        $validated = $request->validate([
-            'year' => ['required', 'integer', 'between:2020,2030'],
-            'month' => ['required', 'integer', 'between:1,12'],
-        ]);
-
-        $user = $request->user();
-
-        $availabilities = $this->availabilityService->getAvailabilitiesForMonth(
-            $user->id,
-            $validated['year'],
-            $validated['month']
-        );
-
-        $requirements = $this->availabilityService->checkRequirements(
-            $user->id,
-            $validated['year'],
-            $validated['month']
-        );
-
-        return response()->json([
-            'availabilities' => $availabilities,
-            'requirements' => $requirements,
-        ]);
-    }
 }

@@ -5,6 +5,7 @@ import {
     isDateDisabled,
     isSameMonth,
     isWeekendDay,
+    isDateInPast,
 } from '@/lib/date-helpers';
 import { AvailabilityCard } from './availability-card';
 import type { AvailabilitySelections } from '@/types/availability';
@@ -41,8 +42,18 @@ export function CalendarGrid({
                 {calendarDays.map((date, index) => {
                     const dateKey = formatDateKey(date);
                     const isCurrentMonthDay = isSameMonth(date, currentMonth);
-                    const isDisabled = isDateDisabled(date, currentMonth);
+                    const isPastDate = isDateInPast(date);
                     const isWeekend = isWeekendDay(date);
+
+                    // Disabled if: in the past OR not in current viewing month
+                    const isDisabled = isDateDisabled(date, currentMonth);
+
+                    const selectedOption = selections[dateKey] || null;
+                    const hasNoData = !selectedOption;
+
+                    // Show "Unavailable All Day" ONLY for past dates with no data
+                    // It doesn't matter which month is being viewed - if date < today, show it
+                    const showUnavailable = isPastDate && hasNoData;
 
                     return (
                         <AvailabilityCard
@@ -52,7 +63,9 @@ export function CalendarGrid({
                             isWeekend={isWeekend}
                             isDisabled={isDisabled}
                             isCurrentMonth={isCurrentMonthDay}
-                            selectedOption={selections[dateKey] || null}
+                            isPastDate={isPastDate}
+                            selectedOption={selectedOption}
+                            showUnavailable={showUnavailable}
                             onOptionChange={onSelectionChange}
                         />
                     );

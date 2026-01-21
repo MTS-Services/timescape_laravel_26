@@ -37,6 +37,7 @@ export function isSameMonth(date1: Date, date2: Date): boolean {
 export function generateCalendarDays(currentDate: Date): Date[] {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
+
     const startDay = monthStart.getDay();
     const daysToSubtract = startDay === 0 ? 6 : startDay - 1;
 
@@ -57,18 +58,36 @@ export function generateCalendarDays(currentDate: Date): Date[] {
     return days;
 }
 
-export function isDateDisabled(date: Date, currentMonth: Date): boolean {
+/**
+ * Check if a date is in the past (before today)
+ * This is ABSOLUTE - doesn't care about which month is being viewed
+ */
+export function isDateInPast(date: Date): boolean {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dateToCheck = new Date(date);
     dateToCheck.setHours(0, 0, 0, 0);
 
-    return !isSameMonth(date, currentMonth) || dateToCheck < today;
+    return dateToCheck < today;
 }
 
+/**
+ * Check if a date should be disabled for editing
+ * A date is disabled if it's in the past OR not in the viewing month
+ */
+export function isDateDisabled(date: Date, viewingMonth: Date): boolean {
+    const isPast = isDateInPast(date);
+    const notInViewingMonth = !isSameMonth(date, viewingMonth);
+
+    return isPast || notInViewingMonth;
+}
+
+/**
+ * Check if a date is a weekend (Saturday or Sunday)
+ */
 export function isWeekendDay(date: Date): boolean {
     const day = date.getDay();
-    return day === 5 || day === 6; // Friday = 5, Saturday = 6
+    return day === 0 || day === 6; // Sunday = 0, Saturday = 6
 }
 
 export function formatMonthYear(date: Date): string {

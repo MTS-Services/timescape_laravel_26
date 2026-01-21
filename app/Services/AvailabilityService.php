@@ -4,14 +4,21 @@ namespace App\Services;
 
 use App\Models\Availability;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class AvailabilityService
 {
     public function getAvailabilitiesForMonth(int $userId, int $year, int $month): array
     {
+        // Get the entire calendar view range (includes overflow from prev/next months)
+        $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+        $monthEnd = Carbon::create($year, $month, 1)->endOfMonth();
+
+        // Expand to full weeks (Monday to Sunday)
+        $calendarStart = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
+        $calendarEnd = $monthEnd->copy()->endOfWeek(Carbon::SUNDAY);
+
         $availabilities = Availability::forUser($userId)
-            ->forMonth($year, $month)
+            ->whereBetween('availability_date', [$calendarStart, $calendarEnd])
             ->get()
             ->keyBy(fn($item) => $item->availability_date->format('Y-m-d'))
             ->map(fn($item) => $item->time_slot)
@@ -22,14 +29,25 @@ class AvailabilityService
 
     public function saveAvailabilities(int $userId, array $selections): void
     {
+        $today = Carbon::today();
+
         foreach ($selections as $date => $timeSlot) {
+            $dateCarbon = Carbon::parse($date);
+
+            // CRITICAL: Prevent saving to any past date
+            if ($dateCarbon->lt($today)) {
+                continue;
+            }
+
             if ($timeSlot === null) {
+                // Delete availability if null (user unchecked)
                 Availability::where('user_id', $userId)
                     ->where('availability_date', $date)
                     ->delete();
                 continue;
             }
 
+            // Save or update availability
             Availability::updateOrCreate(
                 [
                     'user_id' => $userId,
@@ -45,19 +63,25 @@ class AvailabilityService
 
     public function checkRequirements(int $userId, int $year, int $month): array
     {
+        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+        $today = Carbon::today();
+
+        // Only count future availabilities in the current month
         $availabilities = Availability::forUser($userId)
-            ->forMonth($year, $month)
+            ->whereBetween('availability_date', [$startDate, $endDate])
+            ->where('availability_date', '>=', $today)
             ->whereNotNull('time_slot')
             ->get();
 
         $weekdayCount = $availabilities->filter(function ($availability) {
             $dayOfWeek = $availability->availability_date->dayOfWeek;
-            return $dayOfWeek >= 1 && $dayOfWeek <= 5;
+            return $dayOfWeek >= 1 && $dayOfWeek <= 5; // Mon-Fri
         })->count();
 
         $weekendCount = $availabilities->filter(function ($availability) {
             $dayOfWeek = $availability->availability_date->dayOfWeek;
-            return $dayOfWeek === 0 || $dayOfWeek === 6;
+            return $dayOfWeek === 0 || $dayOfWeek === 6; // Sat-Sun
         })->count();
 
         return [
