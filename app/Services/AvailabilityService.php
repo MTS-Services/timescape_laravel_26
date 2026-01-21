@@ -34,7 +34,7 @@ class AvailabilityService
         foreach ($selections as $date => $timeSlot) {
             $dateCarbon = Carbon::parse($date);
 
-            // CRITICAL: Prevent saving to any past date
+            // CRITICAL: Only prevent saving to dates BEFORE today (not including today)
             if ($dateCarbon->lt($today)) {
                 continue;
             }
@@ -47,7 +47,7 @@ class AvailabilityService
                 continue;
             }
 
-            // Save or update availability
+            // Save or update availability (today and future dates allowed)
             Availability::updateOrCreate(
                 [
                     'user_id' => $userId,
@@ -67,7 +67,7 @@ class AvailabilityService
         $endDate = Carbon::create($year, $month, 1)->endOfMonth();
         $today = Carbon::today();
 
-        // Only count future availabilities in the current month
+        // Count availabilities from today onwards (including today)
         $availabilities = Availability::forUser($userId)
             ->whereBetween('availability_date', [$startDate, $endDate])
             ->where('availability_date', '>=', $today)

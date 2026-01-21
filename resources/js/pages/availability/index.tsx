@@ -11,6 +11,7 @@ import type {
     AvailabilitySelections,
     AvailabilityRequirements,
 } from '@/types/availability';
+import AdminLayout from '@/layouts/admin-layout';
 
 interface PageProps {
     auth: {
@@ -140,7 +141,7 @@ export default function AvailabilityScheduler() {
     };
 
     return (
-        <>
+        <AdminLayout>
             <Head title="Availability Scheduler" />
 
             <div className="min-h-screen bg-background py-8">
@@ -204,6 +205,6 @@ export default function AvailabilityScheduler() {
                     />
                 </div>
             </div>
-        </>
+        </AdminLayout>
     );
 }

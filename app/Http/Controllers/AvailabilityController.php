@@ -6,6 +6,7 @@ use App\Http\Requests\StoreAvailabilityRequest;
 use App\Services\AvailabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -60,6 +61,7 @@ class AvailabilityController extends Controller
             $month
         );
 
+        Log::info('Storing availability for user', ['user_id' => $user->id, 'selections' => $request->validated('selections'), 'month' => $month, 'year' => $year, 'requirements' => $requirements]);
         return back()->with([
             'success' => 'Availability updated successfully!',
             'requirements' => $requirements,

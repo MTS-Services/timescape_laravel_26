@@ -10,6 +10,7 @@ interface AvailabilityCardProps {
     isDisabled: boolean;
     isCurrentMonth: boolean;
     isPastDate: boolean;
+    isToday: boolean;
     selectedOption: string | null;
     showUnavailable: boolean;
     onOptionChange: (date: string, optionId: string | null) => void;
@@ -22,6 +23,7 @@ export function AvailabilityCard({
     isDisabled,
     isCurrentMonth,
     isPastDate,
+    isToday,
     selectedOption,
     showUnavailable,
     onOptionChange,
@@ -52,10 +54,15 @@ export function AvailabilityCard({
                 isDisabled ? "text-muted-foreground" : "text-foreground"
             )}>
                 {dayNumber}
+                {isToday && (
+                    <span className="ml-2 text-xs font-normal text-primary">
+                        (Today)
+                    </span>
+                )}
             </div>
 
             {showUnavailable ? (
-                /* Show "Unavailable All Day" for any past date with no data */
+                /* Show "Unavailable All Day" only for past dates with no data */
                 <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
                     <MinusCircle className="h-4 w-4 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
@@ -63,7 +70,7 @@ export function AvailabilityCard({
                     </span>
                 </div>
             ) : (
-                /* Show options for all other dates (disabled state handled by checkbox) */
+                /* Show options for all dates that have data OR are editable */
                 <div className="space-y-2">
                     {AVAILABILITY_OPTIONS.map((option) => (
                         <AvailabilityOptionComponent
