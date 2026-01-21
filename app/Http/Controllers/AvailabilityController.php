@@ -6,9 +6,9 @@ use App\Http\Requests\StoreAvailabilityRequest;
 use App\Services\AvailabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Log;
 
 class AvailabilityController extends Controller
 {
@@ -23,6 +23,12 @@ class AvailabilityController extends Controller
         $year = (int) $request->get('year', $now->year);
         $month = (int) $request->get('month', $now->month);
 
+        Log::info('Loading availability page', [
+            'user_id' => $user->id,
+            'year' => $year,
+            'month' => $month,
+        ]);
+
         $availabilities = $this->availabilityService->getAvailabilitiesForMonth(
             $user->id,
             $year,
@@ -35,6 +41,12 @@ class AvailabilityController extends Controller
             $month
         );
 
+        Log::info('Returning availability data', [
+            'availabilities_count' => count($availabilities),
+            'availabilities' => $availabilities,
+            'requirements' => $requirements,
+        ]);
+
         return Inertia::render('availability/index', [
             'initialSelections' => $availabilities,
             'requirements' => $requirements,
@@ -46,6 +58,11 @@ class AvailabilityController extends Controller
     public function store(StoreAvailabilityRequest $request): RedirectResponse
     {
         $user = $request->user();
+
+        Log::info('Storing availability', [
+            'user_id' => $user->id,
+            'selections' => $request->validated('selections'),
+        ]);
 
         $this->availabilityService->saveAvailabilities(
             $user->id,
@@ -61,7 +78,10 @@ class AvailabilityController extends Controller
             $month
         );
 
-        Log::info('Storing availability for user', ['user_id' => $user->id, 'selections' => $request->validated('selections'), 'month' => $month, 'year' => $year, 'requirements' => $requirements]);
+        Log::info('Availability saved successfully', [
+            'requirements' => $requirements,
+        ]);
+
         return back()->with([
             'success' => 'Availability updated successfully!',
             'requirements' => $requirements,

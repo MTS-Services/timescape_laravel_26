@@ -40,6 +40,9 @@ export function AvailabilityCard({
         }
     };
 
+    // For past dates with data, show ONLY the selected option (read-only view)
+    const shouldShowReadOnlyOption = isPastDate && selectedOption && !showUnavailable;
+
     return (
         <div
             className={cn(
@@ -62,15 +65,28 @@ export function AvailabilityCard({
             </div>
 
             {showUnavailable ? (
-                /* Show "Unavailable All Day" only for past dates with no data */
+                /* Show "Unavailable All Day" for past dates with no data */
                 <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
                     <MinusCircle className="h-4 w-4 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
                         Unavailable All Day
                     </span>
                 </div>
+            ) : shouldShowReadOnlyOption ? (
+                /* Show ONLY the selected option for past dates (read-only) */
+                <div className="space-y-2">
+                    {AVAILABILITY_OPTIONS.filter(opt => opt.id === selectedOption).map((option) => (
+                        <AvailabilityOptionComponent
+                            key={option.id}
+                            option={option}
+                            isSelected={true}
+                            isDisabled={true}
+                            onChange={handleOptionChange}
+                        />
+                    ))}
+                </div>
             ) : (
-                /* Show options for all dates that have data OR are editable */
+                /* Show all options for editable dates (today and future) */
                 <div className="space-y-2">
                     {AVAILABILITY_OPTIONS.map((option) => (
                         <AvailabilityOptionComponent

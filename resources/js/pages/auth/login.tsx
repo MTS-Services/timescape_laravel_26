@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { register } from '@/routes';
+import { login, register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { SharedData } from '@/types';
-import { Form, Head, usePage } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 
 interface LoginProps {
     status?: string;
@@ -20,7 +20,6 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword, canRegister }: LoginProps) {
     const { features } = usePage<SharedData>().props;
-
     return (
         <AuthLayout
             title="Welcome back"
@@ -80,6 +79,12 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
                     </div>
                 )}
             </div>
+
+             <Button className="w-full py-6 text-lg" asChild>
+                <Link href={login()}>
+                    Login With When I Work
+                </Link>
+            </Button>
         </AuthLayout>
     );
 }

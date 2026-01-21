@@ -19,12 +19,35 @@ export const AVAILABILITY_OPTIONS: Array<{
         { id: 'holyday', label: 'Holyday', color: 'gray' },
     ];
 
+/**
+ * Create a date in local timezone without time component
+ */
+function createLocalDate(year: number, month: number, day: number): Date {
+    return new Date(year, month, day, 0, 0, 0, 0);
+}
+
+/**
+ * Parse a date string (YYYY-MM-DD) as local date
+ */
+export function parseLocalDate(dateString: string): Date {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return createLocalDate(year, month - 1, day);
+}
+
+/**
+ * Get today's date at midnight in local timezone
+ */
+export function getToday(): Date {
+    const now = new Date();
+    return createLocalDate(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
 export function startOfMonth(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), 1);
+    return createLocalDate(date.getFullYear(), date.getMonth(), 1);
 }
 
 export function endOfMonth(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    return createLocalDate(date.getFullYear(), date.getMonth() + 1, 0);
 }
 
 export function isSameMonth(date1: Date, date2: Date): boolean {
@@ -41,20 +64,33 @@ export function generateCalendarDays(currentDate: Date): Date[] {
     const startDay = monthStart.getDay();
     const daysToSubtract = startDay === 0 ? 6 : startDay - 1;
 
-    const calendarStart = new Date(monthStart);
-    calendarStart.setDate(monthStart.getDate() - daysToSubtract);
+    const calendarStart = createLocalDate(
+        monthStart.getFullYear(),
+        monthStart.getMonth(),
+        monthStart.getDate() - daysToSubtract
+    );
 
-    const calendarEnd = new Date(monthEnd);
     const endDay = monthEnd.getDay();
     const daysToAdd = endDay === 0 ? 0 : 7 - endDay;
-    calendarEnd.setDate(monthEnd.getDate() + daysToAdd);
+
+    const calendarEnd = createLocalDate(
+        monthEnd.getFullYear(),
+        monthEnd.getMonth(),
+        monthEnd.getDate() + daysToAdd
+    );
 
     const days: Date[] = [];
     const current = new Date(calendarStart);
+
     while (current <= calendarEnd) {
-        days.push(new Date(current));
+        days.push(createLocalDate(
+            current.getFullYear(),
+            current.getMonth(),
+            current.getDate()
+        ));
         current.setDate(current.getDate() + 1);
     }
+
     return days;
 }
 
@@ -62,29 +98,32 @@ export function generateCalendarDays(currentDate: Date): Date[] {
  * Check if a date is in the past (BEFORE today, not including today)
  */
 export function isDateInPast(date: Date): boolean {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dateToCheck = new Date(date);
-    dateToCheck.setHours(0, 0, 0, 0);
+    const today = getToday();
+    const dateToCheck = createLocalDate(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    );
 
-    return dateToCheck < today; // Strictly less than (before today)
+    return dateToCheck.getTime() < today.getTime();
 }
 
 /**
  * Check if a date is today
  */
 export function isToday(date: Date): boolean {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dateToCheck = new Date(date);
-    dateToCheck.setHours(0, 0, 0, 0);
+    const today = getToday();
+    const dateToCheck = createLocalDate(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+    );
 
     return dateToCheck.getTime() === today.getTime();
 }
 
 /**
  * Check if a date should be disabled for editing
- * A date is disabled if it's in the past (not today) OR not in the viewing month
  */
 export function isDateDisabled(date: Date, viewingMonth: Date): boolean {
     const isPast = isDateInPast(date);
@@ -98,7 +137,7 @@ export function isDateDisabled(date: Date, viewingMonth: Date): boolean {
  */
 export function isWeekendDay(date: Date): boolean {
     const day = date.getDay();
-    return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+    return day === 0 || day === 6;
 }
 
 export function formatMonthYear(date: Date): string {
@@ -109,12 +148,20 @@ export function formatDayNumber(date: Date): string {
     return date.getDate().toString().padStart(2, '0');
 }
 
+/**
+ * Format date as YYYY-MM-DD in local timezone (critical for matching DB keys)
+ */
 export function formatDateKey(date: Date): string {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 export function addMonths(date: Date, months: number): Date {
-    const result = new Date(date);
-    result.setMonth(result.getMonth() + months);
-    return result;
+    return createLocalDate(
+        date.getFullYear(),
+        date.getMonth() + months,
+        date.getDate()
+    );
 }

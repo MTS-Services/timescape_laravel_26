@@ -52,10 +52,12 @@ export default function AvailabilityScheduler() {
     useEffect(() => {
         const days = generateCalendarDays(currentDate);
         setCalendarDays(days);
+        console.log('Generated calendar days:', days);
     }, [currentDate]);
 
     // Update selections when props change
     useEffect(() => {
+        console.log('Received initialSelections:', initialSelections);
         setSelections(initialSelections || {});
     }, [initialSelections]);
 
@@ -70,16 +72,29 @@ export default function AvailabilityScheduler() {
     }, [flash]);
 
     const fetchMonthData = (date: Date) => {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+
+        console.log('Fetching month data:', { year, month });
+
+        // Use the main availability.index route with query parameters
         router.get(
             route('availability.index'),
             {
-                year: date.getFullYear(),
-                month: date.getMonth() + 1,
+                year,
+                month,
             },
             {
                 preserveState: true,
                 preserveScroll: true,
                 only: ['initialSelections', 'requirements', 'currentYear', 'currentMonth'],
+                onSuccess: () => {
+                    console.log('Month data fetched successfully');
+                },
+                onError: (errors) => {
+                    console.error('Failed to fetch month data:', errors);
+                    toast.error('Failed to load calendar data');
+                },
             }
         );
     };
@@ -103,6 +118,7 @@ export default function AvailabilityScheduler() {
     };
 
     const handleSelectionChange = (dateKey: string, optionId: string | null) => {
+        console.log('Selection changed:', { dateKey, optionId });
         setSelections((prev) => ({
             ...prev,
             [dateKey]: optionId,
@@ -111,6 +127,8 @@ export default function AvailabilityScheduler() {
 
     const handleSave = () => {
         setIsSaving(true);
+        console.log('Saving selections:', selections);
+
         router.post(
             route('availability.store'),
             {
@@ -123,9 +141,11 @@ export default function AvailabilityScheduler() {
                 preserveScroll: true,
                 onSuccess: () => {
                     setIsSaving(false);
+                    console.log('Saved successfully');
                 },
-                onError: () => {
+                onError: (errors) => {
                     setIsSaving(false);
+                    console.error('Save failed:', errors);
                 },
             }
         );

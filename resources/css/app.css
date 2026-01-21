@@ -71,10 +71,12 @@
     --color-text-secondary: var(--text-secondary);
     --color-text-secondary-foreground: var(--text-secondary-foreground);
     --color-text-muted: var(--text-muted);
+
+    --shadow-card: var(--shadow-card);
 }
 
 :root {
-    --background: oklch(1 0 0);
+    --background: #F9FAFB;
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
@@ -114,6 +116,7 @@
     --text-secondary-foreground: hsla(210, 15%, 95%, 1);
     --text-muted: hsla(210, 15%, 55%, 1);
 
+    --shadow-card: 0 7px 29px 0px #64646F33;
 
     --datatable-bg: #ffffff;
     --datatable-bg-secondary: #f8fafc;
