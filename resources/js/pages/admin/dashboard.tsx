@@ -2,11 +2,12 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AdminLayout from '@/layouts/admin-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import { dashboard } from '@/routes';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin Dashboard',
-        href: route('admin.dashboard'),
+        href: dashboard().url,
     },
 ];
 

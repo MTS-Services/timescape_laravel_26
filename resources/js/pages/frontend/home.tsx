@@ -1,16 +1,12 @@
 import FrontendLayout from "@/layouts/frontend-layout";
 import { Link, usePage } from "@inertiajs/react";
 import { SharedData } from "@/types";
-import { login, register } from "@/routes";
+import { login, dashboard, register } from "@/routes";
 
-export default function Home({
-  canRegister = true,
-}: {
-  canRegister?: boolean;
-}) {
-  const { auth } = usePage<SharedData>().props;
+export default function Home() {
+  const { auth, features } = usePage<SharedData>().props;
   // const dashboardRoute = auth.user?.is_admin ? route('dashboard') : route('dashboard');
-  const dashboardRoute =  route('availability.index');
+  const dashboardRoute = dashboard();
 
   return (
     <FrontendLayout>
@@ -58,7 +54,7 @@ export default function Home({
                   >
                     Get Started
                   </Link>
-                  {canRegister && (
+                  {features.canRegister && (
                     <Link
                       href={register()}
                       className="text-sm font-semibold leading-6 text-gray-900 dark:text-white hover:opacity-80"

@@ -5,11 +5,12 @@ import { Link, usePage } from '@inertiajs/react';
 import { Users, User, BarChart, Shield, LayoutGrid, Settings } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavItem as NavItemComponent} from '@/components/ui/nav-item';
+import { dashboard } from '@/routes';
 // Navigation configuration
 const adminNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: route('admin.dashboard'),
+        href: dashboard(),
         icon: LayoutGrid,
         slug: 'dashboard',
     },

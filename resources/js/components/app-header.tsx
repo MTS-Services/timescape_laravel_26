@@ -35,11 +35,12 @@ import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
+import { dashboard } from '@/routes';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: route('admin.dashboard'),
+        href: dashboard(),
         icon: LayoutGrid,
     },
 ];
@@ -141,7 +142,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
 
                     <Link
-                        href={route('admin.dashboard')}
+                        href={dashboard()}
                         prefetch
                         className="flex items-center space-x-2"
                     >

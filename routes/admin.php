@@ -7,7 +7,7 @@ use App\Http\Controllers\Admin\AvailabilityController;
 use App\Http\Controllers\Admin\UserController;
 
 Route::group(['as' => 'admin.', 'prefix' => 'admin', 'middleware' => ['auth', 'verified']], function () {
-    Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
+    // Route::get('dashboard', AdminDashboardController::class)->name('dashboard');
 
     Route::resource('users', UserController::class)->names('users');
 

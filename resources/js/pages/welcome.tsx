@@ -2,14 +2,15 @@ import AppearanceToggleTab from '@/components/appearance-tabs';
 import { login, register } from '@/routes';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-
+import { dashboard } from '@/routes';
 export default function Welcome({
     canRegister = true,
 }: {
     canRegister?: boolean;
 }) {
     const { auth } = usePage<SharedData>().props;
-    const dashboardRoute = auth.user?.is_admin ? route('admin.dashboard') : route('user.dashboard');
+    // const dashboardRoute = auth.user?.is_admin ? route('admin.dashboard') : route('user.dashboard');
+    const dashboardRoute = dashboard();
 
     return (
         <>

@@ -9,7 +9,8 @@ import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import { Form, Head } from '@inertiajs/react';
+import { SharedData } from '@/types';
+import { Form, Head, usePage } from '@inertiajs/react';
 
 interface LoginProps {
     status?: string;
@@ -18,6 +19,8 @@ interface LoginProps {
 }
 
 export default function Login({ status, canResetPassword, canRegister }: LoginProps) {
+    const { features } = usePage<SharedData>().props;
+
     return (
         <AuthLayout
             title="Welcome back"
@@ -43,7 +46,7 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
                                 <div className="grid gap-2">
                                     <div className="flex items-center justify-between">
                                         <Label htmlFor="password">Password</Label>
-                                        {canResetPassword && (
+                                        {features.canResetPassword && (
                                             <TextLink href={request()} className="text-xs text-violet-600 hover:text-violet-500 transition-colors">Forgot?</TextLink>
                                         )}
                                     </div>
@@ -65,7 +68,7 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
                     )}
                 </Form>
 
-                {canRegister && (
+                {features.canRegister && (
                     <p className="mt-6 text-center text-sm text-muted-foreground">
                         New here? <TextLink href={register()} className="text-violet-600 font-medium hover:text-violet-500">Create an account</TextLink>
                     </p>

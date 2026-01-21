@@ -1,5 +1,4 @@
 import AppLogo from '@/components/app-logo';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
@@ -10,11 +9,10 @@ import { logout } from '@/routes';
 import { type SharedData, type NavItem } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut, Menu } from 'lucide-react';
+import { dashboard } from '@/routes';
 
 export function AdminHeader() {
     const { auth } = usePage<SharedData>().props;
-    const getInitials = useInitials();
-
     const cleanup = useMobileNavigation();
 
     const handleLogout = () => {
@@ -24,7 +22,7 @@ export function AdminHeader() {
 
     return (
         <header className='container mx-auto flex items-center justify-between py-4 px-4 md:px-6'>
-            <Link href={route('admin.dashboard')}>
+            <Link href={dashboard()} className='flex items-center gap-2'>
                 <AppLogo />
             </Link>
             <div className='hidden md:flex items-center gap-4 ml-auto w-full max-w-sm'>

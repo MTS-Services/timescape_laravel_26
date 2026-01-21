@@ -16,9 +16,11 @@ class LoginResponse implements LoginResponseContract
      */
     public function toResponse($request)
     {
-        $redirect = $request->user()->is_admin
-            ? route('admin.dashboard')
-            : route('dashboard');
+        // $redirect = $request->user()->is_admin
+        //     ? route('admin.dashboard')
+        //     : route('dashboard');
+
+        $redirect = route('dashboard');
 
         return $request->wantsJson()
             ? new JsonResponse(['two_factor' => false])

@@ -11,9 +11,10 @@ import { useState } from 'react';
 import AppLogo from '@/components/app-logo';
 import { UserMenuContent } from '@/components/user-menu-content';
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
+import { dashboard } from '@/routes';
 
 export function FrontendHeader() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, features } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -52,11 +53,13 @@ export function FrontendHeader() {
                             <Link href={login()}>
                                 <Button variant="ghost" size="sm" className="text-sm font-medium">Log in</Button>
                             </Link>
-                            <Link href={register()}>
-                                <Button size="sm" className="bg-violet-600 text-white shadow-sm hover:bg-violet-700">
-                                    Get Started
-                                </Button>
-                            </Link>
+                            {features.canRegister && (
+                                <Link href={register()}>
+                                    <Button size="sm" className="bg-violet-600 text-white shadow-sm hover:bg-violet-700">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
                     )}
 
@@ -84,12 +87,14 @@ export function FrontendHeader() {
                                             <Link href={login()} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
                                                 <Button variant="outline" className="w-full py-6">Log in</Button>
                                             </Link>
-                                            <Link href={register()} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                                                <Button className="w-full bg-violet-600 py-6 hover:bg-violet-700">Get Started</Button>
-                                            </Link>
+                                            {features.canRegister && (
+                                                <Link href={register()} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                                                    <Button className="w-full bg-violet-600 py-6 hover:bg-violet-700">Get Started</Button>
+                                                </Link>
+                                            )}
                                         </>
                                     ) : (
-                                        <Link href={route('admin.dashboard')} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Link href={dashboard()} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
                                             <Button className="w-full bg-violet-600 py-6">Dashboard</Button>
                                         </Link>
                                     )}

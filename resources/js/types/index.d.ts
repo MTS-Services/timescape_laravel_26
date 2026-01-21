@@ -39,8 +39,16 @@ export type NavItem = NavItem;
 export interface SharedData {
     name: string;
     auth: Auth;
+    features: Features;
     sidebarOpen: boolean;
     [key: string]: unknown;
+}
+
+export interface Features {
+    canRegister: boolean;
+    canResetPassword: boolean;
+    canVerifyEmail: boolean;
+    canUseTwoFactorAuthentication: boolean;
 }
 
 export interface User {

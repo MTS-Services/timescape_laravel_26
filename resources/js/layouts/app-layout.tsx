@@ -1,6 +1,3 @@
-import { UserSidebar } from '@/layouts/partials/user/sidebar';
-import { UserHeader } from '@/layouts/partials/user/header';
-import { UserFooter } from '@/layouts/partials/user/footer';
 import * as React from 'react';
 import { type ReactNode } from 'react';
 import { type BreadcrumbItem } from '@/types';
