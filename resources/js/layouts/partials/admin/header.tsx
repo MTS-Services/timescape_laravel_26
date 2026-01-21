@@ -25,9 +25,9 @@ export function AdminHeader() {
             <Link href={dashboard()} className='flex items-center gap-2'>
                 <AppLogo />
             </Link>
-            <div className='hidden md:flex items-center gap-4 ml-auto w-full max-w-sm'>
-                <div className='flex items-center gap-2 w-full'>
-                    <UserInfo user={auth.user} showEmail={true} />
+            <div className='hidden md:flex items-center gap-4'>
+                <div className='flex items-center justify-end gap-2 w-full min-w-32'>
+                    <UserInfo user={auth.user} showRole={true} />
                 </div>
                 <Link
                     className="flex gap-1 items-center w-full cursor-pointer font-open-sans"
