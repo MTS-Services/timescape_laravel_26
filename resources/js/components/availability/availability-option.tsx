@@ -2,6 +2,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cn, getOptionColorClasses } from '@/lib/calendar-utils';
 import type { AvailabilityOption } from '@/types/availability';
+import { useState } from 'react';
 
 interface AvailabilityOptionProps {
     option: AvailabilityOption;
@@ -17,25 +18,46 @@ export function AvailabilityOptionComponent({
     onChange,
 }: AvailabilityOptionProps) {
     const colors = getOptionColorClasses(option.color, isSelected);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Generate a stable ID using option.id
+    const checkboxId = `option-${option.id}`;
+
+    const handleChange = (checked: boolean) => {
+        if (isDisabled) return;
+
+        // Set temporary saving state
+        setIsSaving(true);
+
+        // Call the parent's onChange handler
+        onChange(option.id, Boolean(checked));
+
+        // Reset saving state after a brief delay to show feedback
+        setTimeout(() => {
+            setIsSaving(false);
+        }, 500);
+    };
 
     return (
-        <div className={cn('flex items-center space-x-2', colors.container)}>
+        <div className={cn('flex items-center space-x-2', colors.container,
+            isSaving && 'opacity-70')}>
             <Checkbox
-                id={`${option.id}-${Math.random()}`}
+                id={checkboxId}
                 checked={isSelected}
-                disabled={isDisabled}
-                onCheckedChange={(checked) => onChange(option.id, Boolean(checked))}
+                disabled={isDisabled || isSaving}
+                onCheckedChange={handleChange}
                 className={cn(colors.checkbox, 'h-4 w-4')}
             />
             <Label
-                htmlFor={`${option.id}-${Math.random()}`}
+                htmlFor={checkboxId}
                 className={cn(
                     'text-xs cursor-pointer select-none',
                     colors.label,
-                    isDisabled && 'opacity-50 cursor-not-allowed'
+                    (isDisabled || isSaving) && 'opacity-50 cursor-not-allowed'
                 )}
             >
                 {option.label}
+                {isSaving && <span className="ml-1 text-xs text-muted-foreground">(saving...)</span>}
             </Label>
         </div>
     );

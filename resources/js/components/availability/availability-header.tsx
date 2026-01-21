@@ -1,11 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { MonthYearSelector } from './month-year-selector';
 
 interface AvailabilityHeaderProps {
     currentMonth: string;
     onPrevMonth: () => void;
     onNextMonth: () => void;
     onToday: () => void;
+    onMonthYearChange?: (month: number, year: number) => void;
+    currentMonthNum?: number;
+    currentYearNum?: number;
 }
 
 export function AvailabilityHeader({
@@ -13,6 +17,9 @@ export function AvailabilityHeader({
     onPrevMonth,
     onNextMonth,
     onToday,
+    onMonthYearChange,
+    currentMonthNum,
+    currentYearNum,
 }: AvailabilityHeaderProps) {
     return (
         <div className="mb-6 flex items-center justify-between rounded-lg bg-muted p-4">
@@ -34,6 +41,15 @@ export function AvailabilityHeader({
                     <Calendar className="mr-2 h-4 w-4" />
                     TODAY
                 </Button>
+
+                {/* Month/Year selector */}
+                {onMonthYearChange && currentMonthNum && currentYearNum && (
+                    <MonthYearSelector
+                        currentMonth={currentMonthNum}
+                        currentYear={currentYearNum}
+                        onMonthYearChange={onMonthYearChange}
+                    />
+                )}
 
                 <Button
                     onClick={onNextMonth}

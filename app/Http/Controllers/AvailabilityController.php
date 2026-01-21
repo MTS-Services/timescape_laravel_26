@@ -22,29 +22,57 @@ class AvailabilityController extends Controller
         $now = now();
         $year = (int) $request->get('year', $now->year);
         $month = (int) $request->get('month', $now->month);
+        $selectedUserId = (int) $request->get('user_id', $user->id);
 
         Log::info('Loading availability page', [
             'user_id' => $user->id,
             'year' => $year,
             'month' => $month,
+            'selected_user_id' => $selectedUserId,
         ]);
 
+        // If user is admin, they can view other users' data
+        $targetUserId = $user->is_admin && $selectedUserId !== $user->id ? $selectedUserId : $user->id;
+
         $availabilities = $this->availabilityService->getAvailabilitiesForMonth(
-            $user->id,
+            $targetUserId,
             $year,
             $month
         );
 
         $requirements = $this->availabilityService->checkRequirements(
-            $user->id,
+            $targetUserId,
             $year,
             $month
         );
 
+        // Get user statistics if admin
+        $statistics = null;
+        if ($user->is_admin) {
+            $filterType = $request->get('filter_type', 'month');
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
+
+            $statistics = $this->availabilityService->getUserStatistics(
+                $targetUserId,
+                $year,
+                $month,
+                $filterType,
+                $startDate,
+                $endDate
+            );
+        }
+
+        // Get all users if admin
+        $users = [];
+        if ($user->is_admin) {
+            $users = \App\Models\User::select('id', 'name', 'email')->orderBy('name')->get();
+        }
+
         Log::info('Returning availability data', [
             'availabilities_count' => count($availabilities),
-            'availabilities' => $availabilities,
             'requirements' => $requirements,
+            'has_statistics' => !is_null($statistics),
         ]);
 
         return Inertia::render('availability/index', [
@@ -52,6 +80,9 @@ class AvailabilityController extends Controller
             'requirements' => $requirements,
             'currentYear' => $year,
             'currentMonth' => $month,
+            'statistics' => $statistics,
+            'users' => $users,
+            'selectedUserId' => $targetUserId,
         ]);
     }
 

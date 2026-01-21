@@ -7,19 +7,24 @@ import { generateCalendarDays, formatMonthYear, addMonths } from '@/lib/date-hel
 import { AvailabilityHeader } from '@/components/availability/availability-header';
 import { CalendarGrid } from '@/components/availability/calendar-grid';
 import { RequirementsBanner } from '@/components/availability/requirements-banner';
+import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
+import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import type {
     AvailabilitySelections,
     AvailabilityRequirements,
 } from '@/types/availability';
 import AdminLayout from '@/layouts/admin-layout';
 
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    is_admin?: boolean;
+}
+
 interface PageProps {
     auth: {
-        user: {
-            id: number;
-            name: string;
-            email: string;
-        };
+        user: User;
     };
     initialSelections: AvailabilitySelections;
     requirements: AvailabilityRequirements;
@@ -29,10 +34,25 @@ interface PageProps {
         success?: string;
         error?: string;
     };
+    // Admin-specific properties
+    users?: User[];
+    statistics?: {
+        total_duty_days: number;
+        leave_taken: number;
+        upcoming_leave: number;
+        filter_type: string;
+        date_range: {
+            start: string;
+            end: string;
+        };
+    };
+    selectedUserId?: number;
+    // Add index signature to satisfy constraint
+    [key: string]: any;
 }
 
 export default function AvailabilityScheduler() {
-    const { auth, initialSelections, requirements, currentYear, currentMonth, flash } =
+    const { auth, initialSelections, requirements, currentYear, currentMonth, flash, users, statistics, selectedUserId } =
         usePage<PageProps>().props;
 
     const [currentDate, setCurrentDate] = useState(() => {
@@ -117,12 +137,40 @@ export default function AvailabilityScheduler() {
         fetchMonthData(today);
     };
 
+    // Handler for month/year selector
+    const handleMonthYearChange = (month: number, year: number) => {
+        const newDate = new Date(year, month - 1, 1);
+        setCurrentDate(newDate);
+        fetchMonthData(newDate);
+    };
+
     const handleSelectionChange = (dateKey: string, optionId: string | null) => {
         console.log('Selection changed:', { dateKey, optionId });
+
+        // Update local state
         setSelections((prev) => ({
             ...prev,
             [dateKey]: optionId,
         }));
+
+        // Save immediately to server
+        router.post(
+            route('availability.store'),
+            {
+                selections: { [dateKey]: optionId },
+                year: currentDate.getFullYear(),
+                month: currentDate.getMonth() + 1,
+                single_update: true, // Flag to indicate a single update
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onError: (errors) => {
+                    console.error('Save failed:', errors);
+                    toast.error('Failed to save your change');
+                },
+            }
+        );
     };
 
     const handleSave = () => {
@@ -194,13 +242,6 @@ export default function AvailabilityScheduler() {
                                     {getUserInitials(auth.user.name)}
                                 </AvatarFallback>
                             </Avatar>
-                            <Button
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className="bg-destructive hover:bg-destructive/90"
-                            >
-                                {isSaving ? 'Saving...' : 'Save Changes'}
-                            </Button>
                         </div>
                     </div>
 
@@ -215,14 +256,44 @@ export default function AvailabilityScheduler() {
                         onPrevMonth={handlePrevMonth}
                         onNextMonth={handleNextMonth}
                         onToday={handleToday}
+                        onMonthYearChange={handleMonthYearChange}
+                        currentMonthNum={currentDate.getMonth() + 1}
+                        currentYearNum={currentDate.getFullYear()}
                     />
 
-                    <CalendarGrid
-                        calendarDays={calendarDays}
-                        currentMonth={currentDate}
-                        selections={selections}
-                        onSelectionChange={handleSelectionChange}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        {/* Calendar Grid */}
+                        <div className={`md:col-span-${auth.user.is_admin ? '3' : '4'}`}>
+                            <CalendarGrid
+                                calendarDays={calendarDays}
+                                currentMonth={currentDate}
+                                selections={selections}
+                                onSelectionChange={handleSelectionChange}
+                            />
+                        </div>
+
+                        {/* Admin User Selection Panel */}
+                        {auth.user.is_admin && users && (
+                            <div className="md:col-span-1">
+                                <UserSelectionPanel
+                                    users={users}
+                                    selectedUserId={selectedUserId}
+                                    currentYear={currentDate.getFullYear()}
+                                    currentMonth={currentDate.getMonth() + 1}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Admin Statistics Panel */}
+                    {auth.user.is_admin && statistics && selectedUserId && (
+                        <StatisticsPanel
+                            statistics={statistics}
+                            selectedUserId={selectedUserId}
+                            currentYear={currentDate.getFullYear()}
+                            currentMonth={currentDate.getMonth() + 1}
+                        />
+                    )}
                 </div>
             </div>
         </AdminLayout>
