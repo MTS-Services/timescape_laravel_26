@@ -12,7 +12,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Dashboard() {
     return (
-        <AdminLayout activeSlug="dashboard">
+        <AdminLayout>
             <Head title="Admin Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">

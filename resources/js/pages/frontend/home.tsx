@@ -9,7 +9,8 @@ export default function Home({
   canRegister?: boolean;
 }) {
   const { auth } = usePage<SharedData>().props;
-  const dashboardRoute = auth.user?.is_admin ? route('admin.dashboard') : route('user.dashboard');
+  // const dashboardRoute = auth.user?.is_admin ? route('dashboard') : route('dashboard');
+  const dashboardRoute =  route('availability.index');
 
   return (
     <FrontendLayout>

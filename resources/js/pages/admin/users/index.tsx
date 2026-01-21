@@ -109,7 +109,7 @@ export default function UsersIndex({
   ];
 
   return (
-    <AdminLayout activeSlug="admin-users">
+    <AdminLayout>
       <Head title="Users" />
 
       <div className="flex justify-end mb-6">

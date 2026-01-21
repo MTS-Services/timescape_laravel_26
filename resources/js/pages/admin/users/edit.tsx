@@ -28,7 +28,7 @@ export default function EditUser({ user }: Props) {
   }
 
   return (
-    <AdminLayout activeSlug="admin-users">
+    <AdminLayout>
       <Head title={`Edit User: ${user.name}`} />
 
       <Card>

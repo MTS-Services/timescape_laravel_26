@@ -13,7 +13,7 @@ interface Props {
 
 export default function ShowUser({ user }: Props) {
   return (
-    <AdminLayout activeSlug="admin-users">
+    <AdminLayout>
       <Head title={`User: ${user.name}`} />
 
       <Card>

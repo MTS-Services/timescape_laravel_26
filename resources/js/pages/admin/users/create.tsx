@@ -23,7 +23,7 @@ export default function CreateUser() {
   }
 
   return (
-    <AdminLayout activeSlug="admin-users">
+    <AdminLayout>
       <Head title="Create User" />
 
       <Card>
