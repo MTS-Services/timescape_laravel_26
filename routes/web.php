@@ -1,14 +1,20 @@
 <?php
 
+use App\Http\Controllers\Auth\WhenIWorkAuthController;
 use App\Http\Controllers\UserSelectionController;
 use App\Http\Controllers\AvailabilityController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('wheniwork.login');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+// When I Work Authentication Routes
+Route::get('/login', [WhenIWorkAuthController::class, 'showLoginForm'])->name('wheniwork.login');
+Route::post('/login', [WhenIWorkAuthController::class, 'login'])->name('wheniwork.login.post');
+Route::post('/logout', [WhenIWorkAuthController::class, 'logout'])->name('logout');
+
+Route::middleware(['auth', 'verified', 'wheniwork'])->group(function () {
     // Availability Routes
     Route::get('/dashboard', [AvailabilityController::class, 'index'])->name('dashboard');
     Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');

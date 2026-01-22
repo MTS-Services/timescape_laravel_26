@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'wheniwork' => [
+        'api_key' => env('WHENIWORK_API_KEY', '244b76e0fb0c35e61038d8421155f03f11999303'),
+    ],
+
 ];
