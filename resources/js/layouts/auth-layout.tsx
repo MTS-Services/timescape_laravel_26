@@ -1,11 +1,12 @@
-import * as React from 'react';
-import AppLogo from '@/components/app-logo';
 import { Head, Link } from '@inertiajs/react';
-import { AuthHeader } from '@/layouts/partials/auth/header';
-import { AuthFooter } from '@/layouts/partials/auth/footer';
+import * as React from 'react';
+
+import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
-import { login } from '@/routes';
 import { Button } from '@/components/ui/button';
+import { AuthFooter } from '@/layouts/partials/auth/footer';
+import { AuthHeader } from '@/layouts/partials/auth/header';
+import { login } from '@/routes';
 
 interface AuthLayoutProps {
     children: React.ReactNode;

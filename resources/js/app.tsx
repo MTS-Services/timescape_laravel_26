@@ -4,10 +4,11 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { initializeTheme } from './hooks/use-appearance';
-import ErrorFallback from './components/error-fallback';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Toaster } from 'sonner';
+
+import ErrorFallback from './components/error-fallback';
+import { initializeTheme } from './hooks/use-appearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

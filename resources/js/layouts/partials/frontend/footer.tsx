@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+
 import AppLogo from '@/components/app-logo';
 
 export function FrontendFooter() {

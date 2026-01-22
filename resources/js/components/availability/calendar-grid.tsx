@@ -8,8 +8,9 @@ import {
     isDateInPast,
     isToday,
 } from '@/lib/date-helpers';
-import { AvailabilityCard } from './availability-card';
 import type { AvailabilitySelections } from '@/types/availability';
+
+import { AvailabilityCard } from './availability-card';
 
 interface CalendarGridProps {
     calendarDays: Date[];

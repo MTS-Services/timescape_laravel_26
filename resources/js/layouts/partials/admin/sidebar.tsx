@@ -1,11 +1,12 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Users, User, BarChart, Shield, LayoutGrid, Settings } from 'lucide-react';
+import * as React from 'react';
+
 import AppLogo from '@/components/app-logo';
 import { NavItem as NavItemComponent} from '@/components/ui/nav-item';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { type NavItem, type SharedData } from '@/types';
 // Navigation configuration
 const adminNavItems: NavItem[] = [
     {

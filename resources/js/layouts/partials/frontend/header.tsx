@@ -1,17 +1,18 @@
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useInitials } from '@/hooks/use-initials';
-import { login, register } from '@/routes';
-import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Menu, XIcon } from 'lucide-react';
 import { useState } from 'react';
+
 import AppLogo from '@/components/app-logo';
-import { UserMenuContent } from '@/components/user-menu-content';
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { UserMenuContent } from '@/components/user-menu-content';
+import { useInitials } from '@/hooks/use-initials';
+import { login, register } from '@/routes';
 import { dashboard } from '@/routes';
+import { type SharedData } from '@/types';
 
 export function FrontendHeader() {
     const { auth, features } = usePage<SharedData>().props;

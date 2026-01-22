@@ -1,13 +1,6 @@
-import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Search, X, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -16,6 +9,14 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { DataTableProps } from '@/types/data-table.types';
 
 export function DataTable<T extends Record<string, any>>({

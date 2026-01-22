@@ -14,21 +14,22 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::insert(
-            [
-                'name' => 'Admin',
-                'email' => 'admin@dev.com',
-                'password' => Hash::make('admin@dev.com'),
-                'is_admin' => true,
-            ],
-            [
-                'name' => 'User',
-                'email' => 'user@dev.com',
-                'password' => Hash::make('user@dev.com'),
-                'is_admin' => false,
-            ]
-        );
+        // User::insert(
+        //     [
+        //         'name' => 'Admin',
+        //         'email' => 'admin@dev.com',
+        //         'password' => Hash::make('admin@dev.com'),
+        //         'is_admin' => true,
+        //     ],
+        //     [
+        //         'name' => 'User',
+        //         'email' => 'user@dev.com',
+        //         'password' => Hash::make('user@dev.com'),
+        //         'is_admin' => false,
+        //     ]
+        // );
 
-        User::factory(50)->create();
+        // User::factory(50)->create();
+        //
     }
 }

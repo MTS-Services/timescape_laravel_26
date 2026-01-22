@@ -1,7 +1,8 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
-import type { AvailabilityRequirements } from '@/types/availability';
+
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/calendar-utils';
+import type { AvailabilityRequirements } from '@/types/availability';
 
 interface RequirementsBannerProps {
     requirements: AvailabilityRequirements;

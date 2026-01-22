@@ -29,7 +29,7 @@ export function UserInfo({
                 )}
                 {showRole && (
                     <span className="text-base text-text-primary font-normal">
-                        {user.is_admin ? 'Admin' : 'Staff'}
+                        {user.role_label || 'Employee'}
                     </span>
                 )}
             </div>

@@ -1,7 +1,10 @@
-import { AVAILABILITY_OPTIONS } from '@/lib/date-helpers';
-import { cn, getCardBackgroundColor } from '@/lib/calendar-utils';
-import { AvailabilityOptionComponent } from './availability-option';
 import { MinusCircle } from 'lucide-react';
+
+import { cn, getCardBackgroundColor } from '@/lib/calendar-utils';
+import { AVAILABILITY_OPTIONS } from '@/lib/date-helpers';
+
+import { AvailabilityOptionComponent } from './availability-option';
+
 
 interface AvailabilityCardProps {
     date: string;

@@ -1,8 +1,9 @@
+import { Head, Link, usePage } from '@inertiajs/react';
+
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import { login, register } from '@/routes';
-import { type SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard } from '@/routes';
+import { type SharedData } from '@/types';
 export default function Welcome({
     canRegister = true,
 }: {

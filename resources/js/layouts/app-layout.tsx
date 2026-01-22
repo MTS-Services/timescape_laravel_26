@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { type ReactNode } from 'react';
-import { type BreadcrumbItem } from '@/types';
+
 import { Toaster } from "@/components/ui/sonner"
+import { type BreadcrumbItem } from '@/types';
 
 interface AppLayoutProps {
     children: ReactNode;

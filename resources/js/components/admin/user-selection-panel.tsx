@@ -1,7 +1,8 @@
+import axios from 'axios';
 import React, { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import axios from 'axios';
 import { User } from '@/types/availability';
 
 interface UserSelectionPanelProps {

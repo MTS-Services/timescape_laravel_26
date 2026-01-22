@@ -66,7 +66,17 @@ class AvailabilityController extends Controller
         // Get all users if admin
         $users = [];
         if ($user->is_admin) {
-            $users = \App\Models\User::select('id', 'name', 'email')->orderBy('name')->get();
+            $users = \App\Models\User::select('id', 'first_name', 'last_name', 'email')
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get()
+                ->map(function ($u) {
+                    return [
+                        'id' => $u->id,
+                        'name' => $u->name,
+                        'email' => $u->email,
+                    ];
+                });
         }
 
         Log::info('Returning availability data', [

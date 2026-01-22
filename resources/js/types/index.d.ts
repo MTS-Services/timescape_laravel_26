@@ -63,6 +63,15 @@ export interface User {
     all_permissions?: string[];
     created_at: string;
     updated_at: string;
+    // When I Work fields
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+    employee_code?: string;
+    role?: number;
+    role_label?: string;
+    can_manage_users?: boolean;
+    avatar_url?: string;
     [key: string]: unknown;
 }
 

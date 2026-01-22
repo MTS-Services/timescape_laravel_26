@@ -1,5 +1,7 @@
 import * as React from 'react';
+
 import { AdminHeader } from '@/layouts/partials/admin/header';
+
 import { AdminFooter } from './partials/admin/footer';
 
 interface AdminLayoutProps {

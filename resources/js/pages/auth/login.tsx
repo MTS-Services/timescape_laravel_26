@@ -1,3 +1,5 @@
+import { Form, Head, Link, usePage } from '@inertiajs/react';
+
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -10,7 +12,6 @@ import { login, register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { SharedData } from '@/types';
-import { Form, Head, Link, usePage } from '@inertiajs/react';
 
 interface LoginProps {
     status?: string;

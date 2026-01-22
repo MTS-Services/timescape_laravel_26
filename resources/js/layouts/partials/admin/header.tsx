@@ -1,3 +1,6 @@
+import { Link, router, usePage } from '@inertiajs/react';
+import { LogOut, Menu } from 'lucide-react';
+
 import AppLogo from '@/components/app-logo';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -6,10 +9,9 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
-import { type SharedData, type NavItem } from '@/types';
-import { Link, router, usePage } from '@inertiajs/react';
-import { LogOut, Menu } from 'lucide-react';
 import { dashboard } from '@/routes';
+import { type SharedData, type NavItem } from '@/types';
+
 
 export function AdminHeader() {
     const { auth } = usePage<SharedData>().props;

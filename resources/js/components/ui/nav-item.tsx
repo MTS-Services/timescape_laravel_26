@@ -1,13 +1,8 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { type NavItemProps } from '@/types';
 import { Link } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
+import * as React from 'react';
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { NavItemIcon } from './nav-item-icon';
-import { NavItemBadge } from './nav-item-badge';
-import { NavItemDropdown } from './nav-item-dropdown';
-import { hasPermission } from '@/lib/nav-utils';
 import { 
     useNavActiveState, 
     useFilteredChildren, 
@@ -15,6 +10,15 @@ import {
     useClickOutside,
     useHasActiveChild
 } from '@/hooks/nav-hooks';
+import { hasPermission } from '@/lib/nav-utils';
+import { cn } from '@/lib/utils';
+import { type NavItemProps } from '@/types';
+
+
+import { NavItemBadge } from './nav-item-badge';
+import { NavItemDropdown } from './nav-item-dropdown';
+import { NavItemIcon } from './nav-item-icon';
+
 
 export const NavItem = React.memo<NavItemProps>(({
     item,

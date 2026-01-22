@@ -1,19 +1,20 @@
-import { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { generateCalendarDays, formatMonthYear, addMonths } from '@/lib/date-helpers';
+
 import { AvailabilityHeader } from '@/components/availability/availability-header';
 import { CalendarGrid } from '@/components/availability/calendar-grid';
 import { RequirementsBanner } from '@/components/availability/requirements-banner';
-import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
+import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import AdminLayout from '@/layouts/admin-layout';
+import { generateCalendarDays, formatMonthYear, addMonths } from '@/lib/date-helpers';
 import type {
     AvailabilitySelections,
     AvailabilityRequirements,
 } from '@/types/availability';
-import AdminLayout from '@/layouts/admin-layout';
 
 interface User {
     id: number;

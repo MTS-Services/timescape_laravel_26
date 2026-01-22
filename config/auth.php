@@ -62,6 +62,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'wheniwork',
+            'model' => App\Models\User::class,
         ],
 
         // 'users' => [
