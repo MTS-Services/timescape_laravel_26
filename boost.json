@@ -2,13 +2,15 @@
     "agents": [
         "claude_code",
         "cursor",
-        "gemini"
+        "gemini",
+        "windsurf"
     ],
     "editors": [
         "claude_code",
         "cursor",
         "gemini",
-        "vscode"
+        "vscode",
+        "windsurf"
     ],
     "guidelines": []
 }
