@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { DataTableProps } from '@/types/data-table.types';
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
     data,
     columns,
     pagination,

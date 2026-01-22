@@ -19,7 +19,7 @@ interface LoginProps {
     canRegister: boolean;
 }
 
-export default function Login({ status, canResetPassword, canRegister }: LoginProps) {
+export default function Login({ status }: LoginProps) {
     const { features } = usePage<SharedData>().props;
     return (
         <AuthLayout
@@ -81,7 +81,7 @@ export default function Login({ status, canResetPassword, canRegister }: LoginPr
                 )}
             </div>
 
-             <Button className="w-full py-6 text-lg" asChild>
+            <Button className="w-full py-6 text-lg" asChild>
                 <Link href={login()}>
                     Login With When I Work
                 </Link>

@@ -2,10 +2,6 @@ import { Head, Link } from '@inertiajs/react';
 import * as React from 'react';
 
 import AppLogo from '@/components/app-logo';
-import AppLogoIcon from '@/components/app-logo-icon';
-import { Button } from '@/components/ui/button';
-import { AuthFooter } from '@/layouts/partials/auth/footer';
-import { AuthHeader } from '@/layouts/partials/auth/header';
 import { login } from '@/routes';
 
 interface AuthLayoutProps {
@@ -20,8 +16,6 @@ export default function AuthLayout({
     children,
     title,
     description,
-    showHeader = false,
-    showFooter = false,
 }: AuthLayoutProps) {
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative bg-background overflow-hidden">

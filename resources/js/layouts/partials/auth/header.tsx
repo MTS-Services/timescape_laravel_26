@@ -7,7 +7,7 @@ import AppearanceToggleDropdown from '@/components/appearance-dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { login, register } from '@/routes';
@@ -56,7 +56,7 @@ export function AuthHeader() {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-ring">
                                     <Avatar className="h-9 w-9">
-                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                        <AvatarImage src={auth.user.avatar_url || auth.user.avatar} alt={auth.user.name} />
                                         <AvatarFallback className="bg-violet-600 text-white text-xs">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>

@@ -160,4 +160,9 @@ class WhenIWorkUserProvider implements UserProvider
             'is_active' => true,
         ];
     }
+
+    public function getModel(): string
+    {
+        return User::class;
+    }
 }

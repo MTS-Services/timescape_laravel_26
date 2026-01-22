@@ -3,8 +3,6 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-import { Button } from "./button";
-
 interface SimpleDateInputProps {
     date: Date | undefined;
     setDate: (date: Date | undefined) => void;
@@ -18,6 +16,14 @@ export function SimpleDateInput({
     className,
     placeholder = "Select date"
 }: SimpleDateInputProps) {
+    // Helper to format date as yyyy-MM-dd
+    const formatDateForInput = React.useCallback((date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }, []);
+
     const [dateString, setDateString] = React.useState(() => {
         return date ? formatDateForInput(date) : '';
     });
@@ -25,15 +31,7 @@ export function SimpleDateInput({
     // Update local string when date prop changes
     React.useEffect(() => {
         setDateString(date ? formatDateForInput(date) : '');
-    }, [date]);
-
-    // Helper to format date as yyyy-MM-dd
-    function formatDateForInput(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
+    }, [date, formatDateForInput]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -46,7 +44,7 @@ export function SimpleDateInput({
                 if (!isNaN(newDate.getTime())) {
                     setDate(newDate);
                 }
-            } catch (error) {
+            } catch {
                 // Invalid date, don't update the date prop
             }
         } else {

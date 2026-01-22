@@ -9,8 +9,7 @@ interface AppLayoutProps {
     breadcrumbs?: BreadcrumbItem[];
 }
 
-export default function AppLayout({ breadcrumbs, children }: AppLayoutProps) {
-    const [isCollapsed, setIsCollapsed] = React.useState(false);
+export default function AppLayout({ children }: AppLayoutProps) {
 
     return (
         <div className="flex min-h-screen">

@@ -2,7 +2,7 @@ declare global {
     interface Route {
         (name?: undefined): {
             current(): string | null;
-            params: Record<string, any>;
+            params: Record<string, unknown>;
         };
         (
             name: string,

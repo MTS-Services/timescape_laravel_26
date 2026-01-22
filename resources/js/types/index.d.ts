@@ -30,7 +30,7 @@ export interface NavItem {
     target?: '_blank' | '_self' | '_parent' | '_top';
     className?: string;
     description?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 // Alias for backward compatibility

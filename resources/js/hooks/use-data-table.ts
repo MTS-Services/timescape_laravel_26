@@ -55,7 +55,7 @@ export function useDataTable(options: UseDataTableProps = {}) {
     );
 
     const handleFilterChange = useCallback(
-        (filters: Record<string, any>) => {
+        (filters: Record<string, unknown>) => {
             const params = new URLSearchParams(window.location.search);
 
             // Remove old filter params

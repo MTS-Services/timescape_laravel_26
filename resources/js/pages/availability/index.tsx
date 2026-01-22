@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
 import { AvailabilityHeader } from '@/components/availability/availability-header';
@@ -8,20 +8,13 @@ import { RequirementsBanner } from '@/components/availability/requirements-banne
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import AdminLayout from '@/layouts/admin-layout';
 import { generateCalendarDays, formatMonthYear, addMonths } from '@/lib/date-helpers';
+import type { User } from '@/types';
 import type {
     AvailabilitySelections,
     AvailabilityRequirements,
 } from '@/types/availability';
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    is_admin?: boolean;
-}
 
 interface PageProps {
     auth: {
@@ -48,8 +41,7 @@ interface PageProps {
         };
     };
     selectedUserId?: number;
-    // Add index signature to satisfy constraint
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export default function AvailabilityScheduler() {
@@ -63,24 +55,23 @@ export default function AvailabilityScheduler() {
         return new Date();
     });
 
-    const [selections, setSelections] = useState<AvailabilitySelections>(
-        initialSelections || {}
-    );
-    const [calendarDays, setCalendarDays] = useState<Date[]>([]);
-    const [isSaving, setIsSaving] = useState(false);
+    const [selections, setSelections] = useState<AvailabilitySelections>({});
 
-    // Update calendar days when current date changes
-    useEffect(() => {
+    // Use useMemo for derived state instead of useEffect
+    const calendarDays = useMemo(() => {
         const days = generateCalendarDays(currentDate);
-        setCalendarDays(days);
         console.log('Generated calendar days:', days);
+        return days;
     }, [currentDate]);
 
-    // Update selections when props change
+    // Initialize selections from props once on mount
     useEffect(() => {
-        console.log('Received initialSelections:', initialSelections);
-        setSelections(initialSelections || {});
-    }, [initialSelections]);
+        if (initialSelections && Object.keys(selections).length === 0) {
+            console.log('Initializing selections from props:', initialSelections);
+            setSelections(initialSelections);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Show success/error messages
     useEffect(() => {
@@ -174,31 +165,6 @@ export default function AvailabilityScheduler() {
         );
     };
 
-    const handleSave = () => {
-        setIsSaving(true);
-        console.log('Saving selections:', selections);
-
-        router.post(
-            route('availability.store'),
-            {
-                selections,
-                year: currentDate.getFullYear(),
-                month: currentDate.getMonth() + 1,
-            },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                onSuccess: () => {
-                    setIsSaving(false);
-                    console.log('Saved successfully');
-                },
-                onError: (errors) => {
-                    setIsSaving(false);
-                    console.error('Save failed:', errors);
-                },
-            }
-        );
-    };
 
     const getUserInitials = (name: string) => {
         return name

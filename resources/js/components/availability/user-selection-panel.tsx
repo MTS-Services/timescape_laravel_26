@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
