@@ -37,6 +37,11 @@ export function PopoverContent({ children, className = "" }: PopoverContentProps
     )
 }
 
-export const PopoverTrigger = ({ children }: { children: React.ReactNode }) => {
+interface PopoverTriggerProps {
+    children: React.ReactNode;
+    asChild?: boolean;
+}
+
+export const PopoverTrigger = ({ children }: PopoverTriggerProps) => {
     return <>{children}</>
 }

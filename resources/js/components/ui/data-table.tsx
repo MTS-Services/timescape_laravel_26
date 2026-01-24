@@ -191,7 +191,7 @@ export function DataTable<T extends Record<string, unknown>>({
                             {filters.map((filter) => (
                                 <div key={filter.key} className="datatable-filter-item">
                                     <Select
-                                        value={localFilters[filter.key] || ''}
+                                        value={String(localFilters[filter.key] || '')}
                                         onValueChange={(value) => handleFilterChange(filter.key, value)}
                                     >
                                         <SelectTrigger className="datatable-select">
@@ -205,14 +205,14 @@ export function DataTable<T extends Record<string, unknown>>({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {localFilters[filter.key] && (
+                                    {localFilters[filter.key] ? (
                                         <button
                                             onClick={() => clearFilter(filter.key)}
                                             className="datatable-filter-clear"
                                         >
                                             <X className="h-3.5 w-3.5" />
                                         </button>
-                                    )}
+                                    ) : null}
                                 </div>
                             ))}
                         </div>
@@ -325,7 +325,7 @@ export function DataTable<T extends Record<string, unknown>>({
                                         <td key={column.key} className={`datatable-cell ${column.className || ''}`}>
                                             {column.render
                                                 ? column.render(item, index)
-                                                : item[column.key]}
+                                                : (item[column.key] as React.ReactNode)}
                                         </td>
                                     ))}
                                     {actions.length > 0 && (

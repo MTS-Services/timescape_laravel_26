@@ -1,7 +1,13 @@
 // resources/js/Components/ErrorFallback.tsx
 import React, { useState } from 'react';
 
-export default function ErrorFallback({ error, resetErrorBoundary }: { error: Error, resetErrorBoundary: () => void }) {
+interface ErrorFallbackProps {
+    error: unknown;
+    resetErrorBoundary: () => void;
+}
+
+export default function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
+    const errorObj = error instanceof Error ? error : new Error(String(error));
     const [showDetails, setShowDetails] = useState(false);
 
     // Check if we are in debug mode via Vite env
@@ -62,7 +68,7 @@ export default function ErrorFallback({ error, resetErrorBoundary }: { error: Er
                                     <span className="text-xs font-mono font-bold uppercase tracking-widest">Exception Trace</span>
                                 </div>
                                 <code className="text-gray-300 font-mono text-xs whitespace-pre-wrap leading-relaxed">
-                                    {error.stack}
+                                    {errorObj.stack || errorObj.message}
                                 </code>
                             </div>
                         </div>

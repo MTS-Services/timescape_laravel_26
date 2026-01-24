@@ -8,7 +8,9 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Toaster } from 'sonner';
 
 import ErrorFallback from './components/error-fallback';
+import { ErrorBadge, ErrorOverlay } from './components/error-overlay';
 import { initializeTheme } from './hooks/use-appearance';
+import { ErrorObservabilityProvider } from './lib/errors/error-context';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -24,21 +26,25 @@ createInertiaApp({
 
         root.render(
             <StrictMode>
-                <ErrorBoundary
-                    FallbackComponent={ErrorFallback}
-                    onReset={() => {
-                        // This logic resets the state of your app so the error doesn't loop
-                        window.location.href = '/';
-                    }}
-                >
-                    <App {...props} />
-                    <Toaster
-                        position="top-right"
-                        richColors
-                        closeButton
-                        expand={false}
-                    />
-                </ErrorBoundary>
+                <ErrorObservabilityProvider>
+                    <ErrorBoundary
+                        FallbackComponent={ErrorFallback}
+                        onReset={() => {
+                            // This logic resets the state of your app so the error doesn't loop
+                            window.location.href = '/';
+                        }}
+                    >
+                        <App {...props} />
+                        <Toaster
+                            position="top-right"
+                            richColors
+                            closeButton
+                            expand={false}
+                        />
+                        <ErrorOverlay />
+                        <ErrorBadge />
+                    </ErrorBoundary>
+                </ErrorObservabilityProvider>
             </StrictMode>,
         );
     },
