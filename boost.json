@@ -12,5 +12,7 @@
         "vscode",
         "windsurf"
     ],
-    "guidelines": []
+    "guidelines": [
+        "laravel/fortify"
+    ]
 }
