@@ -6,7 +6,6 @@ import { AvailabilityHeader } from '@/components/availability/availability-heade
 import { CalendarGrid } from '@/components/availability/calendar-grid';
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import AdminLayout from '@/layouts/admin-layout';
 import { generateCalendarDays, formatMonthYear, addMonths } from '@/lib/date-helpers';
 import type { User } from '@/types';
@@ -164,17 +163,6 @@ export default function AvailabilityScheduler() {
             }
         );
     };
-
-
-    const getUserInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .substring(0, 2);
-    };
-
     return (
         <AdminLayout>
             <Head title="Availability Scheduler" />
