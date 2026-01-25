@@ -4,7 +4,7 @@
  */
 
 import { router } from '@inertiajs/react';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { ErrorStore } from './error-store';
@@ -40,9 +40,9 @@ interface ErrorObservabilityProviderProps {
 }
 
 export function ErrorObservabilityProvider({ children }: ErrorObservabilityProviderProps) {
-    const storeRef = useRef<ErrorStore>(new ErrorStore());
+    const store = useMemo(() => new ErrorStore(), []);
     const [errors, setErrors] = useState<CapturedError[]>([]);
-    const [stats, setStats] = useState(() => storeRef.current.getStats());
+    const [stats, setStats] = useState(() => store.getStats());
     const [isOverlayOpen, setOverlayOpen] = useState(false);
     const environment = getEnvironment();
 
@@ -87,7 +87,7 @@ export function ErrorObservabilityProvider({ children }: ErrorObservabilityProvi
                 hash,
             };
 
-            const wasAdded = storeRef.current.addError(capturedError);
+            const wasAdded = store.addError(capturedError);
 
             if (wasAdded && environment !== 'production') {
                 const severityConfig = {
@@ -109,17 +109,17 @@ export function ErrorObservabilityProvider({ children }: ErrorObservabilityProvi
                 });
             }
         },
-        [environment, setOverlayOpen],
+        [environment, setOverlayOpen, store],
     );
 
     useEffect(() => {
-        const unsubscribe = storeRef.current.subscribe(() => {
-            setErrors(storeRef.current.getErrors());
-            setStats(storeRef.current.getStats());
+        const unsubscribe = store.subscribe(() => {
+            setErrors(store.getErrors());
+            setStats(store.getStats());
         });
 
         return unsubscribe;
-    }, []);
+    }, [store]);
 
     useEffect(() => {
         const handleWindowError = (event: ErrorEvent): void => {
@@ -174,20 +174,20 @@ export function ErrorObservabilityProvider({ children }: ErrorObservabilityProvi
         };
     }, [captureError]);
 
-    const clearErrors = (): void => {
-        storeRef.current.clearAll();
-    };
+    const clearErrors = useCallback((): void => {
+        store.clearAll();
+    }, [store]);
 
-    const clearError = (id: string): void => {
-        storeRef.current.clearError(id);
-    };
+    const clearError = useCallback((id: string): void => {
+        store.clearError(id);
+    }, [store]);
 
-    const ignoreError = (hash: string): void => {
-        storeRef.current.ignoreError(hash);
+    const ignoreError = useCallback((hash: string): void => {
+        store.ignoreError(hash);
         toast.success('Error ignored', {
             description: 'This error will no longer be captured',
         });
-    };
+    }, [store]);
 
     const value: ErrorContextValue = useMemo(
         () => ({
@@ -200,7 +200,7 @@ export function ErrorObservabilityProvider({ children }: ErrorObservabilityProvi
             isOverlayOpen,
             setOverlayOpen,
         }),
-        [errors, stats, captureError, isOverlayOpen],
+        [errors, stats, captureError, clearErrors, clearError, ignoreError, isOverlayOpen],
     );
 
     return <ErrorContext.Provider value={value}>{children}</ErrorContext.Provider>;

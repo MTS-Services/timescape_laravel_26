@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { login, register } from '@/routes';
@@ -50,7 +51,7 @@ export default function Login({ status }: LoginProps) {
                                             <TextLink href={request()} className="text-xs text-violet-600 hover:text-violet-500 transition-colors">Forgot?</TextLink>
                                         )}
                                     </div>
-                                    <Input id="password" type="password" name="password" required className="bg-background/50" />
+                                    <PasswordInput id="password" name="password" required className="bg-background/50" />
                                     <InputError message={errors.password} />
                                 </div>
 
