@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 
 import { AvailabilityHeader } from '@/components/availability/availability-header';
 import { CalendarGrid } from '@/components/availability/calendar-grid';
-import { RequirementsBanner } from '@/components/availability/requirements-banner';
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -15,6 +14,7 @@ import type {
     AvailabilitySelections,
     AvailabilityRequirements,
 } from '@/types/availability';
+import SchedulerHeader from '@/components/scheduler-header';
 
 interface PageProps {
     auth: {
@@ -45,7 +45,7 @@ interface PageProps {
 }
 
 export default function AvailabilityScheduler() {
-    const { auth, initialSelections, requirements, currentYear, currentMonth, flash, users, statistics, selectedUserId } =
+    const { auth, initialSelections, currentYear, currentMonth, flash, users, statistics, selectedUserId } =
         usePage<PageProps>().props;
 
     const [currentDate, setCurrentDate] = useState(() => {
@@ -178,90 +178,54 @@ export default function AvailabilityScheduler() {
     return (
         <AdminLayout>
             <Head title="Availability Scheduler" />
+            <SchedulerHeader />
 
-            <div className="min-h-screen bg-background py-8">
-                <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="rounded-lg bg-destructive px-4 py-2 text-xl font-bold text-destructive-foreground">
-                                TIMESCAPE
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-foreground">
-                                    Availability Scheduler
-                                </h1>
-                                <p className="text-sm text-muted-foreground">
-                                    Calendar Dashboard
-                                </p>
-                            </div>
-                        </div>
 
-                        <div className="flex items-center gap-4">
-                            <div className="text-right">
-                                <p className="text-sm font-medium text-foreground">
-                                    {auth.user.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">Staff</p>
-                            </div>
-                            <Avatar>
-                                <AvatarFallback>
-                                    {getUserInitials(auth.user.name)}
-                                </AvatarFallback>
-                            </Avatar>
-                        </div>
+            <div className="container mx-auto px-4 mt-0.5">
+                {/* Calendar */}
+                <AvailabilityHeader
+                    currentMonth={formatMonthYear(currentDate)}
+                    onPrevMonth={handlePrevMonth}
+                    onNextMonth={handleNextMonth}
+                    onToday={handleToday}
+                    onMonthYearChange={handleMonthYearChange}
+                    currentMonthNum={currentDate.getMonth() + 1}
+                    currentYearNum={currentDate.getFullYear()}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {/* Calendar Grid */}
+                    <div className={`md:col-span-${auth.user.is_admin ? '3' : '4'}`}>
+                        <CalendarGrid
+                            calendarDays={calendarDays}
+                            currentMonth={currentDate}
+                            selections={selections}
+                            onSelectionChange={handleSelectionChange}
+                        />
                     </div>
 
-                    {/* Requirements Banner */}
-                    {requirements && (
-                        <RequirementsBanner requirements={requirements} />
-                    )}
-
-                    {/* Calendar */}
-                    <AvailabilityHeader
-                        currentMonth={formatMonthYear(currentDate)}
-                        onPrevMonth={handlePrevMonth}
-                        onNextMonth={handleNextMonth}
-                        onToday={handleToday}
-                        onMonthYearChange={handleMonthYearChange}
-                        currentMonthNum={currentDate.getMonth() + 1}
-                        currentYearNum={currentDate.getFullYear()}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {/* Calendar Grid */}
-                        <div className={`md:col-span-${auth.user.is_admin ? '3' : '4'}`}>
-                            <CalendarGrid
-                                calendarDays={calendarDays}
-                                currentMonth={currentDate}
-                                selections={selections}
-                                onSelectionChange={handleSelectionChange}
+                    {/* Admin User Selection Panel */}
+                    {auth.user.is_admin && users && (
+                        <div className="md:col-span-1">
+                            <UserSelectionPanel
+                                users={users}
+                                selectedUserId={selectedUserId}
+                                currentYear={currentDate.getFullYear()}
+                                currentMonth={currentDate.getMonth() + 1}
                             />
                         </div>
-
-                        {/* Admin User Selection Panel */}
-                        {auth.user.is_admin && users && (
-                            <div className="md:col-span-1">
-                                <UserSelectionPanel
-                                    users={users}
-                                    selectedUserId={selectedUserId}
-                                    currentYear={currentDate.getFullYear()}
-                                    currentMonth={currentDate.getMonth() + 1}
-                                />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Admin Statistics Panel */}
-                    {auth.user.is_admin && statistics && selectedUserId && (
-                        <StatisticsPanel
-                            statistics={statistics}
-                            selectedUserId={selectedUserId}
-                            currentYear={currentDate.getFullYear()}
-                            currentMonth={currentDate.getMonth() + 1}
-                        />
                     )}
                 </div>
+
+                {/* Admin Statistics Panel */}
+                {auth.user.is_admin && statistics && selectedUserId && (
+                    <StatisticsPanel
+                        statistics={statistics}
+                        selectedUserId={selectedUserId}
+                        currentYear={currentDate.getFullYear()}
+                        currentMonth={currentDate.getMonth() + 1}
+                    />
+                )}
             </div>
         </AdminLayout>
     );
