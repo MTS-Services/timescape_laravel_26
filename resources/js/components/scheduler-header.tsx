@@ -1,9 +1,8 @@
 import { usePage } from "@inertiajs/react";
-import { Suspense, lazy } from "react";
 
 import { AvailabilityRequirements } from "@/types/availability";
-// lazy load requirements banner
-const RequirementsBanner = lazy(() => import("./availability/requirements-banner"));
+
+import RequirementsBanner from "./availability/requirements-banner";
 
 interface PageProps {
     requirements: AvailabilityRequirements;
@@ -18,11 +17,9 @@ export default function SchedulerHeader() {
                 <h4 className="text-[32px] font-semibold">Availability Scheduler</h4>
                 <h6 className="text-base font-semibold text-text-muted">Calendar Dashboard</h6>
             </div>
-            <Suspense fallback={<span className="hidden"></span>}>
-                {requirements && (
-                    <RequirementsBanner />
-                )}
-            </Suspense>
+            {requirements && (
+                <RequirementsBanner requirements={requirements} />
+            )}
         </div>
     )
 }

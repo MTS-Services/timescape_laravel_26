@@ -83,7 +83,7 @@ export default function Login({ status }: LoginProps) {
                                 className={`w-full py-6 text-lg ${processing ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                 disabled={processing}
                             >
-                                {processing ? <Spinner className="mr-2 h-4 w-4" /> : 'Login With When I Work'}
+                                {processing ? <Spinner className="h-4 w-4" /> : 'Login With When I Work'}
                             </Button>
                         </>
                     )}
