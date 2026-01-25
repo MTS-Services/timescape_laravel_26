@@ -1,0 +1,9 @@
+# nixpacks.toml
+[start]
+cmd = "php artisan serve --host=0.0.0.0 --port=8080"
+
+[phases.setup]
+nixPkgs = ["php", "composer", "mysql"]
+
+[phases.install]
+cmds = ["composer install --no-dev --optimize-autoloader"]
