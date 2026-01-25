@@ -1,11 +1,12 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
 import { AvailabilityHeader } from '@/components/availability/availability-header';
 import { CalendarGrid } from '@/components/availability/calendar-grid';
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
+import SchedulerHeader from '@/components/scheduler-header';
 import AdminLayout from '@/layouts/admin-layout';
 import { generateCalendarDays, formatMonthYear, addMonths } from '@/lib/date-helpers';
 import type { User } from '@/types';
@@ -13,7 +14,6 @@ import type {
     AvailabilitySelections,
     AvailabilityRequirements,
 } from '@/types/availability';
-import SchedulerHeader from '@/components/scheduler-header';
 
 interface PageProps {
     auth: {
@@ -72,6 +72,14 @@ export default function AvailabilityScheduler() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Update selections when selectedUserId changes (admin switches users)
+    useEffect(() => {
+        if (initialSelections) {
+            console.log('User changed, updating selections:', { selectedUserId, initialSelections });
+            setSelections(initialSelections);
+        }
+    }, [selectedUserId, initialSelections]);
+
     // Show success/error messages
     useEffect(() => {
         if (flash?.success) {
@@ -86,19 +94,22 @@ export default function AvailabilityScheduler() {
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
 
-        console.log('Fetching month data:', { year, month });
+        console.log('Fetching month data:', { year, month, selectedUserId });
 
         // Use the main availability.index route with query parameters
+        // Include selectedUserId to maintain user context when admin switches months
         router.get(
             route('availability.index'),
             {
                 year,
                 month,
+                user_id: selectedUserId, // Maintain selected user context
             },
             {
                 preserveState: true,
                 preserveScroll: true,
-                only: ['initialSelections', 'requirements', 'currentYear', 'currentMonth'],
+                // Include admin-specific props so they persist when switching months
+                only: ['initialSelections', 'requirements', 'currentYear', 'currentMonth', 'users', 'statistics', 'selectedUserId'],
                 onSuccess: () => {
                     console.log('Month data fetched successfully');
                 },
@@ -136,7 +147,7 @@ export default function AvailabilityScheduler() {
     };
 
     const handleSelectionChange = (dateKey: string, optionId: string | null) => {
-        console.log('Selection changed:', { dateKey, optionId });
+        console.log('Selection changed:', { dateKey, optionId, selectedUserId });
 
         // Update local state
         setSelections((prev) => ({
@@ -144,13 +155,14 @@ export default function AvailabilityScheduler() {
             [dateKey]: optionId,
         }));
 
-        // Save immediately to server
+        // Save immediately to server - include selectedUserId so admin changes apply to correct user
         router.post(
             route('availability.store'),
             {
                 selections: { [dateKey]: optionId },
                 year: currentDate.getFullYear(),
                 month: currentDate.getMonth() + 1,
+                user_id: selectedUserId, // Pass selected user ID for admin context
                 single_update: true, // Flag to indicate a single update
             },
             {
@@ -182,7 +194,7 @@ export default function AvailabilityScheduler() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {/* Calendar Grid */}
-                    <div className={`${auth.user.is_admin ? 'md:col-span-3' : 'md:col-span-4'}`}>
+                    <div className={`${auth.user.can_manage_users ? 'md:col-span-3' : 'md:col-span-4'}`}>
                         <CalendarGrid
                             calendarDays={calendarDays}
                             currentMonth={currentDate}
@@ -191,8 +203,8 @@ export default function AvailabilityScheduler() {
                         />
                     </div>
 
-                    {/* Admin User Selection Panel */}
-                    {auth.user.is_admin && users && (
+                    {/* User Management Panel */}
+                    {auth.user.can_manage_users && users && (
                         <div className="md:col-span-1">
                             <UserSelectionPanel
                                 users={users}
@@ -204,8 +216,8 @@ export default function AvailabilityScheduler() {
                     )}
                 </div>
 
-                {/* Admin Statistics Panel */}
-                {auth.user.is_admin && statistics && selectedUserId && (
+                {/* Statistics Panel */}
+                {auth.user.can_manage_users && statistics && selectedUserId && (
                     <StatisticsPanel
                         statistics={statistics}
                         selectedUserId={selectedUserId}

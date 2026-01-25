@@ -146,6 +146,11 @@ class User extends Authenticatable
         return $this->role?->canManageUsers() ?? false;
     }
 
+    public function getCanManageUsersAttribute(): bool
+    {
+        return $this->canManageUsers();
+    }
+
     public function canAccessPayroll(): bool
     {
         return $this->role?->canAccessPayroll() ?? false;

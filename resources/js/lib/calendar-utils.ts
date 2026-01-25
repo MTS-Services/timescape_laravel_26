@@ -37,21 +37,9 @@ export function getOptionColorClasses(
     checkbox: string;
     label: string;
 } {
-    if (colorName === 'teal') {
-        return {
-            container: 'group',
-            checkbox: isSelected
-                ? 'border-teal-500 bg-teal-500 data-[state=checked]:bg-teal-500 data-[state=checked]:border-teal-500'
-                : 'border-teal-500',
-            label: isSelected ? 'text-teal-700 font-medium' : 'text-teal-700',
-        };
-    }
-
     return {
         container: 'group',
-        checkbox: isSelected
-            ? 'border-gray-400 bg-gray-400 data-[state=checked]:bg-gray-400 data-[state=checked]:border-gray-400'
-            : 'border-gray-400',
-        label: isSelected ? 'text-gray-700 font-medium' : 'text-gray-600',
+        checkbox: '',
+        label: isSelected ? 'text-secondary' : '',
     };
 }

@@ -31,8 +31,8 @@ class AvailabilityController extends Controller
             'selected_user_id' => $selectedUserId,
         ]);
 
-        // If user is admin, they can view other users' data
-        $targetUserId = $user->is_admin && $selectedUserId !== $user->id ? $selectedUserId : $user->id;
+        // If user has can_manage_users permission, they can view other users' data
+        $targetUserId = $user->can_manage_users && $selectedUserId !== $user->id ? $selectedUserId : $user->id;
 
         $availabilities = $this->availabilityService->getAvailabilitiesForMonth(
             $targetUserId,
@@ -46,9 +46,9 @@ class AvailabilityController extends Controller
             $month
         );
 
-        // Get user statistics if admin
+        // Get user statistics if user has can_manage_users permission
         $statistics = null;
-        if ($user->is_admin) {
+        if ($user->can_manage_users) {
             $filterType = $request->get('filter_type', 'month');
             $startDate = $request->get('start_date');
             $endDate = $request->get('end_date');
@@ -63,9 +63,9 @@ class AvailabilityController extends Controller
             );
         }
 
-        // Get all users if admin
+        // Get all users if user has can_manage_users permission
         $users = [];
-        if ($user->is_admin) {
+        if ($user->can_manage_users) {
             $users = \App\Models\User::select('id', 'first_name', 'last_name', 'email')
                 ->orderBy('first_name')
                 ->orderBy('last_name')
@@ -99,14 +99,19 @@ class AvailabilityController extends Controller
     public function store(StoreAvailabilityRequest $request): RedirectResponse
     {
         $user = $request->user();
+        $selectedUserId = (int) $request->input('user_id', $user->id);
+
+        // Determine target user: if user has can_manage_users permission and selected another user, use that
+        $targetUserId = $user->can_manage_users && $selectedUserId !== $user->id ? $selectedUserId : $user->id;
 
         Log::info('Storing availability', [
-            'user_id' => $user->id,
+            'logged_in_user_id' => $user->id,
+            'target_user_id' => $targetUserId,
             'selections' => $request->validated('selections'),
         ]);
 
         $this->availabilityService->saveAvailabilities(
-            $user->id,
+            $targetUserId,
             $request->validated('selections')
         );
 
@@ -114,7 +119,7 @@ class AvailabilityController extends Controller
         $month = $request->input('month', now()->month);
 
         $requirements = $this->availabilityService->checkRequirements(
-            $user->id,
+            $targetUserId,
             $year,
             $month
         );

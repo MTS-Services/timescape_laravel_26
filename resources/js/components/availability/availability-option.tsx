@@ -6,6 +6,7 @@ import { cn, getOptionColorClasses } from '@/lib/calendar-utils';
 import type { AvailabilityOption } from '@/types/availability';
 
 interface AvailabilityOptionProps {
+    date: string;
     option: AvailabilityOption;
     isSelected: boolean;
     isDisabled: boolean;
@@ -13,6 +14,7 @@ interface AvailabilityOptionProps {
 }
 
 export function AvailabilityOptionComponent({
+    date,
     option,
     isSelected,
     isDisabled,
@@ -21,8 +23,8 @@ export function AvailabilityOptionComponent({
     const colors = getOptionColorClasses(option.color, isSelected);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Generate a stable ID using option.id
-    const checkboxId = `option-${option.id}`;
+    // Generate a unique ID per date AND option to prevent ID collision across date cards
+    const checkboxId = `option-${date}-${option.id}`;
 
     const handleChange = (checked: boolean) => {
         if (isDisabled) return;
@@ -39,9 +41,15 @@ export function AvailabilityOptionComponent({
         }, 500);
     };
 
+    const handleContainerClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    };
+
     return (
-        <div className={cn('flex items-center space-x-2', colors.container,
-            isSaving && 'opacity-70')}>
+        <div
+            className={cn('flex items-center space-x-2', colors.container, isSaving && 'opacity-70')}
+            onClick={handleContainerClick}
+        >
             <Checkbox
                 id={checkboxId}
                 checked={isSelected}

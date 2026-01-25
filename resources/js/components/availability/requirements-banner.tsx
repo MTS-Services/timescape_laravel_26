@@ -1,14 +1,6 @@
-import { CheckCircle2, AlertCircle } from 'lucide-react';
-
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { cn } from '@/lib/calendar-utils';
-import type { AvailabilityRequirements } from '@/types/availability';
 
-interface RequirementsBannerProps {
-    requirements: AvailabilityRequirements;
-}
-
-export default function RequirementsBanner({ requirements }: RequirementsBannerProps) {
+export default function RequirementsBanner() {
     return (
         <Alert className="border-border border-2 w-auto px-10 py-4">
             <AlertDescription>
