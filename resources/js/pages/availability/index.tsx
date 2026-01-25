@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense, lazy } from 'react';
 import { toast } from 'sonner';
 
 import { AvailabilityHeader } from '@/components/availability/availability-header';
@@ -167,7 +167,6 @@ export default function AvailabilityScheduler() {
         <AdminLayout>
             <Head title="Availability Scheduler" />
             <SchedulerHeader />
-
 
             <div className="container mx-auto px-4 mt-0.5">
                 {/* Calendar */}

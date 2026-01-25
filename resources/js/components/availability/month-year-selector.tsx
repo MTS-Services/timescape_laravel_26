@@ -1,4 +1,4 @@
-import { Calendar } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import React, { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -49,13 +49,12 @@ export function MonthYearSelector({
     return (
         <div className="relative inline-block">
             <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={toggleCalendar}
-                className="flex items-center"
+                className="flex items-center cursor-pointer"
             >
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>Select Month & Year</span>
+                <CalendarDays className="h-5 w-5" />
             </Button>
 
             {isOpen && (

@@ -24,25 +24,22 @@ export function AvailabilityHeader({
     currentYearNum,
 }: AvailabilityHeaderProps) {
     return (
-        <div className="mb-6 flex items-center justify-between rounded-lg bg-muted p-4">
-            <h2 className="text-lg font-semibold text-foreground">
+        <div className="py-1 px-2 mb-6 rounded flex items-center justify-between bg-muted border-t-2 border-black/5 h-auto">
+            <p className="text-base font-normal text-text-primary">
                 Availability For {currentMonth}
-            </h2>
+            </p>
 
-            <div className="flex items-center gap-2">
+            <div className="h-full flex items-center gap-2">
                 <Button
                     onClick={onPrevMonth}
                     variant="ghost"
                     size="icon"
                     aria-label="Previous month"
+                    className="cursor-pointer"
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </Button>
 
-                <Button onClick={onToday} variant="outline" size="sm">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    TODAY
-                </Button>
 
                 {/* Month/Year selector */}
                 {onMonthYearChange && currentMonthNum && currentYearNum && (
@@ -58,8 +55,13 @@ export function AvailabilityHeader({
                     variant="ghost"
                     size="icon"
                     aria-label="Next month"
+                    className='cursor-pointer'
                 >
                     <ChevronRight className="h-5 w-5" />
+                </Button>
+
+                <Button onClick={onToday} variant="outline" size="sm" className="h-full px-2.5 py-3 rounded-md border border-black/15 bg-transparent font-montserrat font-semibold cursor-pointer">
+                    TODAY
                 </Button>
             </div>
         </div>
