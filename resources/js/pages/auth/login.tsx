@@ -91,7 +91,7 @@ export default function Login({ status }: LoginProps) {
                 </Form>
 
                 {features.canRegister && (
-                    <p className="text-center text-sm text-muted-foreground">
+                    <p className="text-center text-sm text-muted-foreground mt-4">
                         New here? <TextLink href={register()} className="text-violet-600 font-semibold hover:text-violet-500 underline-offset-4 hover:underline">Create an account</TextLink>
                     </p>
                 )}
