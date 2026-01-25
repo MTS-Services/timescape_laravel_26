@@ -1,4 +1,4 @@
-import { MinusCircle } from 'lucide-react';
+import { Minus, MinusCircle } from 'lucide-react';
 
 import { cn, getCardBackgroundColor } from '@/lib/calendar-utils';
 import { AVAILABILITY_OPTIONS } from '@/lib/date-helpers';
@@ -69,13 +69,15 @@ export function AvailabilityCard({
 
             {showUnavailable ? (
                 /* Show "Unavailable All Day" for past dates with no data */
-                <div className="flex flex-col items-center justify-center gap-3 py-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 dark:bg-red-950/30">
-                        <MinusCircle className="h-5 w-5 text-red-600 dark:text-red-500" />
+                <div className='flex flex-col items-center justify-center gap-3 py-4'>
+                    <div className="flex items-center justify-center">
+                        <div className="flex items-center justify-center w-4 h-4 rounded-full bg-destructive">
+                            <Minus className="h-5 w-5 text-background" />
+                        </div>
+                        <span className="text-xs text-muted-foreground text-center">
+                            Unavailable All Day
+                        </span>
                     </div>
-                    <span className="text-xs text-muted-foreground text-center">
-                        Unavailable All Day
-                    </span>
                 </div>
             ) : shouldShowReadOnlyOption ? (
                 /* Show ONLY the selected option for past dates (read-only) */
@@ -88,6 +90,7 @@ export function AvailabilityCard({
                             isSelected={true}
                             isDisabled={true}
                             onChange={handleOptionChange}
+                            isPastDate={true}
                         />
                     ))}
                 </div>
@@ -102,6 +105,7 @@ export function AvailabilityCard({
                             isSelected={selectedOption === option.id}
                             isDisabled={isDisabled}
                             onChange={handleOptionChange}
+                            isPastDate={false}
                         />
                     ))}
                 </div>

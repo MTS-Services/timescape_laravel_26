@@ -11,6 +11,7 @@ interface AvailabilityOptionProps {
     isSelected: boolean;
     isDisabled: boolean;
     onChange: (optionId: string, checked: boolean) => void;
+    isPastDate?: boolean;
 }
 
 export function AvailabilityOptionComponent({
@@ -19,6 +20,7 @@ export function AvailabilityOptionComponent({
     isSelected,
     isDisabled,
     onChange,
+    isPastDate = false,
 }: AvailabilityOptionProps) {
     const colors = getOptionColorClasses(option.color, isSelected);
     const [isSaving, setIsSaving] = useState(false);
@@ -47,27 +49,29 @@ export function AvailabilityOptionComponent({
 
     return (
         <div
-            className={cn('flex items-center space-x-2', colors.container, isSaving && 'opacity-70')}
+            className={cn('flex items-center space-x-2', isPastDate && 'flex-1 bg-red-50 h-full flex-col justify-center', colors.container, isSaving && 'opacity-70')}
             onClick={handleContainerClick}
         >
-            <Checkbox
-                id={checkboxId}
-                checked={isSelected}
-                disabled={isDisabled || isSaving}
-                onCheckedChange={handleChange}
-                className={cn(colors.checkbox, 'h-4 w-4')}
-            />
-            <Label
-                htmlFor={checkboxId}
-                className={cn(
-                    'text-xs cursor-pointer select-none',
-                    colors.label,
-                    (isDisabled || isSaving) && 'opacity-50 cursor-not-allowed'
-                )}
-            >
-                {option.label}
-                {isSaving && <span className="ml-1 text-xs text-muted-foreground">(saving...)</span>}
-            </Label>
+            <span className={`flex items-center justify-start`}>
+                <Checkbox
+                    id={checkboxId}
+                    checked={isSelected}
+                    disabled={isDisabled || isSaving}
+                    onCheckedChange={handleChange}
+                    className={cn(colors.checkbox, 'h-4 w-4')}
+                />
+                <Label
+                    htmlFor={checkboxId}
+                    className={cn(
+                        'text-xs cursor-pointer select-none',
+                        colors.label,
+                        (isDisabled || isSaving) && 'opacity-50 cursor-not-allowed'
+                    )}
+                >
+                    {option.label}
+                    {isSaving && <span className="ml-1 text-xs text-muted-foreground">(saving...)</span>}
+                </Label>
+            </span>
         </div>
     );
 }

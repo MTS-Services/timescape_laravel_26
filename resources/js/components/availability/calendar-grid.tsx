@@ -30,13 +30,13 @@ export function CalendarGrid({
     console.log('Selections:', selections);
     console.log('onSelectionChange:', onSelectionChange);
     return (
-        <div className="rounded-lg border bg-card shadow-sm">
+        <div>
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-4 border-b p-4">
+            <div className="grid grid-cols-7 gap-4 px-4 py-5">
                 {WEEKDAYS.map((day) => (
                     <div
                         key={day}
-                        className="text-center text-sm font-semibold text-muted-foreground"
+                        className="text-center text-base font-normal text-text-primary"
                     >
                         {day}
                     </div>
@@ -44,7 +44,7 @@ export function CalendarGrid({
             </div>
 
             {/* Calendar Days */}
-            <div className="grid grid-cols-7 gap-4 p-4">
+            <div className="grid grid-cols-7 gap-4 px-4 py-5">
                 {calendarDays.map((date, index) => {
                     const dateKey = formatDateKey(date);
                     const isCurrentMonthDay = isSameMonth(date, currentMonth);

@@ -192,9 +192,9 @@ export default function AvailabilityScheduler() {
                     currentYearNum={currentDate.getFullYear()}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                     {/* Calendar Grid */}
-                    <div className={`${auth.user.can_manage_users ? 'md:col-span-3' : 'md:col-span-4'}`}>
+                    <div className={`${auth.user.can_manage_users ? 'md:col-span-4' : 'md:col-span-5'}`}>
                         <CalendarGrid
                             calendarDays={calendarDays}
                             currentMonth={currentDate}
