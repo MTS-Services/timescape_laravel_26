@@ -77,56 +77,65 @@
 
 :root {
     --background: #F9FAFB;
-    --foreground: oklch(0.145 0 0);
+    --foreground: #121711;
+
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: hsl(354, 68%, 48%);
+
+    --primary: #D02738;
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
+
+    --secondary: #F3F3F3;
+    --secondary-foreground: #121711;
+
+    --muted: #F3F3F3;
+    --muted-foreground: #9B9B9F;
+
+    --accent: #FAF5FF;
+    --accent-foreground: #9747FF;
+
+    --destructive: #D02738;
+    --destructive-foreground: #FEF2F2;
+
+    --border: #F3F3F3;
+    --input: #F3F3F3;
+    --ring: #2467E3;
+
+    --chart-1: #9747FF;
+    --chart-2: #0D9488;
+    --chart-3: #2467E3;
+    --chart-4: #9B9B9F;
+    --chart-5: #FDF5E6;
+
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
+
+    --sidebar: #121711;
+    --sidebar-foreground: #F3F3F3;
+
+    --sidebar-primary: #D02738;
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent: #2467E3;
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.87 0 0);
 
-    --text-primary: hsla(0, 0%, 7%, 1);
-    --text-primary-foreground: hsla(210, 15%, 95%, 1);
-    --text-secondary: hsla(175, 84%, 19%, 1);
-    --text-secondary-foreground: hsla(210, 15%, 95%, 1);
-    --text-muted: hsla(210, 15%, 55%, 1);
+    --text-primary: #121711;
+    --text-secondary: #0D9488;
+    --text-muted: #9B9B9F;
 
     --shadow-card: 0 7px 29px 0px #64646F33;
 
     --datatable-bg: #ffffff;
-    --datatable-bg-secondary: #f8fafc;
-    --datatable-border: #e2e8f0;
+    --datatable-bg-secondary: #FDF5E6;
+    --datatable-border: #F3F3F3;
     --datatable-header-bg: #f1f5f9;
     --datatable-row-hover: #f8fafc;
     --datatable-text: #0f172a;
     --datatable-text-secondary: #475569;
     --datatable-text-muted: #64748b;
-    --datatable-primary: #3b82f6;
+    --datatable-primary: #2467E3;
     --datatable-primary-hover: #2563eb;
     --datatable-destructive: #ef4444;
     --datatable-destructive-hover: #dc2626;
@@ -137,23 +146,24 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
+    --background: #121711;
+    --foreground: #F3F3F3;
+
+    --card: #121711;
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.145 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
+    --primary: #D02738;
     --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
+    --secondary: #2467E3;
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
+    --muted: #9B9B9F;
     --muted-foreground: oklch(0.708 0 0);
     --accent: oklch(0.269 0 0);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
+    --border: #334155;
     --input: oklch(0.269 0 0);
     --ring: oklch(0.439 0 0);
     --chart-1: oklch(0.488 0.243 264.376);
@@ -170,8 +180,8 @@
     --sidebar-border: oklch(0.269 0 0);
     --sidebar-ring: oklch(0.439 0 0);
 
-    --datatable-bg: #0f172a;
-    --datatable-bg-secondary: #1e293b;
+    --datatable-bg: #121711;
+    --datatable-bg-secondary: #1a1f19;
     --datatable-border: #334155;
     --datatable-header-bg: #1e293b;
     --datatable-row-hover: #1e293b;

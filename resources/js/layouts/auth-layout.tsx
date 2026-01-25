@@ -46,7 +46,7 @@ export default function AuthLayout({
                     </p>
                 </div>
 
-                <div className="mt-8 md:mt-10 w-full">
+                <div className="mt-8 w-full">
                     {children}
                 </div>
             </main>

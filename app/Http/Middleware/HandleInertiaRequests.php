@@ -62,10 +62,14 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'features' => [
+                // 'canRegister' => Features::enabled(Features::registration()),
+                // 'canResetPassword' => Features::enabled(Features::resetPasswords()),
+                // 'canVerifyEmail' => Features::enabled(Features::emailVerification()),
+                // 'canUseTwoFactorAuthentication' => Features::enabled(Features::twoFactorAuthentication()),
                 'canRegister' => false,
-                'canResetPassword' => Features::enabled(Features::resetPasswords()),
-                'canVerifyEmail' => Features::enabled(Features::emailVerification()),
-                'canUseTwoFactorAuthentication' => Features::enabled(Features::twoFactorAuthentication()),
+                'canResetPassword' => false,
+                'canVerifyEmail' => false,
+                'canUseTwoFactorAuthentication' => false,
             ],
         ];
     }
