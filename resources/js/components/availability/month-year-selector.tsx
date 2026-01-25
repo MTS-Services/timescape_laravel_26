@@ -1,5 +1,5 @@
-import { CalendarDays } from 'lucide-react';
-import React, { useState } from 'react';
+import { CalendarDays, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,9 +15,10 @@ export function MonthYearSelector({
     currentYear,
     onMonthYearChange,
 }: MonthYearSelectorProps) {
-    const [isOpen, setIsOpen] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
     const [selectedYear, setSelectedYear] = useState(currentYear);
+    const calendarRef = useRef<HTMLDivElement | null>(null);
+    const isCalendarOpenRef = useRef(false);
 
     const months = [
         { value: 1, label: 'January' },
@@ -34,16 +35,24 @@ export function MonthYearSelector({
         { value: 12, label: 'December' },
     ];
 
-    const currentYearNum = new Date().getFullYear();
-    const years = Array.from({ length: 11 }, (_, i) => currentYearNum - 5 + i);
+    const minYear = 2020;
+    const maxYear = new Date().getFullYear() + 5;
+    const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
+
+    const setCalendarVisibility = (shouldShow: boolean) => {
+        isCalendarOpenRef.current = shouldShow;
+        if (calendarRef.current) {
+            calendarRef.current.classList.toggle('hidden', !shouldShow);
+        }
+    };
 
     const handleApply = () => {
         onMonthYearChange(selectedMonth, selectedYear);
-        setIsOpen(false);
+        setCalendarVisibility(false);
     };
 
     const toggleCalendar = () => {
-        setIsOpen(!isOpen);
+        setCalendarVisibility(!isCalendarOpenRef.current);
     };
 
     return (
@@ -57,67 +66,80 @@ export function MonthYearSelector({
                 <CalendarDays className="h-5 w-5" />
             </Button>
 
-            {isOpen && (
-                <div className="absolute right-0 mt-2 w-64 rounded-md border bg-card p-4 shadow-lg z-50">
-                    <h4 className="font-medium mb-2">Select Month & Year</h4>
+            <div
+                ref={calendarRef}
+                className="absolute right-0 mt-2 w-64 rounded-md border bg-card p-4 shadow-lg z-50 hidden space-y-4"
+            >
+                <div className="flex justify-between items-center">
+                    <h4 className="font-semibold text-base font-montserrat">Calendar</h4>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={toggleCalendar}
+                        className="cursor-pointer rounded-full bg-transparent"
+                    >
+                        <X className="h-5 w-5" />
+                    </Button>
+                </div>
 
-                    <div className="grid gap-4">
-                        <div className="grid gap-2">
-                            <label className="text-xs font-medium">Month</label>
-                            <Select
-                                value={selectedMonth.toString()}
-                                onValueChange={(value) => setSelectedMonth(parseInt(value, 10))}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select month" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {months.map((month) => (
-                                        <SelectItem key={month.value} value={month.value.toString()}>
-                                            {month.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                <div className="grid gap-4">
+                    <div className="grid gap-2">
+                        {/* <label className="text-xs font-medium">Month</label> */}
+                        <Select
+                            value={selectedMonth.toString()}
+                            onValueChange={(value) => setSelectedMonth(parseInt(value, 10))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select month" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {months.map((month) => (
+                                    <SelectItem key={month.value} value={month.value.toString()}>
+                                        {month.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                        <div className="grid gap-2">
-                            <label className="text-xs font-medium">Year</label>
-                            <Select
-                                value={selectedYear.toString()}
-                                onValueChange={(value) => setSelectedYear(parseInt(value, 10))}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select year" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {years.map((year) => (
-                                        <SelectItem key={year} value={year.toString()}>
-                                            {year}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                    <div className="grid gap-2">
+                        {/* <label className="text-xs font-medium">Year</label> */}
+                        <Select
+                            value={selectedYear.toString()}
+                            onValueChange={(value) => setSelectedYear(parseInt(value, 10))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select year" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {years.map((year) => (
+                                    <SelectItem key={year} value={year.toString()}>
+                                        {year}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                        <div className="flex justify-end gap-2 mt-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                size="sm"
-                                onClick={handleApply}
-                            >
-                                Apply
-                            </Button>
-                        </div>
+                    <div className="flex justify-end gap-2 mt-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCalendarVisibility(false)}
+                            className='cursor-pointer'
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            size="sm"
+                            onClick={handleApply}
+                            className='cursor-pointer'
+                        >
+                            Apply
+                        </Button>
                     </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 }
