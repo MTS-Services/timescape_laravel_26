@@ -182,7 +182,7 @@ export default function AvailabilityScheduler() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {/* Calendar Grid */}
-                    <div className={`md:col-span-${auth.user.is_admin ? '3' : '4'}`}>
+                    <div className={`${auth.user.is_admin ? 'md:col-span-3' : 'md:col-span-4'}`}>
                         <CalendarGrid
                             calendarDays={calendarDays}
                             currentMonth={currentDate}
