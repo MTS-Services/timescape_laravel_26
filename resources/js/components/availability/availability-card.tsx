@@ -1,4 +1,4 @@
-import { Minus, MinusCircle } from 'lucide-react';
+import { Minus } from 'lucide-react';
 
 import { cn, getCardBackgroundColor } from '@/lib/calendar-utils';
 import { AVAILABILITY_OPTIONS } from '@/lib/date-helpers';

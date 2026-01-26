@@ -1,7 +1,8 @@
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import type { AvailabilityRequirements } from '@/types/availability';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function RequirementsBanner({ requirements }: { requirements: AvailabilityRequirements }) {
     return (
