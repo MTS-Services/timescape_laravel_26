@@ -73,14 +73,14 @@ export default function AvailabilityScheduler() {
     // Use useMemo for derived state instead of useEffect
     const calendarDays = useMemo(() => {
         const days = generateCalendarDays(currentDate);
-        console.log('Generated calendar days:', days);
+        // console.log('Generated calendar days:', days);
         return days;
     }, [currentDate]);
 
     // Initialize selections from props once on mount
     useEffect(() => {
         if (initialSelections && Object.keys(selections).length === 0) {
-            console.log('Initializing selections from props:', initialSelections);
+            // console.log('Initializing selections from props:', initialSelections);
             setSelections(initialSelections);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,7 +89,7 @@ export default function AvailabilityScheduler() {
     // Update selections when selectedUserId changes (admin switches users)
     useEffect(() => {
         if (initialSelections) {
-            console.log('User changed, updating selections:', { selectedUserId, initialSelections });
+            // console.log('User changed, updating selections:', { selectedUserId, initialSelections });
             setSelections(initialSelections);
         }
     }, [selectedUserId, initialSelections]);
@@ -108,7 +108,7 @@ export default function AvailabilityScheduler() {
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
 
-        console.log('Fetching month data:', { year, month, selectedUserId });
+        // console.log('Fetching month data:', { year, month, selectedUserId });
 
         router.get(
             route('availability.index'),
@@ -122,7 +122,7 @@ export default function AvailabilityScheduler() {
                 preserveScroll: true,
                 only: ['initialSelections', 'requirements', 'currentYear', 'currentMonth', 'users', 'statistics', 'selectedUserId'],
                 onSuccess: () => {
-                    console.log('Month data fetched successfully');
+                    // console.log('Month data fetched successfully');
                 },
                 onError: (errors) => {
                     console.error('Failed to fetch month data:', errors);
@@ -157,7 +157,7 @@ export default function AvailabilityScheduler() {
     }, [fetchMonthData]);
 
     const handleSelectionChange = useCallback((dateKey: string, optionId: string | null) => {
-        console.log('Selection changed:', { dateKey, optionId, selectedUserId });
+        // console.log('Selection changed:', { dateKey, optionId, selectedUserId });
 
         setSelections((prev) => ({
             ...prev,

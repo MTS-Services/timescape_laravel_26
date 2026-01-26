@@ -25,10 +25,10 @@ export function CalendarGrid({
     selections,
     onSelectionChange,
 }: CalendarGridProps) {
-    console.log('Rendering CalendarGrid with days:', calendarDays);
-    console.log('Current month:', currentMonth);
-    console.log('Selections:', selections);
-    console.log('onSelectionChange:', onSelectionChange);
+    // console.log('Rendering CalendarGrid with days:', calendarDays);
+    // console.log('Current month:', currentMonth);
+    // console.log('Selections:', selections);
+    // console.log('onSelectionChange:', onSelectionChange);
     return (
         <div>
             {/* Weekday Headers */}

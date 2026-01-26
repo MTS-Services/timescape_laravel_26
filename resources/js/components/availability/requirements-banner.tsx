@@ -6,7 +6,7 @@ import type { AvailabilityRequirements } from '@/types/availability';
 
 export default function RequirementsBanner({ requirements }: { requirements: AvailabilityRequirements }) {
     return (
-        <Alert className="border-border border-2 w-auto px-10 py-4">
+        <Alert className="border-border border-2 w-full sm:w-auto px-10 py-4">
             <AlertDescription>
                 <h6 className="mb-2 font-semibold text-base text-destructive text-center w-full">
                     Availability Requirements

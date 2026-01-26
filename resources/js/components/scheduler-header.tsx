@@ -22,9 +22,9 @@ export default function SchedulerHeader() {
     const shouldShowRequirements = requirements && !(isMobile && isAdmin);
 
     return (
-        <div className="container px-4 mx-auto flex items-center justify-between mt-10 mb-5">
+        <div className="container px-4 mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between mt-2 lg:mt-10 mb-5 space-y-4">
             <div>
-                <h4 className="text-[32px] font-semibold">Availability Scheduler</h4>
+                <h4 className="text-2xl md:text-[32px] font-semibold">Availability Scheduler</h4>
                 <h6 className="text-base font-semibold text-text-muted">Calendar Dashboard</h6>
             </div>
             {shouldShowRequirements && (
