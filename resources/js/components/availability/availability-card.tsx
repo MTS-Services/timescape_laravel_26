@@ -61,11 +61,11 @@ export function AvailabilityCard({
                 isDisabled ? "text-muted-foreground" : "text-foreground"
             )}>
                 {dayNumber}
-                {isToday && (
+                {/* {isToday && (
                     <span className="ml-2 text-xs font-normal text-primary">
                         (Today)
                     </span>
-                )}
+                )} */}
             </div>
 
             <div className="flex-1 h-auto flex items-center justify-center">
