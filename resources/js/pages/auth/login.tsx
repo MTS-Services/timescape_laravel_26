@@ -72,6 +72,7 @@ export default function Login({ status }: LoginProps) {
                                         id="password"
                                         name="password"
                                         required
+                                        placeholder="********"
                                         className="h-11 bg-white/50 border-gray-200 focus:ring-violet-500 focus:border-violet-500 transition-all"
                                     />
                                     <InputError message={errors.password} />
