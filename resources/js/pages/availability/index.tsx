@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { AvailabilityHeader } from '@/components/availability/availability-header';
@@ -63,6 +63,8 @@ export default function AvailabilityScheduler() {
 
     const [selections, setSelections] = useState<AvailabilitySelections>({});
     const isMobile = useResponsiveMode({ isAdmin: auth.user.can_manage_users });
+    const calendarContainerRef = useRef<HTMLDivElement | null>(null);
+    const [calendarHeight, setCalendarHeight] = useState<number | null>(null);
 
     // Mobile-specific state
     const [selectedMobileDate, setSelectedMobileDate] = useState<string | null>(null);
@@ -93,6 +95,34 @@ export default function AvailabilityScheduler() {
             setSelections(initialSelections);
         }
     }, [selectedUserId, initialSelections]);
+
+    useEffect(() => {
+        if (!auth.user.can_manage_users || isMobile) {
+            setCalendarHeight(null);
+            return;
+        }
+
+        const container = calendarContainerRef.current;
+        if (!container || typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        const updateHeight = () => {
+            setCalendarHeight(container.getBoundingClientRect().height);
+        };
+
+        updateHeight();
+
+        const observer = new ResizeObserver(() => {
+            updateHeight();
+        });
+
+        observer.observe(container);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [auth.user.can_manage_users, isMobile, calendarDays]);
 
     // Show success/error messages
     useEffect(() => {
@@ -332,12 +362,13 @@ export default function AvailabilityScheduler() {
                             currentYearNum={currentDate.getFullYear()}
                         />
 
-                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5 lg:gap-6 items-start bg-green-50">
+                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5 lg:gap-6 items-start">
                             {/* Calendar Grid */}
                             <div
                                 className={`${auth.user.can_manage_users ? 'lg:col-span-4' : 'lg:col-span-5'
                                     }`}
                                 id="calendar-grid-container"
+                                ref={calendarContainerRef}
                             >
                                 <CalendarGrid
                                     calendarDays={calendarDays}
@@ -355,6 +386,7 @@ export default function AvailabilityScheduler() {
                                         selectedUserId={selectedUserId}
                                         currentYear={currentDate.getFullYear()}
                                         currentMonth={currentDate.getMonth() + 1}
+                                        maxHeight={calendarHeight ?? undefined}
                                     />
                                 </div>
                             )}

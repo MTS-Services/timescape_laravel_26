@@ -15,9 +15,10 @@ interface UserSelectionPanelProps {
     selectedUserId?: number;
     currentYear: number;
     currentMonth: number;
+    maxHeight?: number;
 }
 
-export function UserSelectionPanel({ users, selectedUserId, currentYear, currentMonth }: UserSelectionPanelProps) {
+export function UserSelectionPanel({ users, selectedUserId, currentYear, currentMonth, maxHeight }: UserSelectionPanelProps) {
     const handleUserSelect = (userId: number) => {
         if (userId === selectedUserId) return;
 
@@ -36,11 +37,17 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
         );
     };
 
+    const panelStyle = maxHeight ? { maxHeight, height: maxHeight } : undefined;
+    const scrollAreaStyle = maxHeight ? { height: Math.max(maxHeight - 72, 200) } : undefined;
+
     return (
-        <div className="rounded-lg border bg-card shadow-sm p-4 mb-4 h-auto overscroll-y-auto bg-red-50 flex flex-col">
+        <div
+            className="rounded-lg border bg-card shadow-sm p-4 mb-4 h-auto overscroll-y-auto flex flex-col overflow-hidden min-h-0"
+            style={panelStyle}
+        >
             <h3 className="text-lg font-semibold mb-3">Staff List</h3>
 
-            <ScrollArea className="flex-1 min-h-42 overscroll-y-auto">
+            <ScrollArea className="flex-1 min-h-0 h-full overscroll-y-auto" style={scrollAreaStyle}>
                 <div className="space-y-2 pr-4">
                     {users.map((user) => (
                         <Button
