@@ -1,8 +1,10 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { SharedData } from '@/types';
 
 interface User {
     id: number;
@@ -19,6 +21,7 @@ interface UserSelectionPanelProps {
 }
 
 export function UserSelectionPanel({ users, selectedUserId, currentYear, currentMonth, maxHeight }: UserSelectionPanelProps) {
+    const { auth } = usePage<SharedData>().props;
     const handleUserSelect = (userId: number) => {
         if (userId === selectedUserId) return;
 
@@ -42,7 +45,7 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
 
     return (
         <div
-            className="rounded-lg border bg-card shadow-sm p-4 mb-4 h-auto overscroll-y-auto flex flex-col overflow-hidden min-h-0"
+            className="rounded-lg border bg-card p-4 mb-4 h-auto overscroll-y-auto flex flex-col overflow-hidden min-h-0"
             style={panelStyle}
         >
             <h3 className="text-lg font-semibold mb-3">Staff List</h3>
@@ -54,7 +57,8 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
                             key={user.id}
                             variant={selectedUserId === user.id ? "default" : "outline"}
                             size="sm"
-                            className="w-full justify-start cursor-pointer"
+                            // className={`w-full justify-start cursor-pointer ${selectedUserId === user.id ? "bg-[#F64E06] font-semibold" : "bg-transparent"}`}
+                            className={cn('w-full justify-start cursor-pointer', selectedUserId === user.id ? "bg-[#F64E06] font-semibold" : "bg-transparent", user.id == auth.user.id ? 'border-destructive/30' : '')}
                             onClick={() => handleUserSelect(user.id)}
                         >
                             {user.name}

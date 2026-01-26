@@ -3,7 +3,7 @@ import * as React from 'react';
 
 export function AdminFooter() {
     return (
-        <footer className="border-t bg-background/80 backdrop-blur-sm py-4 mt-6">
+        <footer className="border-t bg-background/80 backdrop-blur-sm py-4">
             <div className="container mx-auto flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
                 <span>&copy; {new Date().getFullYear()}</span>
                 <span className="mx-1">•</span>

@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import { MonthYearSelector } from './month-year-selector';
+import { useEffect } from 'react';
 
 interface MobileAvailabilityHeaderProps {
     currentMonth: string;
@@ -30,6 +31,10 @@ export function MobileAvailabilityHeader({
     const monthName = currentMonth.split(' ')[0];
     const year = currentMonth.split(' ')[1];
 
+    useEffect(() => {
+        console.log('re-rendered');
+    });
+
     return (
         <div className="space-y-3 mb-4">
             {/* Top row: Staff list button (admin only) + date picker + today */}
@@ -37,9 +42,8 @@ export function MobileAvailabilityHeader({
                 {showStaffButton ? (
                     <Button
                         variant="outline"
-                        size="sm"
                         onClick={onStaffListClick}
-                        className="flex items-center gap-2 cursor-pointer"
+                        className="flex items-center gap-2 cursor-pointer w-full max-w-40 md:max-w-64 py"
                     >
                         <Users className="h-4 w-4" />
                         <span>Staff List</span>
@@ -62,8 +66,7 @@ export function MobileAvailabilityHeader({
                     <Button
                         onClick={onToday}
                         variant="outline"
-                        size="sm"
-                        className="h-9 px-3 rounded-md border border-black/15 bg-transparent font-montserrat font-semibold cursor-pointer"
+                        className="px-3 ml-2 rounded-md border border-black/15 bg-transparent font-montserrat font-semibold cursor-pointer"
                     >
                         TODAY
                     </Button>
@@ -71,18 +74,18 @@ export function MobileAvailabilityHeader({
             </div>
 
             {/* Bottom row: Month navigation */}
-            <div className="flex items-center justify-between bg-muted/50 rounded-lg px-2 py-1">
+            <div className="flex items-center justify-between px-2 py-1">
                 <Button
                     onClick={onPrevMonth}
                     variant="ghost"
                     size="icon"
                     aria-label="Previous month"
-                    className="cursor-pointer h-8 w-8"
+                    className="cursor-pointer"
                 >
-                    <ChevronLeft className="h-5 w-5" />
+                    <ChevronLeft className="h-10! w-10!" />
                 </Button>
 
-                <span className="text-sm font-semibold text-foreground">
+                <span className="text-sm font-medium text-foreground">
                     {monthName} – {year}
                 </span>
 
@@ -91,11 +94,12 @@ export function MobileAvailabilityHeader({
                     variant="ghost"
                     size="icon"
                     aria-label="Next month"
-                    className="cursor-pointer h-8 w-8"
+                    className="cursor-pointer"
                 >
-                    <ChevronRight className="h-5 w-5" />
+                    <ChevronRight className="h-10! w-10!" />
                 </Button>
             </div>
         </div>
     );
 }
+

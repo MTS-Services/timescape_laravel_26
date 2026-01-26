@@ -59,11 +59,11 @@ export function MonthYearSelector({
         <div className="relative inline-block">
             <Button
                 variant="ghost"
-                size="sm"
                 onClick={toggleCalendar}
-                className="flex items-center cursor-pointer"
+                size="icon"
+                className="flex items-center justify-center cursor-pointer"
             >
-                <CalendarDays className="h-5 w-5" />
+                <CalendarDays className="w-7! h-7!" />
             </Button>
 
             <div

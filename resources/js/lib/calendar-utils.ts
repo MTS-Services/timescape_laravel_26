@@ -26,7 +26,7 @@ export function getCardBackgroundColor(
     }
 
     // Normal weekday
-    return 'bg-background border-border';
+    return 'bg-card border-border';
 }
 
 export function getOptionColorClasses(

@@ -9,7 +9,7 @@ import { MobileAvailabilityHeader } from '@/components/availability/mobile-avail
 import { MobileCalendarGrid } from '@/components/availability/mobile-calendar-grid';
 import { MobileStatisticsPanel } from '@/components/availability/mobile-statistics-panel';
 import { PastDateModal } from '@/components/availability/past-date-modal';
-import { StaffListModal } from '@/components/availability/staff-list-modal';
+import { StaffListModal, StaffListModalRef } from '@/components/availability/staff-list-modal';
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
 import SchedulerHeader from '@/components/scheduler-header';
@@ -70,7 +70,7 @@ export default function AvailabilityScheduler() {
     const [selectedMobileDate, setSelectedMobileDate] = useState<string | null>(null);
     const [isPastDateModalOpen, setIsPastDateModalOpen] = useState(false);
     const [pastDateForModal, setPastDateForModal] = useState<string | null>(null);
-    const [isStaffListModalOpen, setIsStaffListModalOpen] = useState(false);
+    const staffListModalRef = useRef<StaffListModalRef>(null);
 
     // Use useMemo for derived state instead of useEffect
     const calendarDays = useMemo(() => {
@@ -243,11 +243,7 @@ export default function AvailabilityScheduler() {
     }, [calendarDays, currentDate]);
 
     const handleOpenStaffListModal = useCallback(() => {
-        setIsStaffListModalOpen(true);
-    }, []);
-
-    const handleCloseStaffListModal = useCallback(() => {
-        setIsStaffListModalOpen(false);
+        staffListModalRef.current?.open();
     }, []);
 
     const handleClosePastDateModal = useCallback(() => {
@@ -291,7 +287,7 @@ export default function AvailabilityScheduler() {
                         />
 
                         {/* Mobile Calendar Grid */}
-                        <div className="rounded-lg border bg-card p-3 mb-4">
+                        <div className="mb-4">
                             <MobileCalendarGrid
                                 calendarDays={calendarDays}
                                 currentMonth={currentDate}
@@ -302,7 +298,7 @@ export default function AvailabilityScheduler() {
                         </div>
 
                         {/* Mobile Expanded Availability Cards */}
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {mobileExpandedDates.map((dateKey) => {
                                 const dateObj = calendarDays.find(
                                     (d) => formatDateKey(d) === dateKey
@@ -337,8 +333,7 @@ export default function AvailabilityScheduler() {
                         {/* Staff List Modal (Admin Only) */}
                         {auth.user.can_manage_users && users && (
                             <StaffListModal
-                                isOpen={isStaffListModalOpen}
-                                onClose={handleCloseStaffListModal}
+                                ref={staffListModalRef}
                                 users={users}
                                 selectedUserId={selectedUserId}
                                 currentYear={currentDate.getFullYear()}

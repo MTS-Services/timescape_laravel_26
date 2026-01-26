@@ -1,6 +1,9 @@
+import { getCardBackgroundColor } from '@/lib/calendar-utils';
+import { weekdays } from '@/lib/date-helpers';
 import {
     formatDayNumber,
     formatDateKey,
+    isDateDisabled,
     isSameMonth,
     isWeekendDay,
     isDateInPast,
@@ -24,16 +27,15 @@ export function MobileCalendarGrid({
     selectedDate,
     onDateSelect,
 }: MobileCalendarGridProps) {
-    const weekdays = ['Mon', 'Tu', 'Wed', 'Th', 'Fri', 'Sat', 'Sun'];
 
     return (
         <div className="w-full">
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
+            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 px-2 sm:px-3 lg:px-4 py-3 sm:py-4 lg:py-5">
                 {weekdays.map((day) => (
                     <div
                         key={day}
-                        className="text-center text-xs font-medium text-muted-foreground py-2"
+                        className="text-center text-sm sm:text-base font-normal text-text-primary"
                     >
                         {day}
                     </div>
@@ -50,6 +52,7 @@ export function MobileCalendarGrid({
                     const isWeekend = isWeekendDay(date);
                     const hasData = !!selections[dateKey];
                     const isSelected = selectedDate === dateKey;
+                    const isDisabled = isDateDisabled(date, currentMonth);
 
                     // Indicator logic:
                     // 🟢 Green: has data (any date)
@@ -57,6 +60,8 @@ export function MobileCalendarGrid({
                     // No indicator: current/future with no data
                     const showGreenIndicator = hasData;
                     const showRedIndicator = isPastDate && !hasData && isCurrentMonthDay;
+
+                    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonthDay);
 
                     return (
                         <button
@@ -66,12 +71,12 @@ export function MobileCalendarGrid({
                             disabled={!isCurrentMonthDay}
                             className={cn(
                                 'relative flex flex-col items-center justify-center p-2 rounded-lg transition-all min-h-[48px]',
-                                isCurrentMonthDay ? 'cursor-pointer' : 'cursor-not-allowed opacity-40',
-                                isWeekend && isCurrentMonthDay && 'bg-red-50 dark:bg-red-950/20',
-                                !isWeekend && isCurrentMonthDay && 'bg-background',
-                                isSelected && 'ring-2 ring-primary ring-offset-1',
-                                isTodayDate && 'border-2 border-primary',
-                                !isCurrentMonthDay && 'bg-muted/30'
+                                bgColor,
+                                isDisabled && 'cursor-not-allowed',
+                                isCurrentMonthDay ? 'cursor-pointer' : 'cursor-not-allowed opacity-70',
+                                isSelected && 'ring-2 ring-primary/50 ring-offset-1',
+                                isTodayDate && 'border border-destructive/20',
+                                // !isCurrentMonthDay && 'bg-muted/30',
                             )}
                         >
                             <span
@@ -86,7 +91,7 @@ export function MobileCalendarGrid({
                             </span>
 
                             {/* Indicator dot */}
-                            {isCurrentMonthDay && (
+                            {(showGreenIndicator || showRedIndicator) && (
                                 <div className="mt-1 h-1.5 w-1.5 rounded-full">
                                     {showGreenIndicator && (
                                         <div className="h-full w-full rounded-full bg-teal-500" />

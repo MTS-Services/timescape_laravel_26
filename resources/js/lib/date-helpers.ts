@@ -8,6 +8,10 @@ export const WEEKDAYS = [
     'Sunday',
 ] as const;
 
+export const weekdays = [
+    'Mon', 'Tu', 'Wed', 'Th', 'Fri', 'Sat', 'Sun'
+] as const;
+
 export const AVAILABILITY_OPTIONS: Array<{
     id: string;
     label: string;

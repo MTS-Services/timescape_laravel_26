@@ -37,7 +37,7 @@ export function AvailabilityHeader({
                     aria-label="Previous month"
                     className="cursor-pointer h-9 w-9 sm:h-10 sm:w-10"
                 >
-                    <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <ChevronLeft className="h-4 w-4 sm:h-8! sm:w-8!" />
                 </Button>
 
                 {/* Month/Year selector */}
@@ -56,10 +56,10 @@ export function AvailabilityHeader({
                     aria-label="Next month"
                     className='cursor-pointer h-9 w-9 sm:h-10 sm:w-10'
                 >
-                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <ChevronRight className="h-4 w-4 sm:h-8! sm:w-8!" />
                 </Button>
 
-                <Button onClick={onToday} variant="outline" size="sm" className="px-2 sm:px-2.5 py-2 sm:py-3 rounded-md border border-black/15 bg-transparent font-montserrat font-semibold cursor-pointer text-xs sm:text-sm">
+                <Button onClick={onToday} variant="outline" className="px-2 sm:px-2.5 py-2 sm:py-3 rounded-md border border-black/15 bg-transparent font-montserrat font-semibold cursor-pointer text-xs sm:text-sm">
                     TODAY
                 </Button>
             </div>

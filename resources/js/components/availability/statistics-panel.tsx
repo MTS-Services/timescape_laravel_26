@@ -4,8 +4,9 @@ import React, { useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { formatMonthYear } from '@/lib/date-helpers';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { cn } from '@/lib/utils';
+
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 
 
 
@@ -32,7 +33,6 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
     const [filterType, setFilterType] = useState<string>(statistics.filter_type || 'month');
     const [startDate, setStartDate] = useState<string>(statistics.date_range?.start || '');
     const [endDate, setEndDate] = useState<string>(statistics.date_range?.end || '');
-    const [isCustomRange, setIsCustomRange] = useState<boolean>(filterType === 'custom');
     const filterOpenRef = useRef(false);
 
     const displayMonthYear = useMemo(() => {
@@ -43,7 +43,6 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
 
     const handleFilterChange = (newFilter: string) => {
         setFilterType(newFilter);
-        setIsCustomRange(newFilter === 'custom');
 
         if (newFilter !== 'custom') {
             router.get('/availability', {
@@ -75,9 +74,6 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
             });
         }
     };
-
-    const today = new Date();
-    const [abc, setAbc] = useState(today);
 
     return (
         <div className="mt-8 rounded-lg bg-muted dark:bg-blue-500 p-4 sm:p-5 lg:py-5 lg:px-16 flex items-start justify-between gap-9">
