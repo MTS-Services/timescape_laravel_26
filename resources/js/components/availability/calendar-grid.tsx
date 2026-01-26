@@ -32,11 +32,11 @@ export function CalendarGrid({
     return (
         <div>
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-4 px-4 py-5">
+            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 px-2 sm:px-3 lg:px-4 py-3 sm:py-4 lg:py-5">
                 {WEEKDAYS.map((day) => (
                     <div
                         key={day}
-                        className="text-center text-base font-normal text-text-primary"
+                        className="text-center text-sm sm:text-base font-normal text-text-primary"
                     >
                         {day}
                     </div>
@@ -44,7 +44,7 @@ export function CalendarGrid({
             </div>
 
             {/* Calendar Days */}
-            <div className="grid grid-cols-7 gap-4 px-4 py-5">
+            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 px-2 sm:px-3 lg:px-4 py-3 sm:py-4 lg:py-5">
                 {calendarDays.map((date, index) => {
                     const dateKey = formatDateKey(date);
                     const isCurrentMonthDay = isSameMonth(date, currentMonth);

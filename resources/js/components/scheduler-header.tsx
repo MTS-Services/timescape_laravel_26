@@ -1,6 +1,6 @@
 import { usePage } from "@inertiajs/react";
 
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useResponsiveMode } from "@/hooks/use-responsive-mode";
 import type { User } from "@/types";
 import { AvailabilityRequirements } from "@/types/availability";
 
@@ -16,16 +16,16 @@ interface PageProps {
 
 export default function SchedulerHeader() {
     const { auth, requirements } = usePage<PageProps>().props;
-    const isMobile = useIsMobile();
-
     const isAdmin = auth?.user?.can_manage_users;
+    const isMobile = useResponsiveMode({ isAdmin });
+
     const shouldShowRequirements = requirements && !(isMobile && isAdmin);
 
     return (
-        <div className="container px-4 mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between mt-2 lg:mt-10 mb-5 space-y-4">
+        <div className="container px-3 sm:px-4 lg:px-6 xl:px-8 mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between mt-2 lg:mt-10 mb-5 gap-4 sm:gap-0">
             <div>
                 <h4 className="text-2xl md:text-[32px] font-semibold">Availability Scheduler</h4>
-                <h6 className="text-base font-semibold text-text-muted">Calendar Dashboard</h6>
+                <h6 className="text-sm sm:text-base font-semibold text-text-muted">Calendar Dashboard</h6>
             </div>
             {shouldShowRequirements && (
                 <RequirementsBanner requirements={requirements} />

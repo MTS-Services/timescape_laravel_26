@@ -49,14 +49,14 @@ export function AvailabilityCard({
     return (
         <div
             className={cn(
-                'rounded-lg border p-4 min-h-[180px] transition-colors',
+                'rounded-lg border p-2 sm:p-3 lg:p-4 transition-colors aspect-square flex flex-col',
                 bgColor,
                 isDisabled && 'cursor-not-allowed',
                 !isDisabled && 'hover:shadow-sm'
             )}
         >
             <div className={cn(
-                "mb-3 text-lg font-semibold",
+                "mb-2 sm:mb-2.5 lg:mb-3 text-sm sm:text-base lg:text-lg font-semibold shrink-0",
                 isDisabled ? "text-muted-foreground" : "text-foreground"
             )}>
                 {dayNumber}
@@ -67,49 +67,51 @@ export function AvailabilityCard({
                 )}
             </div>
 
-            {showUnavailable ? (
-                /* Show "Unavailable All Day" for past dates with no data */
-                <div className='flex flex-col items-center justify-center gap-3 py-4'>
-                    <div className="flex items-center justify-center">
-                        <div className="flex items-center justify-center w-4 h-4 rounded-full bg-destructive">
-                            <Minus className="h-5 w-5 text-background" />
+            <div className="flex-1 flex flex-col justify-center min-h-0">
+                {showUnavailable ? (
+                    /* Show "Unavailable All Day" for past dates with no data */
+                    <div className='flex flex-col items-center justify-center gap-2'>
+                        <div className="flex items-center gap-1.5">
+                            <div className="flex items-center justify-center w-4 h-4 rounded-full bg-destructive">
+                                <Minus className="h-3 w-3 text-background" />
+                            </div>
+                            <span className="text-xs text-muted-foreground text-center">
+                                Unavailable All Day
+                            </span>
                         </div>
-                        <span className="text-xs text-muted-foreground text-center">
-                            Unavailable All Day
-                        </span>
                     </div>
-                </div>
-            ) : shouldShowReadOnlyOption ? (
-                /* Show ONLY the selected option for past dates (read-only) */
-                <div className="space-y-2">
-                    {AVAILABILITY_OPTIONS.filter(opt => opt.id === selectedOption).map((option) => (
-                        <AvailabilityOptionComponent
-                            key={option.id}
-                            date={date}
-                            option={option}
-                            isSelected={true}
-                            isDisabled={true}
-                            onChange={handleOptionChange}
-                            isPastDate={true}
-                        />
-                    ))}
-                </div>
-            ) : (
-                /* Show all options for editable dates (today and future) */
-                <div className="space-y-2">
-                    {AVAILABILITY_OPTIONS.map((option) => (
-                        <AvailabilityOptionComponent
-                            key={option.id}
-                            date={date}
-                            option={option}
-                            isSelected={selectedOption === option.id}
-                            isDisabled={isDisabled}
-                            onChange={handleOptionChange}
-                            isPastDate={false}
-                        />
-                    ))}
-                </div>
-            )}
+                ) : shouldShowReadOnlyOption ? (
+                    /* Show ONLY the selected option for past dates (read-only) */
+                    <div className="space-y-1.5">
+                        {AVAILABILITY_OPTIONS.filter(opt => opt.id === selectedOption).map((option) => (
+                            <AvailabilityOptionComponent
+                                key={option.id}
+                                date={date}
+                                option={option}
+                                isSelected={true}
+                                isDisabled={true}
+                                onChange={handleOptionChange}
+                                isPastDate={true}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    /* Show all options for editable dates (today and future) */
+                    <div className="space-y-1.5">
+                        {AVAILABILITY_OPTIONS.map((option) => (
+                            <AvailabilityOptionComponent
+                                key={option.id}
+                                date={date}
+                                option={option}
+                                isSelected={selectedOption === option.id}
+                                isDisabled={isDisabled}
+                                onChange={handleOptionChange}
+                                isPastDate={false}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

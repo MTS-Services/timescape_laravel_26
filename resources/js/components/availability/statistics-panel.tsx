@@ -66,12 +66,12 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
     };
 
     return (
-        <div className="mt-8 rounded-lg border bg-card shadow-sm p-6">
-            <h3 className="text-xl font-semibold mb-4">Staff Duty History</h3>
+        <div className="mt-8 rounded-lg border bg-card shadow-sm p-4 sm:p-5 lg:p-6">
+            <h3 className="text-lg sm:text-xl font-semibold mb-4">Staff Duty History</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="col-span-1 md:col-span-3">
-                    <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+                <div className="col-span-1 lg:col-span-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {/* Total Duty Days */}
                         <div className="rounded-lg border bg-background p-4">
                             <div className="flex justify-between items-start">

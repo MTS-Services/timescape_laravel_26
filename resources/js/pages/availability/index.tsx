@@ -13,7 +13,7 @@ import { StaffListModal } from '@/components/availability/staff-list-modal';
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
 import SchedulerHeader from '@/components/scheduler-header';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 import AdminLayout from '@/layouts/admin-layout';
 import { generateCalendarDays, formatMonthYear, addMonths, isDateInPast, formatDateKey, isDateDisabled, isSameMonth } from '@/lib/date-helpers';
 import type { User } from '@/types';
@@ -62,7 +62,7 @@ export default function AvailabilityScheduler() {
     });
 
     const [selections, setSelections] = useState<AvailabilitySelections>({});
-    const isMobile = useIsMobile();
+    const isMobile = useResponsiveMode({ isAdmin: auth.user.can_manage_users });
 
     // Mobile-specific state
     const [selectedMobileDate, setSelectedMobileDate] = useState<string | null>(null);
@@ -235,7 +235,7 @@ export default function AvailabilityScheduler() {
             <Head title="Availability Scheduler" />
             <SchedulerHeader />
 
-            <div className="container mx-auto px-4 mt-0.5">
+            <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5">
                 {/* Mobile Layout */}
                 {isMobile ? (
                     <>
@@ -332,11 +332,12 @@ export default function AvailabilityScheduler() {
                             currentYearNum={currentDate.getFullYear()}
                         />
 
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5 lg:gap-6 items-start bg-green-50">
                             {/* Calendar Grid */}
                             <div
-                                className={`${auth.user.can_manage_users ? 'md:col-span-4' : 'md:col-span-5'
+                                className={`${auth.user.can_manage_users ? 'lg:col-span-4' : 'lg:col-span-5'
                                     }`}
+                                id="calendar-grid-container"
                             >
                                 <CalendarGrid
                                     calendarDays={calendarDays}
@@ -348,7 +349,7 @@ export default function AvailabilityScheduler() {
 
                             {/* User Management Panel */}
                             {auth.user.can_manage_users && users && (
-                                <div className="md:col-span-1">
+                                <div className="lg:col-span-1 h-full min-h-[400px]">
                                     <UserSelectionPanel
                                         users={users}
                                         selectedUserId={selectedUserId}

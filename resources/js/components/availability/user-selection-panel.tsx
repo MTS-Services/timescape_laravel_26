@@ -37,23 +37,20 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
     };
 
     return (
-        <div className="rounded-lg border bg-card shadow-sm p-4 mb-4">
+        <div className="rounded-lg border bg-card shadow-sm p-4 mb-4 h-auto overscroll-y-auto bg-red-50 flex flex-col">
             <h3 className="text-lg font-semibold mb-3">Staff List</h3>
 
-            <ScrollArea className="h-[350px]">
-                <div className="space-y-2">
+            <ScrollArea className="flex-1 min-h-42 overscroll-y-auto">
+                <div className="space-y-2 pr-4">
                     {users.map((user) => (
                         <Button
                             key={user.id}
                             variant={selectedUserId === user.id ? "default" : "outline"}
                             size="sm"
-                            className="w-full justify-start"
+                            className="w-full justify-start cursor-pointer"
                             onClick={() => handleUserSelect(user.id)}
                         >
                             {user.name}
-                            {selectedUserId === user.id && (
-                                <span className="ml-2 text-xs">(Selected)</span>
-                            )}
                         </Button>
                     ))}
                 </div>
