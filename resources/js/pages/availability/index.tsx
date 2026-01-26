@@ -79,6 +79,14 @@ export default function AvailabilityScheduler() {
         return days;
     }, [currentDate]);
 
+    const selectedUser = useMemo(() => {
+        if (!users || !selectedUserId) {
+            return null;
+        }
+
+        return users.find((user) => user.id === selectedUserId) ?? null;
+    }, [users, selectedUserId]);
+
     // Initialize selections from props once on mount
     useEffect(() => {
         if (initialSelections && Object.keys(selections).length === 0) {
@@ -399,6 +407,7 @@ export default function AvailabilityScheduler() {
                                 selectedUserId={selectedUserId}
                                 currentYear={currentDate.getFullYear()}
                                 currentMonth={currentDate.getMonth() + 1}
+                                selectedUserName={selectedUser?.name ?? auth.user.name}
                             />
                         )}
                     </>

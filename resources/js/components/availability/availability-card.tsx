@@ -52,7 +52,8 @@ export function AvailabilityCard({
                 'rounded-lg border p-2 sm:p-3 lg:p-4 transition-colors aspect-square flex flex-col',
                 bgColor,
                 isDisabled && 'cursor-not-allowed',
-                !isDisabled && 'hover:shadow-sm'
+                !isDisabled && 'hover:shadow-sm',
+                isToday && 'border-destructive/20'
             )}
         >
             <div className={cn(
@@ -67,15 +68,15 @@ export function AvailabilityCard({
                 )}
             </div>
 
-            <div className="flex-1 flex flex-col justify-center min-h-0">
+            <div className="flex-1 h-auto flex items-center justify-center">
                 {showUnavailable ? (
                     /* Show "Unavailable All Day" for past dates with no data */
                     <div className='flex flex-col items-center justify-center gap-2'>
-                        <div className="flex items-center gap-1.5">
-                            <div className="flex items-center justify-center w-4 h-4 rounded-full bg-destructive">
-                                <Minus className="h-3 w-3 text-background" />
+                        <div className="flex items-center justify-start gap-1">
+                            <div className="flex items-center justify-center w-3 h-3 rounded-full bg-destructive">
+                                <Minus className="h-2 w-2 text-background" />
                             </div>
-                            <span className="text-xs text-muted-foreground text-center">
+                            <span className="text-xs text-muted-foreground">
                                 Unavailable All Day
                             </span>
                         </div>

@@ -40,6 +40,6 @@ export function getOptionColorClasses(
     return {
         container: 'group',
         checkbox: '',
-        label: isSelected ? 'text-secondary' : '',
+        label: isSelected ? 'text-text-primary' : 'text-text-primary',
     };
 }

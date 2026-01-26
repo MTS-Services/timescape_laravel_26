@@ -49,7 +49,7 @@ export function AvailabilityOptionComponent({
 
     return (
         <div
-            className={cn('flex items-center gap-1.5 shrink-0', isPastDate && 'flex-1 bg-red-50 h-full flex-col justify-center', colors.container, isSaving && 'opacity-70')}
+            className={cn('flex items-center gap-1.5 shrink-0', isPastDate && 'flex-1 h-full justify-center', colors.container, isSaving && 'opacity-70')}
             onClick={handleContainerClick}
         >
             <Checkbox
@@ -57,18 +57,20 @@ export function AvailabilityOptionComponent({
                 checked={isSelected}
                 disabled={isDisabled || isSaving}
                 onCheckedChange={handleChange}
-                className={cn(colors.checkbox, 'h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0')}
+                className={cn(colors.checkbox, 'h-3.5 w-3.5 shrink-0',
+                    isPastDate && 'h-3.5! w-3.5!'
+                )}
             />
             <Label
                 htmlFor={checkboxId}
                 className={cn(
-                    'text-[10px] sm:text-xs cursor-pointer select-none leading-tight',
+                    'text-xs cursor-pointer select-none leading-tight',
                     colors.label,
                     (isDisabled || isSaving) && 'opacity-50 cursor-not-allowed'
                 )}
             >
                 {option.label}
-                {isSaving && <span className="ml-1 text-[10px] text-muted-foreground">(saving...)</span>}
+                {isSaving && <span className="ml-1 text-xs text-muted-foreground">(saving...)</span>}
             </Label>
         </div>
     );
