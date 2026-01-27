@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'sync_mode' => env('AVAILABILITY_SYNC_MODE', 'login'),
+    'sync_mode' => env('AVAILABILITY_SYNC_MODE', 'periodic'),
 
     /*
     |--------------------------------------------------------------------------
