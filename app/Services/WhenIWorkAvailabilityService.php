@@ -325,7 +325,7 @@ class WhenIWorkAvailabilityService
      */
     public function buildPayload(User $user, string $date, string $timeSlot): array
     {
-        $isAllDay = in_array($timeSlot, ['all-day', 'holyday']);
+        $isAllDay = in_array($timeSlot, ['all-day', 'holiday']);
         $type = $this->mapTimeSlotToType($timeSlot);
 
         $payload = [
@@ -365,7 +365,7 @@ class WhenIWorkAvailabilityService
     public function mapTimeSlotToType(string $timeSlot): int
     {
         return match ($timeSlot) {
-            'holyday' => 1,
+            'holiday' => 1,
             default => 2,
         };
     }
@@ -421,7 +421,7 @@ class WhenIWorkAvailabilityService
     public function extractTimeSlotFromEvent(array $event, ?string $userTimezone = null): string
     {
         if ($event['all_day']) {
-            return $event['type'] === 1 ? 'holyday' : 'all-day';
+            return $event['type'] === 1 ? 'holiday' : 'all-day';
         }
 
         // For time-based events, use the 'events' array which has local times
@@ -530,7 +530,7 @@ class WhenIWorkAvailabilityService
             '9:30-4:30' => 'Morning shift availability',
             '3:30-10:30' => 'Evening shift availability',
             'all-day' => 'Available all day',
-            'holyday' => 'Holiday/Day off',
+            'holiday' => 'Holiday/Day off',
             default => 'Availability',
         };
     }

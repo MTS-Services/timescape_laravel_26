@@ -17,7 +17,7 @@ class StoreAvailabilityRequest extends FormRequest
     {
         return [
             'selections' => ['required', 'array'],
-            'selections.*' => ['nullable', 'string', 'in:9:30-4:30,3:30-10:30,all-day,holyday'],
+            'selections.*' => ['nullable', 'string', 'in:9:30-4:30,3:30-10:30,all-day,holiday'],
             'year' => ['sometimes', 'integer', 'between:2020,2030'],
             'month' => ['sometimes', 'integer', 'between:1,12'],
             'user_id' => ['sometimes', 'integer', 'exists:users,id'],
