@@ -20,7 +20,7 @@ export const AVAILABILITY_OPTIONS: Array<{
         { id: '9:30-4:30', label: '9:30 AM - 4:30 PM', color: 'teal' },
         { id: '3:30-10:30', label: '3:30 PM - 10:30 PM', color: 'gray' },
         { id: 'all-day', label: 'All Day', color: 'gray' },
-        { id: 'holyday', label: 'Holyday', color: 'gray' },
+        { id: 'holiday', label: 'Holiday', color: 'gray' },
     ];
 
 /**

@@ -126,7 +126,7 @@ class AvailabilityService
      */
     protected function saveToWhenIWorkAndLocal(User $user, string $date, string $timeSlot): array
     {
-        $isAllDay = in_array($timeSlot, ['all-day', 'holyday']);
+        $isAllDay = in_array($timeSlot, ['all-day', 'holiday']);
 
         Log::info('Starting availability save', [
             'user_id' => $user->id,
@@ -473,18 +473,18 @@ class AvailabilityService
         // Calculate duty days count (all assigned days)
         $dutyDaysCount = $availabilities->count();
 
-        // Calculate leave taken (past days marked as 'holyday')
+        // Calculate leave taken (past days marked as 'holiday')
         $leaveTakenCount = $availabilities
             ->filter(function ($availability) use ($today) {
-                return $availability->time_slot === 'holyday' &&
+                return $availability->time_slot === 'holiday' &&
                     $availability->availability_date->lt($today);
             })
             ->count();
 
-        // Calculate upcoming leave (future days marked as 'holyday')
+        // Calculate upcoming leave (future days marked as 'holiday')
         $upcomingLeaveCount = $availabilities
             ->filter(function ($availability) use ($today) {
-                return $availability->time_slot === 'holyday' &&
+                return $availability->time_slot === 'holiday' &&
                     $availability->availability_date->gte($today);
             })
             ->count();

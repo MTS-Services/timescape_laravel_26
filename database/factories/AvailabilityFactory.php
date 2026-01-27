@@ -19,7 +19,7 @@ class AvailabilityFactory extends Factory
         return [
             'user_id' => User::factory(),
             'availability_date' => Carbon::parse(fake()->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d')),
-            'time_slot' => fake()->randomElement(['9:30-4:30', '3:30-10:30', 'all-day', 'holyday']),
+            'time_slot' => fake()->randomElement(['9:30-4:30', '3:30-10:30', 'all-day', 'holiday']),
             'status' => 'available',
             'notes' => fake()->optional()->sentence(),
         ];
