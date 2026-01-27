@@ -170,8 +170,9 @@ export default function AvailabilityScheduler() {
     }, [auth.user.can_manage_users, isMobile, calendarDays]);
 
     // Show success/error messages with detailed debug info
-    // Using ref to track which flash messages we've already shown
+    // Using refs to track which messages we've already shown
     const shownFlashRef = useRef<string | null>(null);
+    const shownUserSyncRef = useRef<string | null>(null);
 
     useEffect(() => {
         // Create a unique key for current flash to avoid duplicate toasts
@@ -183,7 +184,7 @@ export default function AvailabilityScheduler() {
         }
 
         if (flash?.success) {
-            toast.success(flash.success);
+            // toast.success(flash.success);
             debugLog('SAVE_SUCCESS', { message: flash.success });
             shownFlashRef.current = flashKey;
         }
@@ -207,6 +208,11 @@ export default function AvailabilityScheduler() {
 
     // Show user sync notifications (from SyncWhenIWorkUsersJob on login)
     useEffect(() => {
+        if (!userSyncSuccess && !userSyncError) return;
+
+        const syncKey = JSON.stringify({ s: userSyncSuccess?.message, e: userSyncError?.message });
+        if (syncKey === shownUserSyncRef.current) return;
+
         if (userSyncSuccess) {
             const description = userSyncSuccess.created || userSyncSuccess.updated
                 ? `Created: ${userSyncSuccess.created ?? 0}, Updated: ${userSyncSuccess.updated ?? 0}`
@@ -214,9 +220,7 @@ export default function AvailabilityScheduler() {
             toast.success(userSyncSuccess.message, { description });
             debugLog('USER_SYNC_SUCCESS', userSyncSuccess);
         }
-    }, [userSyncSuccess]);
 
-    useEffect(() => {
         if (userSyncError) {
             toast.error(userSyncError.message, {
                 duration: 8000,
@@ -230,7 +234,9 @@ export default function AvailabilityScheduler() {
                 console.error('[User Sync] Errors:', userSyncError.details);
             }
         }
-    }, [userSyncError]);
+
+        shownUserSyncRef.current = syncKey;
+    }, [userSyncSuccess, userSyncError]);
 
     const fetchMonthData = useCallback((date: Date) => {
         const year = date.getFullYear();
@@ -380,7 +386,7 @@ export default function AvailabilityScheduler() {
             setPastDateForModal(null);
             setIsPastDateModalOpen(false);
         }
-    }, [calendarDays, currentDate]);
+    }, [calendarDays, currentDate, canEditToday]);
 
     const handleOpenStaffListModal = useCallback(() => {
         staffListModalRef.current?.open();

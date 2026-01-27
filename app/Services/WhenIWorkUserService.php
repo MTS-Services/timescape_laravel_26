@@ -25,8 +25,9 @@ class WhenIWorkUserService
         $this->logDebug('FETCH_USERS_START', ['token_length' => strlen($token)]);
 
         try {
-            $url = config('services.wheniwork.base_url').'users';
+            $url = config('services.wheniwork.base_url') . 'users';
 
+            /** @var \Illuminate\Http\Client\Response $response */
             $response = Http::withHeaders([
                 'W-Token' => $token,
             ])->get($url);
