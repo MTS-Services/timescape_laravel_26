@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Calendar, ClipboardList, CalendarOff, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,8 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
 import { formatMonthYear } from '@/lib/date-helpers';
+import { cn } from '@/lib/utils';
 
 interface Statistics {
     total_duty_days: number;

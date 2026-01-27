@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
     protected function registerAuthProviders(): void
     {
         Auth::provider('wheniwork', function ($app, array $config) {
-            return new WhenIWorkUserProvider();
+            return new WhenIWorkUserProvider;
         });
     }
 
@@ -45,13 +45,13 @@ class AppServiceProvider extends ServiceProvider
         );
 
         Password::defaults(
-            fn(): ?Password => app()->isProduction()
+            fn (): ?Password => app()->isProduction()
                 ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
+                    ->mixedCase()
+                    ->letters()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
                 : null
         );
     }

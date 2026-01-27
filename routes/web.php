@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\UserSelectionController;
 use App\Http\Controllers\AvailabilityController;
+use App\Http\Controllers\UserSelectionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -20,4 +20,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

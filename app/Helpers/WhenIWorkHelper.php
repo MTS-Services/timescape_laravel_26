@@ -10,6 +10,7 @@ class WhenIWorkHelper
         if ($user && $user->wheniwork_token) {
             return $user->wheniwork_token;
         }
+
         return session('wheniwork_token');
     }
 
@@ -27,6 +28,7 @@ class WhenIWorkHelper
                 'role_label' => $user->role_label,
             ];
         }
+
         return null;
     }
 
@@ -39,11 +41,11 @@ class WhenIWorkHelper
     {
         $token = self::getToken();
 
-        if (!$token) {
+        if (! $token) {
             throw new \Exception('When I Work token not found in session');
         }
 
-        $url = config('services.wheniwork.base_url') . ltrim($endpoint, '/');
+        $url = config('services.wheniwork.base_url').ltrim($endpoint, '/');
 
         $request = \Illuminate\Support\Facades\Http::withHeaders([
             'W-Token' => $token,

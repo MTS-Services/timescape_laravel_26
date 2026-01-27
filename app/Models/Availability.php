@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
 
 class Availability extends Model
 {
@@ -13,6 +13,7 @@ class Availability extends Model
 
     protected $fillable = [
         'user_id',
+        'wheniwork_availability_id',
         'availability_date',
         'time_slot',
         'status',

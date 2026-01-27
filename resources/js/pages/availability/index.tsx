@@ -22,6 +22,21 @@ import type {
     AvailabilityRequirements,
 } from '@/types/availability';
 
+interface SaveResult {
+    date: string;
+    time_slot?: string;
+    action?: string;
+    reason?: string;
+}
+
+interface SaveResults {
+    success: SaveResult[];
+    failed: SaveResult[];
+    skipped: SaveResult[];
+    has_errors: boolean;
+    error_message: string | null;
+}
+
 interface PageProps {
     auth: {
         user: User;
@@ -33,6 +48,7 @@ interface PageProps {
     flash?: {
         success?: string;
         error?: string;
+        save_results?: SaveResults;
     };
     // Admin-specific properties
     users?: User[];
@@ -47,12 +63,22 @@ interface PageProps {
         };
     };
     selectedUserId?: number;
+    canEditToday?: boolean;
     [key: string]: unknown;
 }
 
+// Debug logging helper - only logs in development
+const debugLog = (action: string, data: unknown) => {
+    if (import.meta.env.DEV) {
+        console.log(`[Availability Debug] ${action}:`, data);
+    }
+};
+
 export default function AvailabilityScheduler() {
-    const { auth, initialSelections, currentYear, currentMonth, flash, users, statistics, selectedUserId } =
-        usePage<PageProps>().props;
+    const page = usePage<PageProps>();
+    const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false } = page.props;
+    // Inertia v2.3.3+: flash data is at page.flash, not page.props.flash
+    const flash = (page as unknown as { flash?: PageProps['flash'] }).flash ?? page.props.flash;
 
     const [currentDate, setCurrentDate] = useState(() => {
         if (currentYear && currentMonth) {
@@ -132,13 +158,39 @@ export default function AvailabilityScheduler() {
         };
     }, [auth.user.can_manage_users, isMobile, calendarDays]);
 
-    // Show success/error messages
+    // Show success/error messages with detailed debug info
+    // Using ref to track which flash messages we've already shown
+    const shownFlashRef = useRef<string | null>(null);
+
     useEffect(() => {
+        // Create a unique key for current flash to avoid duplicate toasts
+        const flashKey = flash ? JSON.stringify({ s: flash.success, e: flash.error }) : null;
+
+        // Skip if we've already shown this flash message
+        if (flashKey === shownFlashRef.current) {
+            return;
+        }
+
         if (flash?.success) {
             toast.success(flash.success);
+            debugLog('SAVE_SUCCESS', { message: flash.success });
+            shownFlashRef.current = flashKey;
         }
         if (flash?.error) {
-            toast.error(flash.error);
+            toast.error(flash.error, {
+                duration: 6000, // Show error longer
+                description: 'Please try again or contact support if the issue persists.',
+            });
+            debugLog('SAVE_ERROR', {
+                message: flash.error,
+                results: flash.save_results,
+            });
+
+            // Log detailed failure info in development
+            if (flash.save_results?.failed && flash.save_results.failed.length > 0) {
+                console.error('[Availability] Failed operations:', flash.save_results.failed);
+            }
+            shownFlashRef.current = flashKey;
         }
     }, [flash]);
 
@@ -195,38 +247,88 @@ export default function AvailabilityScheduler() {
     }, [fetchMonthData]);
 
     const handleSelectionChange = useCallback((dateKey: string, optionId: string | null) => {
-        // console.log('Selection changed:', { dateKey, optionId, selectedUserId });
+        const previousValue = selections[dateKey];
 
+        debugLog('SELECTION_CHANGE_START', {
+            dateKey,
+            optionId,
+            previousValue,
+            selectedUserId,
+        });
+
+        // Optimistically update UI
         setSelections((prev) => ({
             ...prev,
             [dateKey]: optionId,
         }));
 
+        const requestPayload = {
+            selections: { [dateKey]: optionId },
+            year: currentDate.getFullYear(),
+            month: currentDate.getMonth() + 1,
+            user_id: selectedUserId,
+            single_update: true,
+        };
+
+        debugLog('API_REQUEST', requestPayload);
+
         router.post(
             route('availability.store'),
-            {
-                selections: { [dateKey]: optionId },
-                year: currentDate.getFullYear(),
-                month: currentDate.getMonth() + 1,
-                user_id: selectedUserId,
-                single_update: true,
-            },
+            requestPayload,
             {
                 preserveState: true,
                 preserveScroll: true,
+                onSuccess: (page) => {
+                    // Inertia v2.3.3+: flash is at page.flash, not page.props.flash
+                    const pageFlash = (page as unknown as { flash?: PageProps['flash'] }).flash;
+                    debugLog('API_SUCCESS', {
+                        dateKey,
+                        optionId,
+                        flash: pageFlash,
+                    });
+
+                    // Show toast immediately from the response flash data
+                    if (pageFlash?.success) {
+                        toast.success(pageFlash.success);
+                        debugLog('TOAST_SHOWN', { type: 'success', message: pageFlash.success });
+                    }
+                    if (pageFlash?.error) {
+                        toast.error(pageFlash.error, {
+                            duration: 6000,
+                            description: 'Please try again.',
+                        });
+                        debugLog('TOAST_SHOWN', { type: 'error', message: pageFlash.error });
+                    }
+                },
                 onError: (errors) => {
-                    console.error('Save failed:', errors);
-                    toast.error('Failed to save your change');
+                    console.error('[Availability] Save failed:', errors);
+                    debugLog('API_ERROR', { dateKey, optionId, errors });
+
+                    // Revert optimistic update on error
+                    setSelections((prev) => ({
+                        ...prev,
+                        [dateKey]: previousValue,
+                    }));
+
+                    // Show detailed error toast
+                    const errorMessage = typeof errors === 'object'
+                        ? Object.values(errors).flat().join(', ')
+                        : 'Failed to save your change';
+
+                    toast.error(errorMessage, {
+                        duration: 5000,
+                        description: `Failed to update ${dateKey}`,
+                    });
                 },
             }
         );
-    }, [currentDate, selectedUserId]);
+    }, [currentDate, selectedUserId, selections]);
 
     const handleMobileDateSelect = useCallback((dateKey: string) => {
         const dateObj = calendarDays.find((d) => formatDateKey(d) === dateKey);
         if (!dateObj) return;
 
-        const isPast = isDateInPast(dateObj);
+        const isPast = isDateInPast(dateObj, canEditToday);
         const isInCurrentMonth = isSameMonth(dateObj, currentDate);
 
         if (!isInCurrentMonth) return;
@@ -257,13 +359,12 @@ export default function AvailabilityScheduler() {
 
         return calendarDays
             .filter((date) => {
-                const isPast = isDateInPast(date);
-                const isDisabled = isDateDisabled(date, currentDate);
-                // Show today and future dates that are in the current month
-                return !isPast && !isDisabled;
+                const isDisabled = isDateDisabled(date, currentDate, canEditToday);
+                // Show editable dates in the current month
+                return !isDisabled;
             })
             .map((date) => formatDateKey(date));
-    }, [calendarDays, currentDate, isMobile]);
+    }, [calendarDays, currentDate, isMobile, canEditToday]);
     return (
         <AdminLayout>
             <Head title="Availability Scheduler" />
@@ -294,6 +395,7 @@ export default function AvailabilityScheduler() {
                                 selections={selections}
                                 selectedDate={selectedMobileDate}
                                 onDateSelect={handleMobileDateSelect}
+                                canEditToday={canEditToday}
                             />
                         </div>
 
@@ -304,7 +406,7 @@ export default function AvailabilityScheduler() {
                                     (d) => formatDateKey(d) === dateKey
                                 );
                                 const isDisabled = dateObj
-                                    ? isDateDisabled(dateObj, currentDate)
+                                    ? isDateDisabled(dateObj, currentDate, canEditToday)
                                     : true;
 
                                 return (
@@ -378,6 +480,7 @@ export default function AvailabilityScheduler() {
                                     currentMonth={currentDate}
                                     selections={selections}
                                     onSelectionChange={handleSelectionChange}
+                                    canEditToday={canEditToday}
                                 />
                             </div>
 

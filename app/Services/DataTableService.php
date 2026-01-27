@@ -9,11 +9,6 @@ class DataTableService
 {
     /**
      * Process DataTable request
-     *
-     * @param Builder $query
-     * @param Request $request
-     * @param array $config
-     * @return array
      */
     public function process(Builder $query, Request $request, array $config): array
     {
@@ -87,7 +82,7 @@ class DataTableService
     private function applyFilters(Builder $query, array $filters, array $filterableColumns): void
     {
         foreach ($filters as $key => $value) {
-            if (in_array($key, $filterableColumns) && !empty($value)) {
+            if (in_array($key, $filterableColumns) && ! empty($value)) {
                 if (str_contains($key, '.')) {
                     [$relation, $relationColumn] = explode('.', $key);
                     $query->whereHas($relation, function ($relationQuery) use ($relationColumn, $value) {

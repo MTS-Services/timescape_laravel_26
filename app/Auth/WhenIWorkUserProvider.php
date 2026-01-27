@@ -53,19 +53,21 @@ class WhenIWorkUserProvider implements UserProvider
                 'password' => $credentials['password'],
             ]);
 
-            if (!$loginResponse->successful()) {
+            if (! $loginResponse->successful()) {
                 Log::warning('When I Work login failed', [
                     'email' => $credentials['email'],
                     'status' => $loginResponse->status(),
                     'response' => $loginResponse->json(),
                 ]);
+
                 return null;
             }
 
             $loginData = $loginResponse->json();
 
-            if (!isset($loginData['person']) || !isset($loginData['token'])) {
+            if (! isset($loginData['person']) || ! isset($loginData['token'])) {
                 Log::warning('When I Work login response missing data', ['data' => $loginData]);
+
                 return null;
             }
 
@@ -74,7 +76,7 @@ class WhenIWorkUserProvider implements UserProvider
 
             $fullUserData = $this->fetchFullUserData($personId, $token);
 
-            if (!$fullUserData) {
+            if (! $fullUserData) {
                 $fullUserData = $this->mapLoginDataToUserData($loginData['person']);
             }
 
@@ -110,19 +112,20 @@ class WhenIWorkUserProvider implements UserProvider
         try {
             $response = Http::withHeaders([
                 'W-Token' => $token,
-            ])->get($this->config['base_url'] . 'users');
+            ])->get($this->config['base_url'].'users');
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::warning('Failed to fetch full user data from When I Work', [
                     'person_id' => $personId,
                     'status' => $response->status(),
                 ]);
+
                 return null;
             }
 
             $data = $response->json();
 
-            if (!isset($data['users']) || !is_array($data['users'])) {
+            if (! isset($data['users']) || ! is_array($data['users'])) {
                 return null;
             }
 
@@ -132,7 +135,7 @@ class WhenIWorkUserProvider implements UserProvider
                 }
             }
 
-            if (!empty($data['users'])) {
+            if (! empty($data['users'])) {
                 return $data['users'][0];
             }
 
@@ -142,6 +145,7 @@ class WhenIWorkUserProvider implements UserProvider
                 'message' => $e->getMessage(),
                 'person_id' => $personId,
             ]);
+
             return null;
         }
     }

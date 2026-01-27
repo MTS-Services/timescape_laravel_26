@@ -48,7 +48,7 @@ class HandleInertiaRequests extends Middleware
                         'last_name',
                         'phone_number',
                         'employee_code',
-                        'avatar'
+                        'avatar',
                     ]),
                     [
                         'name' => $request->user()->name,

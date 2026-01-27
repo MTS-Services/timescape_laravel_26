@@ -100,7 +100,7 @@ return new class extends Migration
                 'positions',
                 'locations',
                 'avatar_urls',
-                'deleted_at'
+                'deleted_at',
             ]);
 
             $table->string('name')->after('id');

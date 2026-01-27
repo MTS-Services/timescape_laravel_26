@@ -101,14 +101,16 @@ export function generateCalendarDays(currentDate: Date): Date[] {
 /**
  * Check if a date is in the past (BEFORE today, not including today)
  */
-export function isDateInPast(date: Date): boolean {
+export function isDateInPast(date: Date, canEditToday: boolean = false): boolean {
     const today = getToday();
     const dateToCheck = createLocalDate(
         date.getFullYear(),
         date.getMonth(),
         date.getDate()
     );
-
+    if (!canEditToday) {
+        return dateToCheck.getTime() <= today.getTime();
+    }
     return dateToCheck.getTime() < today.getTime();
 }
 
@@ -128,12 +130,28 @@ export function isToday(date: Date): boolean {
 
 /**
  * Check if a date should be disabled for editing
+ * @param date - The date to check
+ * @param viewingMonth - The currently viewed month
+ * @param canEditToday - Whether editing today is allowed (from backend config)
  */
-export function isDateDisabled(date: Date, viewingMonth: Date): boolean {
+export function isDateDisabled(date: Date, viewingMonth: Date, canEditToday: boolean = false): boolean {
     const isPast = isDateInPast(date);
     const notInViewingMonth = !isSameMonth(date, viewingMonth);
+    const isTodayDate = isToday(date);
 
-    return isPast || notInViewingMonth;
+    if (notInViewingMonth) {
+        return true;
+    }
+
+    if (isPast) {
+        return true;
+    }
+
+    if (isTodayDate && !canEditToday) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
