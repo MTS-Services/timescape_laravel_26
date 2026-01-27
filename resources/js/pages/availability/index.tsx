@@ -328,7 +328,7 @@ export default function AvailabilityScheduler() {
         const dateObj = calendarDays.find((d) => formatDateKey(d) === dateKey);
         if (!dateObj) return;
 
-        const isPast = isDateInPast(dateObj);
+        const isPast = isDateInPast(dateObj, canEditToday);
         const isInCurrentMonth = isSameMonth(dateObj, currentDate);
 
         if (!isInCurrentMonth) return;

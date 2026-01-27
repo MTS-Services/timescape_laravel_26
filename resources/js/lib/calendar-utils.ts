@@ -11,9 +11,9 @@ export function getCardBackgroundColor(
     isCurrentMonth: boolean
 ): string {
     // Weekend cards are always red, regardless of disabled state
-    if (isWeekend) {
-        return 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30';
-    }
+    // if (isWeekend) {
+    //     return 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30';
+    // }
 
     // Not in current month
     if (!isCurrentMonth) {

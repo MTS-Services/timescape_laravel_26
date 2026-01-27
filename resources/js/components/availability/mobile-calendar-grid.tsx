@@ -49,7 +49,7 @@ export function MobileCalendarGrid({
                 {calendarDays.map((date, index) => {
                     const dateKey = formatDateKey(date);
                     const isCurrentMonthDay = isSameMonth(date, currentMonth);
-                    const isPastDate = isDateInPast(date);
+                    const isPastDate = isDateInPast(date, canEditToday);
                     const isTodayDate = isToday(date);
                     const isWeekend = isWeekendDay(date);
                     const hasData = !!selections[dateKey];

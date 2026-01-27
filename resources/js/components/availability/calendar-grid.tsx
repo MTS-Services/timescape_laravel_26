@@ -25,7 +25,7 @@ export function CalendarGrid({
     currentMonth,
     selections,
     onSelectionChange,
-    canEditToday = true,
+    canEditToday = false,
 }: CalendarGridProps) {
     // console.log('Rendering CalendarGrid with days:', calendarDays);
     // console.log('Current month:', currentMonth);
@@ -50,7 +50,7 @@ export function CalendarGrid({
                 {calendarDays.map((date, index) => {
                     const dateKey = formatDateKey(date);
                     const isCurrentMonthDay = isSameMonth(date, currentMonth);
-                    const isPastDate = isDateInPast(date);
+                    const isPastDate = isDateInPast(date, canEditToday);
                     const isTodayDate = isToday(date);
                     const isWeekend = isWeekendDay(date);
 

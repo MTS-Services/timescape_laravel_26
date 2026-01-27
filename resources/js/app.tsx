@@ -39,7 +39,7 @@ createInertiaApp({
                             position="top-right"
                             richColors
                             closeButton
-                            expand={false}
+                            expand={true}
                         />
                         <ErrorOverlay />
                         <ErrorBadge />
