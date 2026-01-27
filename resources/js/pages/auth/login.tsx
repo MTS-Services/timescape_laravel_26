@@ -67,7 +67,7 @@ export default function Login({ status }: LoginProps) {
                                                 Forgot password?
                                             </TextLink>
                                         )}
-                                    </div>
+                                    </div> 
                                     <PasswordInput
                                         id="password"
                                         name="password"
