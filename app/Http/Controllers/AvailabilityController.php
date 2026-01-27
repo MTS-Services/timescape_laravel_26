@@ -7,6 +7,7 @@ use App\Jobs\SyncUserAvailabilityJob;
 use App\Services\AvailabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
@@ -119,7 +120,11 @@ class AvailabilityController extends Controller
             }
         }
 
-        return Inertia::render('availability/index', [
+        // Check for user sync status from cache (set by SyncWhenIWorkUsersJob)
+        $userSyncSuccess = Cache::pull("user_sync_success_{$user->id}");
+        $userSyncError = Cache::pull("user_sync_error_{$user->id}");
+
+        $props = [
             'initialSelections' => $availabilities,
             'requirements' => $requirements,
             'currentYear' => $year,
@@ -128,7 +133,17 @@ class AvailabilityController extends Controller
             'users' => $users,
             'selectedUserId' => $targetUserId,
             'canEditToday' => config('availability.can_edit_today', false),
-        ]);
+        ];
+
+        // Add user sync notifications if present
+        if ($userSyncSuccess) {
+            $props['userSyncSuccess'] = $userSyncSuccess;
+        }
+        if ($userSyncError) {
+            $props['userSyncError'] = $userSyncError;
+        }
+
+        return Inertia::render('availability/index', $props);
     }
 
     public function store(StoreAvailabilityRequest $request): RedirectResponse

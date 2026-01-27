@@ -14,7 +14,7 @@ enum UserRole: int
         return match ($this) {
             self::ADMIN => 'Admin',
             self::MANAGER => 'Manager',
-            self::EMPLOYEE => 'Employee',
+            self::EMPLOYEE => 'Staff',
             self::SUPERVISOR => 'Supervisor',
         };
     }
@@ -41,7 +41,7 @@ enum UserRole: int
 
     public function canManageUsers(): bool
     {
-        return in_array($this, [self::ADMIN, self::MANAGER]);
+        return in_array($this, [self::ADMIN]);
     }
 
     public function canAccessPayroll(): bool

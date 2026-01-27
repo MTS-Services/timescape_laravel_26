@@ -37,6 +37,14 @@ interface SaveResults {
     error_message: string | null;
 }
 
+interface UserSyncResult {
+    message: string;
+    created?: number;
+    updated?: number;
+    failed?: number;
+    details?: string[];
+}
+
 interface PageProps {
     auth: {
         user: User;
@@ -64,6 +72,9 @@ interface PageProps {
     };
     selectedUserId?: number;
     canEditToday?: boolean;
+    // User sync notifications (from SyncWhenIWorkUsersJob)
+    userSyncSuccess?: UserSyncResult;
+    userSyncError?: UserSyncResult;
     [key: string]: unknown;
 }
 
@@ -76,7 +87,7 @@ const debugLog = (action: string, data: unknown) => {
 
 export default function AvailabilityScheduler() {
     const page = usePage<PageProps>();
-    const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false } = page.props;
+    const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false, userSyncSuccess, userSyncError } = page.props;
     // Inertia v2.3.3+: flash data is at page.flash, not page.props.flash
     const flash = (page as unknown as { flash?: PageProps['flash'] }).flash ?? page.props.flash;
 
@@ -193,6 +204,33 @@ export default function AvailabilityScheduler() {
             shownFlashRef.current = flashKey;
         }
     }, [flash]);
+
+    // Show user sync notifications (from SyncWhenIWorkUsersJob on login)
+    useEffect(() => {
+        if (userSyncSuccess) {
+            const description = userSyncSuccess.created || userSyncSuccess.updated
+                ? `Created: ${userSyncSuccess.created ?? 0}, Updated: ${userSyncSuccess.updated ?? 0}`
+                : undefined;
+            toast.success(userSyncSuccess.message, { description });
+            debugLog('USER_SYNC_SUCCESS', userSyncSuccess);
+        }
+    }, [userSyncSuccess]);
+
+    useEffect(() => {
+        if (userSyncError) {
+            toast.error(userSyncError.message, {
+                duration: 8000,
+                description: userSyncError.details?.length
+                    ? `${userSyncError.details.length} error(s) occurred`
+                    : 'Please try logging in again or contact support.',
+            });
+            debugLog('USER_SYNC_ERROR', userSyncError);
+
+            if (import.meta.env.DEV && userSyncError.details) {
+                console.error('[User Sync] Errors:', userSyncError.details);
+            }
+        }
+    }, [userSyncError]);
 
     const fetchMonthData = useCallback((date: Date) => {
         const year = date.getFullYear();
