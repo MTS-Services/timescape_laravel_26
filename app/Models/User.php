@@ -13,7 +13,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -107,7 +107,7 @@ class User extends Authenticatable
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn() => trim($this->first_name . ' ' . $this->last_name),
+            get: fn () => trim($this->first_name.' '.$this->last_name),
         );
     }
 
@@ -161,6 +161,7 @@ class User extends Authenticatable
         if ($this->avatar_urls && isset($this->avatar_urls['url'])) {
             return str_replace('%s', 'medium', $this->avatar_urls['url']);
         }
+
         return $this->avatar;
     }
 
@@ -192,9 +193,9 @@ class User extends Authenticatable
                 'notes' => $userData['notes'] ?? null,
                 'uuid' => $userData['uuid'] ?? null,
                 'timezone_name' => $userData['timezone_name'] ?? null,
-                'start_date' => !empty($userData['start_date']) ? $userData['start_date'] : null,
-                'hired_on' => !empty($userData['hired_on']) ? $userData['hired_on'] : null,
-                'terminated_at' => !empty($userData['terminated_at']) ? $userData['terminated_at'] : null,
+                'start_date' => ! empty($userData['start_date']) ? $userData['start_date'] : null,
+                'hired_on' => ! empty($userData['hired_on']) ? $userData['hired_on'] : null,
+                'terminated_at' => ! empty($userData['terminated_at']) ? $userData['terminated_at'] : null,
                 'last_login' => now(),
                 'alert_settings' => $userData['alert_settings'] ?? null,
                 'positions' => $userData['positions'] ?? [],

@@ -4,20 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 
 class UserSelectionController extends Controller
 {
     /**
      * Get a list of all users for admin selection panel
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getUsers(Request $request)
     {
         // Check if user is admin
-        if (!$request->user()->is_admin) {
+        if (! $request->user()->is_admin) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -35,14 +33,13 @@ class UserSelectionController extends Controller
             });
 
         return response()->json([
-            'users' => $users
+            'users' => $users,
         ]);
     }
 
     /**
      * Get availability data for a specific user (admin only)
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getUserAvailability(Request $request)
@@ -55,13 +52,13 @@ class UserSelectionController extends Controller
         ]);
 
         // Check if user is admin
-        if (!$request->user()->is_admin) {
+        if (! $request->user()->is_admin) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
         // Get the user
         $targetUser = User::find($validated['user_id']);
-        if (!$targetUser) {
+        if (! $targetUser) {
             return response()->json(['error' => 'User not found'], 404);
         }
 

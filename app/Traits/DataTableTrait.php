@@ -9,13 +9,6 @@ trait DataTableTrait
 {
     /**
      * Apply DataTable filters, search, sorting, and pagination
-     *
-     * @param Builder $query
-     * @param Request $request
-     * @param array $searchableColumns
-     * @param array $filterableColumns
-     * @param array $sortableColumns
-     * @return array
      */
     public function applyDataTableFilters(
         Builder $query,
@@ -46,7 +39,7 @@ trait DataTableTrait
         if ($request->filled('filters')) {
             $filters = $request->input('filters');
             foreach ($filters as $key => $value) {
-                if (in_array($key, $filterableColumns) && !empty($value)) {
+                if (in_array($key, $filterableColumns) && ! empty($value)) {
                     if (str_contains($key, '.')) {
                         // Relationship filter
                         [$relation, $relationColumn] = explode('.', $key);
@@ -110,7 +103,7 @@ trait DataTableTrait
     {
         $relationInstance = $this->$relation();
         $relatedTable = $relationInstance->getRelated()->getTable();
-        
+
         return $relationInstance->getRelated()
             ->select($column)
             ->whereColumn(

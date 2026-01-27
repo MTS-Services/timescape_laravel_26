@@ -17,6 +17,7 @@ interface CalendarGridProps {
     currentMonth: Date;
     selections: AvailabilitySelections;
     onSelectionChange: (date: string, optionId: string | null) => void;
+    canEditToday?: boolean;
 }
 
 export function CalendarGrid({
@@ -24,6 +25,7 @@ export function CalendarGrid({
     currentMonth,
     selections,
     onSelectionChange,
+    canEditToday = true,
 }: CalendarGridProps) {
     // console.log('Rendering CalendarGrid with days:', calendarDays);
     // console.log('Current month:', currentMonth);
@@ -52,8 +54,8 @@ export function CalendarGrid({
                     const isTodayDate = isToday(date);
                     const isWeekend = isWeekendDay(date);
 
-                    // Disabled if: in the past (not today) OR not in current viewing month
-                    const isDisabled = isDateDisabled(date, currentMonth);
+                    // Disabled if: in the past OR today (when canEditToday is false) OR not in current viewing month
+                    const isDisabled = isDateDisabled(date, currentMonth, canEditToday);
 
                     const selectedOption = selections[dateKey] || null;
                     const hasNoData = !selectedOption;

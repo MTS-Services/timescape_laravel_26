@@ -18,6 +18,7 @@ interface MobileCalendarGridProps {
     selections: AvailabilitySelections;
     selectedDate: string | null;
     onDateSelect: (dateKey: string) => void;
+    canEditToday?: boolean;
 }
 
 export function MobileCalendarGrid({
@@ -26,6 +27,7 @@ export function MobileCalendarGrid({
     selections,
     selectedDate,
     onDateSelect,
+    canEditToday = true,
 }: MobileCalendarGridProps) {
 
     return (
@@ -52,7 +54,7 @@ export function MobileCalendarGrid({
                     const isWeekend = isWeekendDay(date);
                     const hasData = !!selections[dateKey];
                     const isSelected = selectedDate === dateKey;
-                    const isDisabled = isDateDisabled(date, currentMonth);
+                    const isDisabled = isDateDisabled(date, currentMonth, canEditToday);
 
                     // Indicator logic:
                     // 🟢 Green: has data (any date)
