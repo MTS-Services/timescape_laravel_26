@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'wheniwork' => [
+        'api_key' => env('WHEN_I_WORK_API_KEY'),
+        'login_url' => env('WHEN_I_WORK_LOGIN_URL', 'https://api.login.wheniwork.com/login'),
+        'base_url' => env('WHEN_I_WORK_BASE_URL', 'https://api.wheniwork.com/2/'),
+    ],
+
 ];

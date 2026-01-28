@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Laravel\Fortify\Features;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -39,9 +40,37 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge(
+                    $request->user()->only([
+                        'id',
+                        'email',
+                        'first_name',
+                        'last_name',
+                        'phone_number',
+                        'employee_code',
+                        'avatar',
+                    ]),
+                    [
+                        'name' => $request->user()->name,
+                        'role' => $request->user()->role?->value,
+                        'role_label' => $request->user()->role_label,
+                        'is_admin' => $request->user()->isAdmin(),
+                        'can_manage_users' => $request->user()->canManageUsers(),
+                        'avatar_url' => $request->user()->avatar_url,
+                    ]
+                ) : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'features' => [
+                // 'canRegister' => Features::enabled(Features::registration()),
+                // 'canResetPassword' => Features::enabled(Features::resetPasswords()),
+                // 'canVerifyEmail' => Features::enabled(Features::emailVerification()),
+                // 'canUseTwoFactorAuthentication' => Features::enabled(Features::twoFactorAuthentication()),
+                'canRegister' => false,
+                'canResetPassword' => false,
+                'canVerifyEmail' => false,
+                'canUseTwoFactorAuthentication' => false,
+            ],
         ];
     }
 }

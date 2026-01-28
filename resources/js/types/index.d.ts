@@ -3,6 +3,7 @@ import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
     user: User;
+    permissions?: string[];
 }
 
 export interface BreadcrumbItem {
@@ -30,7 +31,7 @@ export interface NavItem {
     target?: '_blank' | '_self' | '_parent' | '_top';
     className?: string;
     description?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 // Alias for backward compatibility
@@ -39,8 +40,16 @@ export type NavItem = NavItem;
 export interface SharedData {
     name: string;
     auth: Auth;
+    features: Features;
     sidebarOpen: boolean;
     [key: string]: unknown;
+}
+
+export interface Features {
+    canRegister: boolean;
+    canResetPassword: boolean;
+    canVerifyEmail: boolean;
+    canUseTwoFactorAuthentication: boolean;
 }
 
 export interface User {
@@ -55,6 +64,15 @@ export interface User {
     all_permissions?: string[];
     created_at: string;
     updated_at: string;
+    // When I Work fields
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+    employee_code?: string;
+    role?: number;
+    role_label?: string;
+    can_manage_users?: boolean;
+    avatar_url?: string;
     [key: string]: unknown;
 }
 

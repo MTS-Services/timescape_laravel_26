@@ -1,5 +1,6 @@
-import { type NavItem } from '@/types';
 import { Folder, File, Circle, Dot } from 'lucide-react';
+
+import { type NavItem } from '@/types';
 
 /**
  * Check if user has permission to view nav item

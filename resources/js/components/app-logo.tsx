@@ -1,14 +1,13 @@
-import AppLogoIcon from './app-logo-icon';
+import { cn } from '@/lib/utils';
 
-export default function AppLogo() {
+interface AppLogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+    className?: string;
+}
+
+export default function AppLogo({ className, ...props }: AppLogoProps) {
     return (
-        <div className="flex items-center gap-2.5">
-            <div className="flex aspect-square size-9 items-center justify-center rounded-xl bg-linear-to-br from-violet-600 to-emerald-500 text-white shadow-md shadow-violet-500/20">
-                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-foreground">
-                Team<span className="text-violet-600 dark:text-violet-400">Artisan</span>
-            </span>
-        </div>
+        <>
+            <img src='/logo.svg' alt="App Logo" className={cn("w-auto max-w-[250px] object-contain", className)} {...props} />
+        </>
     );
 }

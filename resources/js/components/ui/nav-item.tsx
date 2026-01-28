@@ -1,20 +1,24 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { type NavItemProps } from '@/types';
 import { Link } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
+import * as React from 'react';
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { NavItemIcon } from './nav-item-icon';
-import { NavItemBadge } from './nav-item-badge';
-import { NavItemDropdown } from './nav-item-dropdown';
-import { hasPermission } from '@/lib/nav-utils';
-import { 
-    useNavActiveState, 
-    useFilteredChildren, 
+import {
+    useNavActiveState,
+    useFilteredChildren,
     useDropdownPosition,
     useClickOutside,
     useHasActiveChild
 } from '@/hooks/nav-hooks';
+import { hasPermission } from '@/lib/nav-utils';
+import { cn } from '@/lib/utils';
+import { type NavItemProps } from '@/types';
+
+
+import { NavItemBadge } from './nav-item-badge';
+import { NavItemDropdown } from './nav-item-dropdown';
+import { NavItemIcon } from './nav-item-icon';
+
 
 export const NavItem = React.memo<NavItemProps>(({
     item,
@@ -28,7 +32,7 @@ export const NavItem = React.memo<NavItemProps>(({
     const hasActiveChild = useHasActiveChild(item, activeSlug);
     const [isOpen, setIsOpen] = React.useState(hasActiveChild);
     const [showDropdown, setShowDropdown] = React.useState(false);
-    
+
     const triggerRef = React.useRef<HTMLButtonElement>(null);
     const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -49,7 +53,11 @@ export const NavItem = React.memo<NavItemProps>(({
     }, [hasActiveChild, isCollapsed]);
 
     // Click outside handler
-    useClickOutside([dropdownRef, triggerRef], () => setShowDropdown(false), showDropdown);
+    useClickOutside(
+        [dropdownRef as React.RefObject<HTMLElement>, triggerRef as React.RefObject<HTMLElement>],
+        () => setShowDropdown(false),
+        showDropdown
+    );
 
     // Handlers
     const handleClick = React.useCallback((event: React.MouseEvent) => {
@@ -100,7 +108,7 @@ export const NavItem = React.memo<NavItemProps>(({
                         )}
                     >
                         <NavItemIcon item={item} level={level} />
-                        
+
                         {!isCollapsed && (
                             <>
                                 <span className="flex-1 truncate">{item.title}</span>
@@ -113,7 +121,7 @@ export const NavItem = React.memo<NavItemProps>(({
                                 />
                             </>
                         )}
-                        
+
                         {/* Active indicator */}
                         {isCollapsed && itemIsActive && (
                             <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full">
@@ -146,7 +154,7 @@ export const NavItem = React.memo<NavItemProps>(({
                         item={item}
                         position={position}
                         childrenCount={filteredChildren.length}
-                        dropdownRef={dropdownRef}
+                        dropdownRef={dropdownRef as React.RefObject<HTMLDivElement>}
                     >
                         {filteredChildren.map((child, index) => (
                             <NavItem
@@ -185,21 +193,21 @@ export const NavItem = React.memo<NavItemProps>(({
             {...(item.external && { target: item.target || '_blank', rel: 'noopener noreferrer' })}
         >
             <NavItemIcon item={item} level={level} />
-            
+
             {!isCollapsed && (
                 <>
                     <span className="flex-1 truncate">{item.title}</span>
                     {item.badge && <NavItemBadge badge={item.badge} />}
                 </>
             )}
-            
+
             {/* Active indicators */}
             {isCollapsed && itemIsActive && (
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full">
                     <div className="absolute inset-0 bg-primary rounded-full animate-ping" />
                 </div>
             )}
-            
+
             {!isCollapsed && itemIsActive && (
                 <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0">
                     <div className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-ping" />

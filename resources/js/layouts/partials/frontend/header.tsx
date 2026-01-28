@@ -1,23 +1,23 @@
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useInitials } from '@/hooks/use-initials';
-import { login, register } from '@/routes';
-import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Menu, XIcon } from 'lucide-react';
 import { useState } from 'react';
+
 import AppLogo from '@/components/app-logo';
-import { UserMenuContent } from '@/components/user-menu-content';
 import AppearanceToggleDropdown from '@/components/appearance-dropdown';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
+import { UserMenuContent } from '@/components/user-menu-content';
+import { useInitials } from '@/hooks/use-initials';
+import { login, register } from '@/routes';
+import { dashboard } from '@/routes';
+import { type SharedData } from '@/types';
 
 export function FrontendHeader() {
-    const { auth } = usePage<SharedData>().props;
+    const { auth, features } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
@@ -38,7 +38,7 @@ export function FrontendHeader() {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-ring">
                                     <Avatar className="h-9 w-9">
-                                        <AvatarImage src={auth.user.avatar} alt={auth.user.name} />
+                                        <AvatarImage src={auth.user.avatar_url || auth.user.avatar} alt={auth.user.name} />
                                         <AvatarFallback className="bg-violet-600 text-white text-xs">
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>
@@ -54,11 +54,13 @@ export function FrontendHeader() {
                             <Link href={login()}>
                                 <Button variant="ghost" size="sm" className="text-sm font-medium">Log in</Button>
                             </Link>
-                            <Link href={register()}>
-                                <Button size="sm" className="bg-violet-600 text-white shadow-sm hover:bg-violet-700">
-                                    Get Started
-                                </Button>
-                            </Link>
+                            {features.canRegister && (
+                                <Link href={register()}>
+                                    <Button size="sm" className="bg-violet-600 text-white shadow-sm hover:bg-violet-700">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
                     )}
 
@@ -86,12 +88,14 @@ export function FrontendHeader() {
                                             <Link href={login()} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
                                                 <Button variant="outline" className="w-full py-6">Log in</Button>
                                             </Link>
-                                            <Link href={register()} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                                                <Button className="w-full bg-violet-600 py-6 hover:bg-violet-700">Get Started</Button>
-                                            </Link>
+                                            {features.canRegister && (
+                                                <Link href={register()} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                                                    <Button className="w-full bg-violet-600 py-6 hover:bg-violet-700">Get Started</Button>
+                                                </Link>
+                                            )}
                                         </>
                                     ) : (
-                                        <Link href={route('admin.dashboard')} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Link href={dashboard()} className="block w-full" onClick={() => setIsMobileMenuOpen(false)}>
                                             <Button className="w-full bg-violet-600 py-6">Dashboard</Button>
                                         </Link>
                                     )}

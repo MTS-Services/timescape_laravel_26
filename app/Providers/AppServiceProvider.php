@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Auth\WhenIWorkUserProvider;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +26,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->registerAuthProviders();
+    }
+
+    protected function registerAuthProviders(): void
+    {
+        Auth::provider('wheniwork', function ($app, array $config) {
+            return new WhenIWorkUserProvider;
+        });
     }
 
     protected function configureDefaults(): void
@@ -34,14 +44,15 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
-            : null
+        Password::defaults(
+            fn (): ?Password => app()->isProduction()
+                ? Password::min(12)
+                    ->mixedCase()
+                    ->letters()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+                : null
         );
     }
 }

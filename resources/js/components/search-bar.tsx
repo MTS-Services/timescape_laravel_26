@@ -1,5 +1,6 @@
-import * as React from 'react';
 import { Search } from 'lucide-react';
+import * as React from 'react';
+
 import { Input } from '@/components/ui/input';
 
 export function SearchBar() {

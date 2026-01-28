@@ -1,13 +1,6 @@
-import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Search, X, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import React, { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -16,9 +9,17 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { DataTableProps } from '@/types/data-table.types';
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
     data,
     columns,
     pagination,
@@ -190,7 +191,7 @@ export function DataTable<T extends Record<string, any>>({
                             {filters.map((filter) => (
                                 <div key={filter.key} className="datatable-filter-item">
                                     <Select
-                                        value={localFilters[filter.key] || ''}
+                                        value={String(localFilters[filter.key] || '')}
                                         onValueChange={(value) => handleFilterChange(filter.key, value)}
                                     >
                                         <SelectTrigger className="datatable-select">
@@ -204,14 +205,14 @@ export function DataTable<T extends Record<string, any>>({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    {localFilters[filter.key] && (
+                                    {localFilters[filter.key] ? (
                                         <button
                                             onClick={() => clearFilter(filter.key)}
                                             className="datatable-filter-clear"
                                         >
                                             <X className="h-3.5 w-3.5" />
                                         </button>
-                                    )}
+                                    ) : null}
                                 </div>
                             ))}
                         </div>
@@ -324,7 +325,7 @@ export function DataTable<T extends Record<string, any>>({
                                         <td key={column.key} className={`datatable-cell ${column.className || ''}`}>
                                             {column.render
                                                 ? column.render(item, index)
-                                                : item[column.key]}
+                                                : (item[column.key] as React.ReactNode)}
                                         </td>
                                     ))}
                                     {actions.length > 0 && (

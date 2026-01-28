@@ -1,7 +1,9 @@
 import * as React from 'react';
-import { type NavItem, type DropdownPosition } from '@/types';
-import { NavItemIcon } from './nav-item-icon';
+
 import { cn } from '@/lib/utils';
+import { type NavItem, type DropdownPosition } from '@/types';
+
+import { NavItemIcon } from './nav-item-icon';
 
 interface NavItemDropdownProps {
     item: NavItem;
