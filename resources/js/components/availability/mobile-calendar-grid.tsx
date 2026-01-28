@@ -27,13 +27,13 @@ export function MobileCalendarGrid({
     selections,
     selectedDate,
     onDateSelect,
-    canEditToday = true,
+    canEditToday = false,
 }: MobileCalendarGridProps) {
 
     return (
         <div className="w-full">
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 px-2 sm:px-3 lg:px-4 py-3 sm:py-4 lg:py-5">
+            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 px-2 sm:px-3 lg:px-4 pt-3 pb-6 sm:pt-4 sm:pb-8 lg:pt-5 lg:pb-10">
                 {weekdays.map((day) => (
                     <div
                         key={day}

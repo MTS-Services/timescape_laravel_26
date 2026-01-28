@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -10,6 +10,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { SharedData } from '@/types';
 
@@ -34,7 +35,14 @@ export interface StaffListModalRef {
 export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>(
     ({ users, selectedUserId, currentYear, currentMonth }, ref) => {
         const [isOpen, setIsOpen] = useState(false);
+        const [selectingUserId, setSelectingUserId] = useState<number | null>(null);
         const { auth } = usePage<SharedData>().props;
+
+        useEffect(() => {
+            if (!isOpen) {
+                setSelectingUserId(null);
+            }
+        }, [isOpen]);
 
         useImperativeHandle(ref, () => ({
             open: () => setIsOpen(true),
@@ -46,6 +54,7 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
                 return;
             }
 
+            setSelectingUserId(userId);
             router.get(
                 '/availability',
                 {
@@ -59,6 +68,9 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
                     only: ['initialSelections', 'requirements', 'statistics', 'selectedUserId'],
                     onSuccess: () => {
                         setIsOpen(false);
+                    },
+                    onError: () => {
+                        setSelectingUserId(null);
                     },
                 }
             );
@@ -96,6 +108,9 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
                                                 (Selected)
                                             </span>
                                         )} */}
+                                        {selectingUserId === user.id && (
+                                            <Spinner className="ml-auto size-4 text-destructive" />
+                                        )}
                                     </Button>
                                 );
                             })}

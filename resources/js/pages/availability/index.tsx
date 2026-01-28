@@ -414,7 +414,7 @@ export default function AvailabilityScheduler() {
             <Head title="Availability Scheduler" />
             <SchedulerHeader />
 
-            <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5">
+            <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5 mb-6">
                 {/* Mobile Layout */}
                 {isMobile ? (
                     <>
@@ -452,6 +452,9 @@ export default function AvailabilityScheduler() {
                                 const isDisabled = dateObj
                                     ? isDateDisabled(dateObj, currentDate, canEditToday)
                                     : true;
+                                const isPastDate = dateObj
+                                    ? isDateInPast(dateObj, canEditToday)
+                                    : false;
 
                                 return (
                                     <MobileAvailabilityCard
@@ -459,6 +462,7 @@ export default function AvailabilityScheduler() {
                                         dateKey={dateKey}
                                         selectedOption={selections[dateKey] || null}
                                         isDisabled={isDisabled}
+                                        isPastDate={isPastDate}
                                         onOptionChange={handleSelectionChange}
                                         allowCollapse={true}
                                     />

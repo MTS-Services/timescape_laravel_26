@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -8,7 +8,7 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { formatMonthYear } from '@/lib/date-helpers';
+import { formatDateKey, formatMonthYear } from '@/lib/date-helpers';
 import { cn } from '@/lib/utils';
 
 interface Statistics {
@@ -42,14 +42,48 @@ export function MobileStatisticsPanel({
     const [endDate, setEndDate] = useState<string>(statistics.date_range?.end || '');
     const filterOpenRef = useRef(false);
 
+    useEffect(() => {
+        setFilterType(statistics.filter_type || 'month');
+        setStartDate(statistics.date_range?.start || '');
+        setEndDate(statistics.date_range?.end || '');
+    }, [statistics]);
+
     const displayMonthYear = useMemo(() => {
         const currentDate = new Date(currentYear, currentMonth - 1, 1);
         return formatMonthYear(currentDate);
     }, [currentYear, currentMonth]);
     const showMonthYearLabel = filterType === 'month';
 
+    const presetRanges = useMemo(() => {
+        const monthStart = new Date(currentYear, currentMonth - 1, 1);
+        const monthEnd = new Date(currentYear, currentMonth, 0);
+        const yearStart = new Date(currentYear, 0, 1);
+        const yearEnd = new Date(currentYear, 11, 31);
+
+        return {
+            month: {
+                start: formatDateKey(monthStart),
+                end: formatDateKey(monthEnd),
+            },
+            year: {
+                start: formatDateKey(yearStart),
+                end: formatDateKey(yearEnd),
+            },
+        } as const;
+    }, [currentYear, currentMonth]);
+
+    const applyPresetRange = (newFilter: 'month' | 'year') => {
+        const range = presetRanges[newFilter];
+        setStartDate(range.start);
+        setEndDate(range.end);
+    };
+
     const handleFilterChange = (newFilter: string) => {
         setFilterType(newFilter);
+
+        if (newFilter === 'month' || newFilter === 'year') {
+            applyPresetRange(newFilter);
+        }
 
         if (newFilter !== 'custom') {
             router.get(
@@ -71,6 +105,7 @@ export function MobileStatisticsPanel({
 
     const handleApplyCustomRange = () => {
         if (startDate && endDate) {
+            setFilterType('custom');
             router.get(
                 '/availability',
                 {

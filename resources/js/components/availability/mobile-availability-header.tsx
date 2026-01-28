@@ -31,10 +31,6 @@ export function MobileAvailabilityHeader({
     const monthName = currentMonth.split(' ')[0];
     const year = currentMonth.split(' ')[1];
 
-    useEffect(() => {
-        console.log('re-rendered');
-    });
-
     return (
         <div className="space-y-3 mb-4">
             {/* Top row: Staff list button (admin only) + date picker + today */}
