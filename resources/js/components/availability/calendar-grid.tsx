@@ -58,12 +58,6 @@ export function CalendarGrid({
                     const isDisabled = isDateDisabled(date, currentMonth, canEditToday);
 
                     const selectedOption = selections[dateKey] || null;
-                    const hasNoData = !selectedOption;
-
-                    // Show "Unavailable All Day" ONLY for:
-                    // 1. Past dates (not today)
-                    // 2. That have NO saved data
-                    const showUnavailable = isPastDate && hasNoData;
 
                     return (
                         <AvailabilityCard
@@ -76,7 +70,6 @@ export function CalendarGrid({
                             isPastDate={isPastDate}
                             isToday={isTodayDate}
                             selectedOption={selectedOption}
-                            showUnavailable={showUnavailable}
                             onOptionChange={onSelectionChange}
                         />
                     );

@@ -135,19 +135,14 @@ export function isToday(date: Date): boolean {
  * @param canEditToday - Whether editing today is allowed (from backend config)
  */
 export function isDateDisabled(date: Date, viewingMonth: Date, canEditToday: boolean = false): boolean {
-    const isPast = isDateInPast(date);
+    const isPast = isDateInPast(date, canEditToday);
     const notInViewingMonth = !isSameMonth(date, viewingMonth);
-    const isTodayDate = isToday(date);
 
     if (notInViewingMonth) {
         return true;
     }
 
     if (isPast) {
-        return true;
-    }
-
-    if (isTodayDate && !canEditToday) {
         return true;
     }
 
@@ -186,4 +181,30 @@ export function addMonths(date: Date, months: number): Date {
         date.getMonth() + months,
         date.getDate()
     );
+}
+
+/**
+ * Get the display text and icon type for read-only past dates
+ */
+export function getPastDateDisplay(selectedOption: string | null): {
+    label: string;
+    iconType: 'minus' | 'checkbox';
+} {
+    if (!selectedOption) {
+        return { label: 'Unavailable All Day', iconType: 'minus' };
+    }
+
+    if (selectedOption === 'holiday') {
+        return { label: 'Unavailable All Day', iconType: 'minus' };
+    }
+
+    if (selectedOption === 'all-day') {
+        return { label: 'Preferred All Day', iconType: 'checkbox' };
+    }
+
+    const option = AVAILABILITY_OPTIONS.find(opt => opt.id === selectedOption);
+    return {
+        label: option?.label || selectedOption,
+        iconType: 'checkbox'
+    };
 }

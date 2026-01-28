@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
@@ -25,7 +25,7 @@ export default defineConfig({
         jsx: 'automatic',
     },
     build: {
-        rollupOptions: {
+        rollupOptions: isSsrBuild ? {} : {
             output: {
                 manualChunks: {
                     ui: ['@headlessui/react', 'lucide-react', 'sonner'],
@@ -34,4 +34,4 @@ export default defineConfig({
         },
         chunkSizeWarningLimit: 600,
     },
-});
+}));

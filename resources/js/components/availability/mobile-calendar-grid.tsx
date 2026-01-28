@@ -27,7 +27,7 @@ export function MobileCalendarGrid({
     selections,
     selectedDate,
     onDateSelect,
-    canEditToday = true,
+    canEditToday = false,
 }: MobileCalendarGridProps) {
 
     return (

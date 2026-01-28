@@ -452,6 +452,9 @@ export default function AvailabilityScheduler() {
                                 const isDisabled = dateObj
                                     ? isDateDisabled(dateObj, currentDate, canEditToday)
                                     : true;
+                                const isPastDate = dateObj
+                                    ? isDateInPast(dateObj, canEditToday)
+                                    : false;
 
                                 return (
                                     <MobileAvailabilityCard
@@ -459,6 +462,7 @@ export default function AvailabilityScheduler() {
                                         dateKey={dateKey}
                                         selectedOption={selections[dateKey] || null}
                                         isDisabled={isDisabled}
+                                        isPastDate={isPastDate}
                                         onOptionChange={handleSelectionChange}
                                         allowCollapse={true}
                                     />
