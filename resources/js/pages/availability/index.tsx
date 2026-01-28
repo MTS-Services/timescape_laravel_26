@@ -414,7 +414,7 @@ export default function AvailabilityScheduler() {
             <Head title="Availability Scheduler" />
             <SchedulerHeader />
 
-            <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5">
+            <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5 mb-6">
                 {/* Mobile Layout */}
                 {isMobile ? (
                     <>
