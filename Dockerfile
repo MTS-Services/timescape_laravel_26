@@ -65,9 +65,6 @@ RUN if [ ! -f .env ]; then \
 # Generate Composer autoload files
 RUN composer dump-autoload --optimize --no-dev
 
-# Generate wayfinder if the command exists
-RUN php artisan wayfinder:generate || true
-
 # Build frontend assets
 RUN npm run build
 
