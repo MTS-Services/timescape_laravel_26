@@ -3,8 +3,7 @@ FROM php:8.3-fpm
 # Add custom php.ini file
 COPY ./docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 
-# Install system dependencies and PHP extensions
-# Combining update, install, and cleanup in one RUN command
+# Install system dependencies and PHP extensions in a single layer
 RUN apt-get update && apt-get install -y \
     nano \
     nginx \
@@ -26,8 +25,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js 20 LTS
-# Separating Node.js installation into distinct steps for clarity and cache efficiency
+# Install Node.js 20
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -66,20 +64,16 @@ RUN mkdir -p storage/framework/{views,sessions,cache} \
 RUN composer install --no-dev --optimize-autoloader && php artisan wayfinder:generate
 
 # Install npm dependencies and build assets
-# Combining npm install and build into one RUN command
 RUN npm install && npm run build
 
 # Laravel Artisan commands
-# Grouping related commands
-# RUN php artisan config:clear && php artisan route:clear && php artisan view:clear \
-#     && php artisan config:cache && php artisan route:cache && php artisan view:cache \
-#     && php artisan migrate --force || true \
-#     && php artisan optimize:clear
+
 RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear \
     && php artisan config:cache \
-    && php artisan view:cache
+    && php artisan view:cache \
+    && php artisan optimize:clear
 
 # Configure Nginx and Supervisor
 RUN rm -f /etc/nginx/sites-enabled/default
@@ -89,5 +83,9 @@ COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Expose HTTP port
 EXPOSE 80
 
-# Start all services
-CMD ["/usr/bin/supervisord", "-n"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost/up || exit 1
+
+# Start all services via supervisor
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
