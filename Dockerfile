@@ -89,5 +89,9 @@ COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Expose HTTP port
 EXPOSE 80
 
-# Start all services
-CMD ["/usr/bin/supervisord", "-n"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost/up || exit 1
+
+# Start all services via supervisor
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
