@@ -18,21 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Trust proxies - CRITICAL for Coolify/Traefik deployment
-        // This allows Laravel to properly detect HTTPS, real IP, and correct URLs
-        $middleware->trustProxies(
-            at: env('TRUST_PROXIES', '*'),
-            headers: Request::HEADER_X_FORWARDED_FOR |
-                Request::HEADER_X_FORWARDED_HOST |
-                Request::HEADER_X_FORWARDED_PORT |
-                Request::HEADER_X_FORWARDED_PROTO |
-                Request::HEADER_X_FORWARDED_PREFIX
-        );
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO);
 
-        // Trust hosts
-        if (env('TRUST_HOSTS', false)) {
-            $middleware->trustHosts(at: ['*']);
-        }
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
