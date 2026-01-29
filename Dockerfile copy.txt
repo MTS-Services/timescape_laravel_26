@@ -26,9 +26,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20 LTS
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-RUN apt-get update && apt-get install -y nodejs
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
@@ -51,13 +53,20 @@ RUN npm ci --omit=dev
 # Copy the rest of the application
 COPY . .
 
-# Create .env file and set proper permissions
-RUN if [ -f .env.example ]; then cp .env.example .env; else touch .env; fi \
-    && chown www-data:www-data .env \
-    && chmod 664 .env
+# Create .env file if it doesn't exist
+RUN if [ ! -f .env ]; then \
+    if [ -f .env.example ]; then \
+    cp .env.example .env; \
+    else \
+    touch .env; \
+    fi; \
+    fi
 
-# Change ownership of the entire application directory to the www-data user
-RUN chown -R www-data:www-data /var/www
+# Generate Composer autoload files
+RUN composer dump-autoload --optimize --no-dev
+
+# Build frontend assets
+RUN npm run build
 
 # Create necessary directories and set permissions
 RUN mkdir -p storage/framework/{views,sessions,cache} \
@@ -66,7 +75,6 @@ RUN mkdir -p storage/framework/{views,sessions,cache} \
     && mkdir -p /var/log/supervisor \
     && chown -R www-data:www-data /var/www \
     && chmod -R 775 storage bootstrap/cache
-
 
 # Laravel optimization commands
 RUN php artisan config:clear \
