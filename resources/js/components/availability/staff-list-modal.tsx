@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useImperativeHandle, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -38,15 +38,14 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
         const [selectingUserId, setSelectingUserId] = useState<number | null>(null);
         const { auth } = usePage<SharedData>().props;
 
-        useEffect(() => {
-            if (!isOpen) {
-                setSelectingUserId(null);
-            }
-        }, [isOpen]);
+        const handleClose = () => {
+            setIsOpen(false);
+            setSelectingUserId(null);
+        };
 
         useImperativeHandle(ref, () => ({
             open: () => setIsOpen(true),
-            close: () => setIsOpen(false),
+            close: handleClose,
         }));
         const handleUserSelect = (userId: number) => {
             if (userId === selectedUserId) {

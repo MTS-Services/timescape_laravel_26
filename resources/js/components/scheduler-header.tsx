@@ -1,6 +1,5 @@
 import { usePage } from "@inertiajs/react";
 
-import { useResponsiveMode } from "@/hooks/use-responsive-mode";
 import type { User } from "@/types";
 import { AvailabilityRequirements } from "@/types/availability";
 
@@ -17,7 +16,6 @@ interface PageProps {
 export default function SchedulerHeader() {
     const { auth, requirements } = usePage<PageProps>().props;
     const isAdmin = auth?.user?.can_manage_users;
-    const isMobile = useResponsiveMode({ isAdmin });
 
     const shouldShowRequirements = requirements && !isAdmin;
 

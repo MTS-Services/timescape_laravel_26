@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Include Holiday in Duty Days
+    |--------------------------------------------------------------------------
+    |
+    | This option controls whether holiday/unavailable records are counted
+    | in the total duty days calculation.
+    | - false: Holidays are excluded from duty day count
+    | - true: Holidays are included in duty day count
+    |
+    */
+
+    'include_holiday_in_duty_days' => env('INCLUDE_HOLIDAY_IN_DUTY_DAYS', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Timezone Mode
     |--------------------------------------------------------------------------
     |

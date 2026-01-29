@@ -42,10 +42,14 @@ export function MobileStatisticsPanel({
     const [endDate, setEndDate] = useState<string>(statistics.date_range?.end || '');
     const filterOpenRef = useRef(false);
 
+    // Sync local state when statistics prop changes from server
+    // This is a valid pattern for controlled components that need local state
     useEffect(() => {
+        /* eslint-disable react-hooks/set-state-in-effect */
         setFilterType(statistics.filter_type || 'month');
         setStartDate(statistics.date_range?.start || '');
         setEndDate(statistics.date_range?.end || '');
+        /* eslint-enable react-hooks/set-state-in-effect */
     }, [statistics]);
 
     const displayMonthYear = useMemo(() => {

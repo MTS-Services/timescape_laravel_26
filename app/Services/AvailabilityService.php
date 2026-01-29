@@ -43,8 +43,6 @@ class AvailabilityService
      */
     public function saveAvailabilities(int $userId, array $selections): array
     {
-        $today = Carbon::now()->startOfDay();
-        $canEditToday = config('availability.can_edit_today', false);
         $results = [
             'success' => [],
             'failed' => [],
@@ -64,18 +62,10 @@ class AvailabilityService
         }
 
         foreach ($selections as $date => $timeSlot) {
-            $dateCarbon = Carbon::createFromFormat('Y-m-d', $date)->startOfDay();
-
-            if ($dateCarbon->lt($today)) {
-                Log::info('Skipping past date', ['date' => $date]);
+            // Use centralized date classification - cannot edit past dates
+            if ($this->isDatePast($date)) {
+                Log::info('Skipping past date (using centralized classification)', ['date' => $date]);
                 $results['skipped'][] = ['date' => $date, 'reason' => 'past_date'];
-
-                continue;
-            }
-
-            if ($dateCarbon->eq($today) && ! $canEditToday) {
-                Log::info('Skipping today (editing disabled)', ['date' => $date]);
-                $results['skipped'][] = ['date' => $date, 'reason' => 'today_editing_disabled'];
 
                 continue;
             }
@@ -386,23 +376,61 @@ class AvailabilityService
     }
 
     /**
-     * Check if a date can be edited based on CAN_EDIT_TODAY setting
+     * SINGLE SOURCE OF TRUTH: Classify a date as 'past' or 'future'
+     *
+     * Business Rule:
+     * - If targetDate < today → PAST
+     * - If targetDate == today:
+     *     - If CAN_EDIT_TODAY = true → FUTURE
+     *     - If CAN_EDIT_TODAY = false → PAST
+     * - If targetDate > today → FUTURE
+     *
+     * @param  Carbon|string  $date  The date to classify
+     * @return string 'past' or 'future'
      */
-    public function canEditDate(string $date): bool
+    public function classifyDate(Carbon|string $date): string
     {
-        $dateCarbon = Carbon::parse($date)->startOfDay();
+        $dateCarbon = $date instanceof Carbon ? $date->copy()->startOfDay() : Carbon::parse($date)->startOfDay();
         $today = Carbon::now()->startOfDay();
         $canEditToday = config('availability.can_edit_today', false);
 
         if ($dateCarbon->lt($today)) {
-            return false;
+            return 'past';
         }
 
-        if ($dateCarbon->eq($today) && ! $canEditToday) {
-            return false;
+        if ($dateCarbon->eq($today)) {
+            return $canEditToday ? 'future' : 'past';
         }
 
-        return true;
+        return 'future';
+    }
+
+    /**
+     * Check if a date is classified as past
+     *
+     * @param  Carbon|string  $date  The date to check
+     */
+    public function isDatePast(Carbon|string $date): bool
+    {
+        return $this->classifyDate($date) === 'past';
+    }
+
+    /**
+     * Check if a date is classified as future
+     *
+     * @param  Carbon|string  $date  The date to check
+     */
+    public function isDateFuture(Carbon|string $date): bool
+    {
+        return $this->classifyDate($date) === 'future';
+    }
+
+    /**
+     * Check if a date can be edited based on CAN_EDIT_TODAY setting
+     */
+    public function canEditDate(string $date): bool
+    {
+        return $this->isDateFuture($date);
     }
 
     public function checkRequirements(int $userId, int $year, int $month): array
@@ -441,6 +469,10 @@ class AvailabilityService
     /**
      * Get statistics for a user within a specified date range
      *
+     * Uses centralized date classification (classifyDate) to properly
+     * categorize leave as "taken" (past) or "upcoming" (future) based
+     * on the CAN_EDIT_TODAY configuration.
+     *
      * @param  string|null  $filterType  'month', 'year', or 'custom'
      * @param  string|null  $startDate  For custom date range
      * @param  string|null  $endDate  For custom date range
@@ -463,29 +495,41 @@ class AvailabilityService
             $endDate = Carbon::create($year, $month, 1)->endOfMonth();
         }
 
-        $today = Carbon::now()->startOfDay();
-
         // Get all availability entries for the user within the date range
         $availabilities = Availability::forUser($userId)
             ->whereBetween('availability_date', [$startDate, $endDate])
             ->get();
 
-        // Calculate duty days count (all assigned days)
-        $dutyDaysCount = $availabilities->count();
+        // Get config for holiday inclusion in duty days
+        $includeHolidayInDutyDays = config('availability.include_holiday_in_duty_days', false);
 
-        // Calculate leave taken (past days marked as 'holiday')
-        $leaveTakenCount = $availabilities
-            ->filter(function ($availability) use ($today) {
-                return $availability->time_slot === 'holiday' &&
-                    $availability->availability_date->lt($today);
+        // Calculate duty days count
+        // If includeHolidayInDutyDays is false, exclude holidays from count
+        $dutyDaysCount = $availabilities
+            ->filter(function ($availability) use ($includeHolidayInDutyDays) {
+                if (! $includeHolidayInDutyDays && $availability->time_slot === 'holiday') {
+                    return false;
+                }
+
+                return true;
             })
             ->count();
 
-        // Calculate upcoming leave (future days marked as 'holiday')
-        $upcomingLeaveCount = $availabilities
-            ->filter(function ($availability) use ($today) {
+        // Calculate leave taken (PAST days marked as 'holiday')
+        // Uses centralized isDatePast() which respects CAN_EDIT_TODAY
+        $leaveTakenCount = $availabilities
+            ->filter(function ($availability) {
                 return $availability->time_slot === 'holiday' &&
-                    $availability->availability_date->gte($today);
+                    $this->isDatePast($availability->availability_date);
+            })
+            ->count();
+
+        // Calculate upcoming leave (FUTURE days marked as 'holiday')
+        // Uses centralized isDateFuture() which respects CAN_EDIT_TODAY
+        $upcomingLeaveCount = $availabilities
+            ->filter(function ($availability) {
+                return $availability->time_slot === 'holiday' &&
+                    $this->isDateFuture($availability->availability_date);
             })
             ->count();
 

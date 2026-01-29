@@ -195,7 +195,7 @@ export function getPastDateDisplay(selectedOption: string | null): {
     }
 
     if (selectedOption === 'holiday') {
-        return { label: 'Unavailable All Day', iconType: 'minus' };
+        return { label: 'Unavailable All Day (holiday)', iconType: 'minus' };
     }
 
     if (selectedOption === 'all-day') {
