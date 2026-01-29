@@ -3,7 +3,8 @@ FROM php:8.3-fpm
 # Add custom php.ini file
 COPY ./docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 
-# Install system dependencies and PHP extensions in a single layer
+# Install system dependencies and PHP extensions
+# Combining update, install, and cleanup in one RUN command
 RUN apt-get update && apt-get install -y \
     nano \
     nginx \
@@ -26,6 +27,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 20 LTS
+# Separating Node.js installation into distinct steps for clarity and cache efficiency
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -36,19 +38,7 @@ COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy composer files first for better caching
-COPY composer.json composer.lock ./
-
-# Install PHP dependencies (without dev dependencies for production)
-RUN composer install --no-dev --no-scripts --no-autoloader --optimize-autoloader
-
-# Copy package files for npm
-COPY package*.json ./
-
-# Install npm dependencies
-RUN npm ci --omit=dev
-
-# Copy the rest of the application
+# Copy Laravel app source
 COPY . .
 
 # Create .env file and set proper permissions
@@ -59,43 +49,45 @@ RUN if [ -f .env.example ]; then cp .env.example .env; else touch .env; fi \
 # Change ownership of the entire application directory to the www-data user
 RUN chown -R www-data:www-data /var/www
 
-# Create necessary directories and set permissions
+# Prepare Laravel cache paths & permissions
+# RUN mkdir -p storage/framework/{views,sessions,cache} \
+#     && mkdir -p bootstrap/cache \
+#     && chown -R www-data:www-data storage bootstrap/cache \
+#     && chmod -R 775 storage bootstrap/cache
+
 RUN mkdir -p storage/framework/{views,sessions,cache} \
     && mkdir -p storage/logs \
     && mkdir -p bootstrap/cache \
     && mkdir -p /var/log/supervisor \
-    && chown -R www-data:www-data /var/www \
-    && chmod -R 775 storage bootstrap/cache
+    && chown -R www-data:www-data storage/framework storage/logs bootstrap/cache \
+    && chmod -R 775 storage/framework storage/logs bootstrap/cache
 
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader && php artisan wayfinder:generate
 
-# Laravel optimization commands
+# Install npm dependencies and build assets
+# Combining npm install and build into one RUN command
+RUN npm install && npm run build
+
+# Laravel Artisan commands
+# Grouping related commands
+# RUN php artisan config:clear && php artisan route:clear && php artisan view:clear \
+#     && php artisan config:cache && php artisan route:cache && php artisan view:cache \
+#     && php artisan migrate --force || true \
+#     && php artisan optimize:clear
 RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear \
-    && php artisan event:clear
-
-# Cache configurations for production (only if not using .env changes at runtime)
-# Uncomment these if you're not changing env vars after deployment
-# RUN php artisan config:cache \
-#     && php artisan route:cache \
-#     && php artisan view:cache \
-#     && php artisan event:cache
+    && php artisan config:cache \
+    && php artisan view:cache
 
 # Configure Nginx and Supervisor
 RUN rm -f /etc/nginx/sites-enabled/default
 COPY ./docker/nginx.conf /etc/nginx/nginx.conf
 COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Ensure proper permissions one final time
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
-    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-
 # Expose HTTP port
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost/up || exit 1
-
-# Start all services via supervisor
-CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Start all services
+CMD ["/usr/bin/supervisord", "-n"]
