@@ -43,11 +43,12 @@ class AvailabilityController extends Controller
             $month
         );
 
-        $requirements = $this->availabilityService->checkRequirements(
-            $targetUserId,
-            $year,
-            $month
-        );
+        // $requirements = $this->availabilityService->checkRequirements(
+        //     $targetUserId,
+        //     $year,
+        //     $month
+        // );
+        $requirements = $this->availabilityService->checkRequirements($targetUserId);
 
         // Get user statistics if user has can_manage_users permission
         $statistics = null;

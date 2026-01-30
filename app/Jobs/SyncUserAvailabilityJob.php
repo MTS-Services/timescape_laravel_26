@@ -85,7 +85,7 @@ class SyncUserAvailabilityJob implements ShouldQueue
     protected function syncMonth(User $user, WhenIWorkAvailabilityService $wiwService, string $token, int $year, int $month): void
     {
         $startDate = Carbon::create($year, $month, 1)->startOfMonth()->format('Y-m-d');
-        $endDate = Carbon::create($year, $month, 1)->endOfMonth()->format('Y-m-d');
+        $endDate = Carbon::create($year, $month, 1)->addMonth()->startOfMonth()->format('Y-m-d');
 
         Log::info('SyncUserAvailabilityJob: Starting month sync', [
             'user_id' => $user->id,

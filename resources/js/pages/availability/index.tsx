@@ -409,6 +409,7 @@ export default function AvailabilityScheduler() {
             })
             .map((date) => formatDateKey(date));
     }, [calendarDays, currentDate, isMobile, canEditToday]);
+
     return (
         <AdminLayout>
             <Head title="Availability Scheduler" />
@@ -498,6 +499,7 @@ export default function AvailabilityScheduler() {
                                 selectedUserId={selectedUserId}
                                 currentYear={currentDate.getFullYear()}
                                 currentMonth={currentDate.getMonth() + 1}
+                                selectedUserName={selectedUser?.name ?? auth.user.name}
                             />
                         )}
                     </>

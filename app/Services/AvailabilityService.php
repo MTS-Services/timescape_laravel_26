@@ -27,8 +27,8 @@ class AvailabilityService
         $availabilities = Availability::forUser($userId)
             ->whereBetween('availability_date', [$calendarStart, $calendarEnd])
             ->get()
-            ->keyBy(fn ($item) => $item->availability_date->format('Y-m-d'))
-            ->map(fn ($item) => $item->time_slot)
+            ->keyBy(fn($item) => $item->availability_date->format('Y-m-d'))
+            ->map(fn($item) => $item->time_slot)
             ->toArray();
 
         return $availabilities;
@@ -188,7 +188,7 @@ class AvailabilityService
                 $conflictingEvents = $this->wiwService->fetchUserAvailabilities(
                     $user->wheniwork_id,
                     Carbon::parse($date)->subDay()->format('Y-m-d'),
-                    Carbon::parse($date)->addDay()->format('Y-m-d')
+                    Carbon::parse($date)->addDay(2)->format('Y-m-d')
                 );
 
                 // Delete any conflicting events that overlap with our target date
@@ -370,7 +370,7 @@ class AvailabilityService
 
             return [
                 'success' => false,
-                'error' => 'Failed to delete locally: '.$e->getMessage(),
+                'error' => 'Failed to delete locally: ' . $e->getMessage(),
             ];
         }
     }
@@ -433,36 +433,93 @@ class AvailabilityService
         return $this->isDateFuture($date);
     }
 
-    public function checkRequirements(int $userId, int $year, int $month): array
-    {
-        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
-        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
-        $today = Carbon::now()->startOfDay();
+    // public function checkRequirements(int $userId, int $year, int $month): array
+    // {
+    //     $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+    //     $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+    //     $today = Carbon::now()->startOfDay();
 
+    //     $availabilities = Availability::forUser($userId)
+    //         ->whereBetween('availability_date', [$startDate, $endDate])
+    //         ->where('availability_date', '>=', $today)
+    //         ->whereNotNull('time_slot')
+    //         ->get();
+
+    //     $weekdayCount = $availabilities->filter(function ($availability) {
+    //         $dayOfWeek = $availability->availability_date->dayOfWeek;
+
+    //         return $dayOfWeek >= 1 && $dayOfWeek <= 5;
+    //     })->count();
+
+    //     $weekendCount = $availabilities->filter(function ($availability) {
+    //         $dayOfWeek = $availability->availability_date->dayOfWeek;
+
+    //         return $dayOfWeek === 0 || $dayOfWeek === 6;
+    //     })->count();
+
+    //     return [
+    //         'weekday_blocks' => $weekdayCount,
+    //         'weekend_blocks' => $weekendCount,
+    //         'weekday_requirement_met' => $weekdayCount >= 3,
+    //         'weekend_requirement_met' => $weekendCount >= 2,
+    //         'all_requirements_met' => $weekdayCount >= 3 && $weekendCount >= 2,
+    //     ];
+    // }
+
+    public function checkRequirements(int $userId): array
+    {
+        $now = Carbon::now();
+
+        // Define the specific boundaries for the current week
+        $monday = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $friday = $now->copy()->next(Carbon::FRIDAY)->setHour(23)->setMinute(59);
+
+        $saturday = $now->copy()->startOfWeek(Carbon::MONDAY)->next(Carbon::SATURDAY);
+        $sunday = $now->copy()->endOfWeek(Carbon::SUNDAY);
+
+        // Fetch all records for the full week once to save database queries
         $availabilities = Availability::forUser($userId)
-            ->whereBetween('availability_date', [$startDate, $endDate])
-            ->where('availability_date', '>=', $today)
-            ->whereNotNull('time_slot')
+            ->whereBetween('availability_date', [$monday, $sunday])
             ->get();
 
-        $weekdayCount = $availabilities->filter(function ($availability) {
-            $dayOfWeek = $availability->availability_date->dayOfWeek;
+        $weekdayBlocks = 0;
+        $weekendBlocks = 0;
 
-            return $dayOfWeek >= 1 && $dayOfWeek <= 5;
-        })->count();
+        foreach ($availabilities as $availability) {
+            $date = $availability->availability_date;
+            $slot = strtolower($availability->time_slot);
 
-        $weekendCount = $availabilities->filter(function ($availability) {
-            $dayOfWeek = $availability->availability_date->dayOfWeek;
+            // Determine point value
+            $points = 0;
+            if ($slot === 'all-day') {
+                $points = 2;
+            } elseif (in_array($slot, ['9:30-4:30', '3:30-10:30'])) {
+                $points = 1;
+            }
 
-            return $dayOfWeek === 0 || $dayOfWeek === 6;
-        })->count();
+            // Independent Check 1: Mon-Fri
+            if ($date->between($monday, $friday)) {
+                $weekdayBlocks += $points;
+            }
+            // Independent Check 2: Sat-Sun
+            elseif ($date->between($saturday, $sunday)) {
+                $weekendBlocks += $points;
+            }
+        }
+
+        $weekdayMet = $weekdayBlocks >= 3;
+        $weekendMet = $weekendBlocks >= 2;
 
         return [
-            'weekday_blocks' => $weekdayCount,
-            'weekend_blocks' => $weekendCount,
-            'weekday_requirement_met' => $weekdayCount >= 3,
-            'weekend_requirement_met' => $weekendCount >= 2,
-            'all_requirements_met' => $weekdayCount >= 3 && $weekendCount >= 2,
+            'weekday' => [
+                'total_blocks' => $weekdayBlocks,
+                'is_met' => $weekdayMet, // Boolean: True if >= 3
+            ],
+            'weekend' => [
+                'total_blocks' => $weekendBlocks,
+                'is_met' => $weekendMet, // Boolean: True if >= 2
+            ],
+            'overall_status' => ($weekdayMet && $weekendMet)
         ];
     }
 

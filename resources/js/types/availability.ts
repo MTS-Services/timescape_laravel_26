@@ -9,11 +9,15 @@ export interface AvailabilitySelections {
 }
 
 export interface AvailabilityRequirements {
-    weekday_blocks: number;
-    weekend_blocks: number;
-    weekday_requirement_met: boolean;
-    weekend_requirement_met: boolean;
-    all_requirements_met: boolean;
+    weekday: {
+        total_blocks: number, // weekday blocks completed
+        is_met: boolean  // is the weekday requirement met
+    };
+    weekend: {
+        total_blocks: number,  // weekend blocks completed
+        is_met: boolean  // is the weekend requirement met
+    };
+    overall_status: boolean; // are all availability requirements met
 }
 
 export interface User {

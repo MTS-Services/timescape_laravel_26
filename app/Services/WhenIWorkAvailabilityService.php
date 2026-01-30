@@ -40,6 +40,14 @@ class WhenIWorkAvailabilityService
                 'end' => $endDate,
             ], $token);
 
+            Log::debug('When I Work API FETCH_RESPONSE', [
+                'user_id' => $wiwUserId,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'status' => $response->status(),
+                'body' => $response->json(),
+            ]);
+
             if (! $response->successful()) {
                 Log::warning('Failed to fetch availability events from When I Work', [
                     'user_id' => $wiwUserId,
@@ -72,8 +80,9 @@ class WhenIWorkAvailabilityService
      */
     public function findExistingEvent(int $wiwUserId, string $date, ?string $token = null): ?array
     {
-        $events = $this->fetchUserAvailabilities($wiwUserId, $date, $date, $token);
-
+        $startDate = $date;
+        $endDate = Carbon::parse($date)->addDay()->format('Y-m-d');
+        $events = $this->fetchUserAvailabilities($wiwUserId, $startDate, $endDate, $token);
         foreach ($events as $event) {
             $eventDate = $this->extractDateFromEvent($event);
             if ($eventDate === $date) {
@@ -161,7 +170,7 @@ class WhenIWorkAvailabilityService
             return [
                 'success' => false,
                 'event' => null,
-                'error' => 'Exception: '.$e->getMessage(),
+                'error' => 'Exception: ' . $e->getMessage(),
                 'status' => null,
             ];
         }
@@ -251,7 +260,7 @@ class WhenIWorkAvailabilityService
             return [
                 'success' => false,
                 'event' => null,
-                'error' => 'Exception: '.$e->getMessage(),
+                'error' => 'Exception: ' . $e->getMessage(),
                 'status' => null,
             ];
         }
@@ -311,7 +320,7 @@ class WhenIWorkAvailabilityService
 
             return [
                 'success' => false,
-                'error' => 'Exception: '.$e->getMessage(),
+                'error' => 'Exception: ' . $e->getMessage(),
                 'status' => null,
             ];
         }
@@ -548,7 +557,7 @@ class WhenIWorkAvailabilityService
             throw new \Exception('When I Work token not available');
         }
 
-        $url = config('services.wheniwork.base_url').ltrim($endpoint, '/');
+        $url = config('services.wheniwork.base_url') . ltrim($endpoint, '/');
 
         $request = Http::withHeaders([
             'W-Token' => $token,
