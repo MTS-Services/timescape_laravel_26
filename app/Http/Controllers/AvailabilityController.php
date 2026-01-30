@@ -91,14 +91,16 @@ class AvailabilityController extends Controller
         if (config('availability.sync_mode') === 'periodic') {
             $targetUser = \App\Models\User::find($targetUserId);
             if ($targetUser && $targetUser->wheniwork_id) {
+                $date = $request->get('date', now()->toDateString());
                 // Session-based job deduplication: only fetch once per month per session
-                $sessionKey = "availability_fetch_{$year}_{$month}_user_{$targetUserId}";
+                $sessionKey = "availability_fetch_{$year}_{$month}_{$date}_user_{$targetUserId}";
 
-                if (! Session::has($sessionKey)) {
+                if (!Session::has($sessionKey)) {
                     Log::info('Dispatching availability sync job', [
                         'user_id' => $targetUserId,
                         'year' => $year,
                         'month' => $month,
+                        'date' => $date,
                         'session_key' => $sessionKey,
                     ]);
 
@@ -106,7 +108,8 @@ class AvailabilityController extends Controller
                         $targetUserId,
                         $targetUser->wheniwork_token,
                         $year,
-                        $month
+                        $month,
+                        $date
                     );
 
                     // Mark this month as fetched for this session
