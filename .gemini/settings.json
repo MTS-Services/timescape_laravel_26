@@ -6,16 +6,13 @@
                 "artisan",
                 "boost:mcp"
             ]
-        },
-        "shadcn": {
-            "command": "npx",
-            "args": [
-                "shadcn@latest",
-                "mcp"
-            ]
         }
     },
-    "registries": {
-        "@acme": "https://acme.com/r/{name}.json"
+    "shadcn": {
+        "command": "npx",
+        "args": [
+            "shadcn@latest",
+            "mcp"
+        ]
     }
 }

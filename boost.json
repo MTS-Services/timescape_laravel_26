@@ -3,16 +3,21 @@
         "claude_code",
         "cursor",
         "gemini",
+        "copilot",
         "windsurf"
     ],
-    "editors": [
-        "claude_code",
-        "cursor",
-        "gemini",
-        "vscode",
-        "windsurf"
-    ],
-    "guidelines": [
+    "guidelines": true,
+    "herd_mcp": false,
+    "mcp": true,
+    "packages": [
         "laravel/fortify"
+    ],
+    "sail": false,
+    "skills": [
+        "wayfinder-development",
+        "pest-testing",
+        "inertia-react-development",
+        "tailwindcss-development",
+        "developing-with-fortify"
     ]
 }

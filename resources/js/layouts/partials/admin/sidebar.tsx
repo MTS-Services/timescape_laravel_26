@@ -1,17 +1,15 @@
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { type NavItemType, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Users, User, BarChart, Shield, LayoutGrid, Settings } from 'lucide-react';
-import * as React from 'react';
-
 import AppLogo from '@/components/app-logo';
-import { NavItem as NavItemComponent} from '@/components/ui/nav-item';
-import { cn } from '@/lib/utils';
-import { dashboard } from '@/routes';
-import { type NavItem, type SharedData } from '@/types';
+import { NavItem } from '@/components/ui/nav-item';
 // Navigation configuration
-const adminNavItems: NavItem[] = [
+const adminNavItems: NavItemType[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: route('admin.dashboard'),
         icon: LayoutGrid,
         slug: 'dashboard',
     },
@@ -132,7 +130,7 @@ export const AdminSidebar = React.memo<AdminSidebarProps>(({ isCollapsed, active
             <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar">
                 <nav className="space-y-1">
                     {adminNavItems.map((item, index) => (
-                        <NavItemComponent
+                        <NavItem
                             key={`${item.title}-${index}`}
                             item={item}
                             isCollapsed={isCollapsed}
