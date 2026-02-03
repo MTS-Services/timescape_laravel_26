@@ -93,8 +93,9 @@ class AvailabilityController extends Controller
             $targetUser = \App\Models\User::find($targetUserId);
             if ($targetUser && $targetUser->wheniwork_id) {
                 $date = $request->get('date', now()->toDateString());
-                // Session-based job deduplication: only fetch once per month per session
-                $sessionKey = "availability_fetch_{$year}_{$month}_{$date}_user_{$targetUserId}";
+                // Session-based job deduplication: only fetch once per month per session per date and per hour
+                $hour = now()->hour;
+                $sessionKey = "availability_fetch_{$year}_{$month}_{$date}_{$hour}_user_{$targetUserId}";
 
                 if (!Session::has($sessionKey)) {
                     Log::info('Dispatching availability sync job', [
@@ -107,7 +108,7 @@ class AvailabilityController extends Controller
 
                     SyncUserAvailabilityJob::dispatch(
                         $targetUserId,
-                        $targetUser->wheniwork_token,
+                        $user->wheniwork_token,
                         $year,
                         $month,
                         $date
