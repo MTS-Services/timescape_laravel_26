@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="flex min-h-screen flex-col">
             <AdminHeader />
             <main className="flex-1 flex flex-col">{children}</main>
-            <AdminFooter />
+            {/* <AdminFooter /> */}
         </div>
     );
 }

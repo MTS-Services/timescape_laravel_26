@@ -1,4 +1,4 @@
-import { CheckSquare, Minus } from 'lucide-react';
+import { CheckSquare, Minus, X } from 'lucide-react';
 
 import { cn, getCardBackgroundColor } from '@/lib/calendar-utils';
 import { AVAILABILITY_OPTIONS, getPastDateDisplay } from '@/lib/date-helpers';
@@ -74,13 +74,17 @@ export function AvailabilityCard({
                     /* Show read-only preview for past dates */
                     <div className='flex flex-col items-center justify-center'>
                         <div className="flex items-center justify-center gap-1">
-                            {pastDateDisplay.iconType === 'minus' ? (
+                            {pastDateDisplay.iconType === null ? (
+                                <div className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-destructive/80">
+                                    <X className="h-3 w-3 text-background" />
+                                </div>
+                            ) : (pastDateDisplay.iconType === 'minus' ? (
                                 <div className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-destructive/80">
                                     <Minus className="h-2.5 w-2.5 text-background" />
                                 </div>
                             ) : (
                                 <CheckSquare className="h-3.5 w-3.5 text-secondary" />
-                            )}
+                            ))}
                             <span className={cn(
                                 "text-xs",
                                 pastDateDisplay.iconType === 'minus'

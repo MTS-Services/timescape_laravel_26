@@ -188,14 +188,14 @@ export function addMonths(date: Date, months: number): Date {
  */
 export function getPastDateDisplay(selectedOption: string | null): {
     label: string;
-    iconType: 'minus' | 'checkbox';
+    iconType: 'minus' | 'checkbox' | null;
 } {
     if (!selectedOption) {
-        return { label: 'Unavailable All Day', iconType: 'minus' };
+        return { label: 'No Record', iconType: null };
     }
 
     if (selectedOption === 'holiday') {
-        return { label: 'Unavailable All Day', iconType: 'minus' };
+        return { label: 'Holiday', iconType: 'minus' };
     }
 
     if (selectedOption === 'all-day') {

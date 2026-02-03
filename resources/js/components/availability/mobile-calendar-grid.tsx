@@ -59,17 +59,35 @@ export function MobileCalendarGrid({
                     // Indicator logic:
                     // 🟢 Green: has data (any date)
                     // 🔴 Red: past date with no data
+                    // ⚪️ Gray: current/past with no data
                     // No indicator: current/future with no data
                     const showGreenIndicator = hasData;
                     const showRedIndicator = isPastDate && !hasData && isCurrentMonthDay;
+                    const showGrayIndicator = isPastDate && !isCurrentMonthDay && !hasData;
 
                     const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonthDay);
+
+                    const handleDateClick = () => {
+                        onDateSelect(dateKey);
+
+                        if (!isPastDate) {
+                            const element = document.getElementById(
+                                `date-card-${dateKey}`,
+                            );
+                            if (element) {
+                                element.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                });
+                            }
+                        }
+                    };
 
                     return (
                         <button
                             key={index}
                             type="button"
-                            onClick={() => onDateSelect(dateKey)}
+                            onClick={handleDateClick}
                             disabled={!isCurrentMonthDay}
                             className={cn(
                                 'relative flex flex-col items-center justify-center p-2 rounded-lg transition-all min-h-[48px]',
@@ -93,8 +111,11 @@ export function MobileCalendarGrid({
                             </span>
 
                             {/* Indicator dot */}
-                            {(showGreenIndicator || showRedIndicator) && (
+                            {(showGreenIndicator || showRedIndicator || showGrayIndicator) && (
                                 <div className="mt-1 h-1.5 w-1.5 rounded-full">
+                                    {/* {showGrayIndicator && (
+                                        <div className="h-full w-full rounded-full bg-gray-300" />
+                                    )} */}
                                     {showGreenIndicator && (
                                         <div className="h-full w-full rounded-full bg-teal-500" />
                                     )}

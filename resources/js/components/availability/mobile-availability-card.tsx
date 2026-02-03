@@ -1,37 +1,15 @@
-import { CheckSquare, Minus, Plus } from 'lucide-react';
+import { CheckSquare, Minus, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
-import { AVAILABILITY_OPTIONS, parseLocalDate } from '@/lib/date-helpers';
+import { AVAILABILITY_OPTIONS, parseLocalDate, getPastDateDisplay } from '@/lib/date-helpers';
 import { cn } from '@/lib/utils';
 
 /**
  * Get the display text and icon type for read-only past dates
  */
-function getPastDateDisplay(selectedOption: string | null): {
-    label: string;
-    iconType: 'minus' | 'checkbox';
-} {
-    if (!selectedOption) {
-        return { label: 'Unavailable All Day', iconType: 'minus' };
-    }
-
-    if (selectedOption === 'holiday') {
-        return { label: 'Unavailable All Day', iconType: 'minus' };
-    }
-
-    if (selectedOption === 'all-day') {
-        return { label: 'Preferred All Day', iconType: 'checkbox' };
-    }
-
-    const option = AVAILABILITY_OPTIONS.find(opt => opt.id === selectedOption);
-    return {
-        label: option?.label || selectedOption,
-        iconType: 'checkbox'
-    };
-}
 
 interface MobileAvailabilityCardProps {
     dateKey: string;
@@ -79,7 +57,12 @@ export function MobileAvailabilityCard({
     };
 
     return (
-        <Collapsible open={effectiveIsOpen} onOpenChange={allowCollapse ? setIsOpen : undefined} className="w-full">
+        <Collapsible
+            id={`date-card-${dateKey}`}
+            open={effectiveIsOpen}
+            onOpenChange={allowCollapse ? setIsOpen : undefined}
+            className="w-full"
+        >
             <div className="rounded-lg border bg-card overflow-hidden">
                 {allowCollapse ? (
                     <CollapsibleTrigger asChild>
@@ -115,12 +98,17 @@ export function MobileAvailabilityCard({
                                 const pastDateDisplay = getPastDateDisplay(selectedOption);
                                 return (
                                     <div className="flex items-center space-x-3 py-2">
-                                        {pastDateDisplay.iconType === 'minus' ? (
+                                        {pastDateDisplay.iconType === null ? (
+                                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive/80">
+                                                <X className="h-3 w-3 text-background" />
+                                            </div>
+                                        ) : (pastDateDisplay.iconType === 'minus' ? (
                                             <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive/80">
                                                 <Minus className="h-3 w-3 text-background" />
                                             </div>
                                         ) : (
                                             <CheckSquare className="h-5 w-5 text-teal-500" />
+                                        )
                                         )}
                                         <span className={cn(
                                             "text-sm font-medium",
