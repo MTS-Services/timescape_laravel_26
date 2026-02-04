@@ -430,6 +430,8 @@ export default function AvailabilityScheduler() {
                             currentYearNum={currentDate.getFullYear()}
                             showStaffButton={auth.user.can_manage_users && !!users}
                             onStaffListClick={handleOpenStaffListModal}
+                             selectedUserName={selectedUser?.name ?? auth.user.name}
+                            
                         />
 
                         {/* Mobile Calendar Grid */}

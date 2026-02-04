@@ -14,6 +14,7 @@ interface MobileAvailabilityHeaderProps {
     currentYearNum?: number;
     showStaffButton?: boolean;
     onStaffListClick?: () => void;
+    selectedUserName?: string;
 }
 
 export function MobileAvailabilityHeader({
@@ -26,6 +27,7 @@ export function MobileAvailabilityHeader({
     currentYearNum,
     showStaffButton = false,
     onStaffListClick,
+    selectedUserName = 'Staff List',
 }: MobileAvailabilityHeaderProps) {
     const monthName = currentMonth.split(' ')[0];
     const year = currentMonth.split(' ')[1];
@@ -41,7 +43,7 @@ export function MobileAvailabilityHeader({
                         className="flex items-center gap-2 cursor-pointer w-full max-w-40 md:max-w-64 py"
                     >
                         <Users className="h-4 w-4" />
-                        <span>Staff List</span>
+                        <span>{selectedUserName}</span>
                     </Button>
                 ) : (
                     <div className="px-4 py-2 rounded-md border border-input bg-background text-sm font-medium">
