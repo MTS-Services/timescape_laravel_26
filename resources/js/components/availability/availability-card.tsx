@@ -75,9 +75,10 @@ export function AvailabilityCard({
                     <div className='flex flex-col items-center justify-center'>
                         <div className="flex items-center justify-center gap-1">
                             {pastDateDisplay.iconType === null ? (
-                                <div className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-destructive/80">
-                                    <X className="h-3 w-3 text-background" />
-                                </div>
+                                // <div className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-destructive/80">
+                                //     <X className="h-3 w-3 text-background" />
+                                // </div>
+                                <></>
                             ) : (pastDateDisplay.iconType === 'minus' ? (
                                 <div className="flex items-center justify-center w-3.5 h-3.5 rounded-full bg-destructive/80">
                                     <Minus className="h-2.5 w-2.5 text-background" />

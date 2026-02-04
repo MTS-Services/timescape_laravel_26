@@ -99,9 +99,10 @@ export function MobileAvailabilityCard({
                                 return (
                                     <div className="flex items-center space-x-3 py-2">
                                         {pastDateDisplay.iconType === null ? (
-                                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive/80">
-                                                <X className="h-3 w-3 text-background" />
-                                            </div>
+                                            // <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive/80">
+                                            //     <X className="h-3 w-3 text-background" />
+                                            // </div>
+                                            <></>
                                         ) : (pastDateDisplay.iconType === 'minus' ? (
                                             <div className="flex items-center justify-center w-5 h-5 rounded-full bg-destructive/80">
                                                 <Minus className="h-3 w-3 text-background" />

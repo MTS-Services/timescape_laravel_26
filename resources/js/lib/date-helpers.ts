@@ -191,7 +191,7 @@ export function getPastDateDisplay(selectedOption: string | null): {
     iconType: 'minus' | 'checkbox' | null;
 } {
     if (!selectedOption) {
-        return { label: 'No Record', iconType: null };
+        return { label: '', iconType: null };
     }
 
     if (selectedOption === 'holiday') {
