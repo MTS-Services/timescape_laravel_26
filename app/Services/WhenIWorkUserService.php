@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Location;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -97,6 +98,9 @@ class WhenIWorkUserService
             ];
         }
 
+        // Step 1: Sync locations first (creates/updates locations table)
+        $locationsMap = $this->syncLocations($result['locations']);
+
         $created = 0;
         $updated = 0;
         $failed = 0;
@@ -104,8 +108,10 @@ class WhenIWorkUserService
 
         Log::info('Starting WhenIWork users sync', [
             'total_users' => count($result['users']),
+            'total_locations' => count($result['locations']),
         ]);
 
+        // Step 2: Sync users with location_id assignment
         foreach ($result['users'] as $userData) {
             try {
                 $wiwId = $userData['id'] ?? null;
@@ -117,22 +123,28 @@ class WhenIWorkUserService
                     continue;
                 }
 
-                $existingUser = User::where('wheniwork_id', $wiwId)->first();
+                $accountId = $userData['account_id'] ?? null;
+                $existingUser = User::where('account_id', $accountId)
+                    ->where('wheniwork_id', $wiwId)
+                    ->first();
                 $wasCreated = ! $existingUser;
 
-                $this->syncSingleUser($userData, $token);
+                // Pass locationsMap to assign location_id
+                $this->syncSingleUser($userData, $token, $locationsMap);
 
                 if ($wasCreated) {
                     $created++;
                     $this->logDebug('USER_CREATED', [
                         'wheniwork_id' => $wiwId,
                         'email' => $userData['email'] ?? 'N/A',
+                        'account_id' => $accountId,
                     ]);
                 } else {
                     $updated++;
                     $this->logDebug('USER_UPDATED', [
                         'wheniwork_id' => $wiwId,
                         'email' => $userData['email'] ?? 'N/A',
+                        'account_id' => $accountId,
                     ]);
                 }
             } catch (\Exception $e) {
@@ -162,45 +174,102 @@ class WhenIWorkUserService
     }
 
     /**
-     * Sync a single user from When I Work data
+     * Sync locations from When I Work API response to locations table.
+     *
+     * @param  array  $locationsData  Array of location data from API
+     * @return array<int, int> Map of account_id => location.id
      */
-    protected function syncSingleUser(array $userData, string $token): User
+    protected function syncLocations(array $locationsData): array
     {
-        return User::updateOrCreate(
-            ['wheniwork_id' => $userData['id']],
-            [
-                'account_id' => $userData['account_id'] ?? null,
-                'login_id' => $userData['login_id'] ?? null,
-                'email' => $userData['email'],
-                'first_name' => $userData['first_name'] ?? '',
-                'middle_name' => $userData['middle_name'] ?? null,
-                'last_name' => $userData['last_name'] ?? '',
-                'phone_number' => $userData['phone_number'] ?? null,
-                'employee_code' => $userData['employee_code'] ?? null,
-                'role' => $userData['role'] ?? 3,
-                'employment_type' => $userData['employment_type'] ?? 'hourly',
-                'is_payroll' => $userData['is_payroll'] ?? false,
-                'is_trusted' => $userData['is_trusted'] ?? false,
-                'is_private' => $userData['is_private'] ?? true,
-                'is_hidden' => $userData['is_hidden'] ?? false,
-                'activated' => $userData['activated'] ?? false,
-                'is_active' => $userData['is_active'] ?? true,
-                'hours_preferred' => $userData['hours_preferred'] ?? 0,
-                'hours_max' => $userData['hours_max'] ?? 0,
-                'hourly_rate' => $userData['hourly_rate'] ?? 0,
-                'notes' => $userData['notes'] ?? null,
-                'uuid' => $userData['uuid'] ?? null,
-                'timezone_name' => $userData['timezone_name'] ?? null,
-                'start_date' => ! empty($userData['start_date']) ? $userData['start_date'] : null,
-                'hired_on' => ! empty($userData['hired_on']) ? $userData['hired_on'] : null,
-                'terminated_at' => ! empty($userData['terminated_at']) ? $userData['terminated_at'] : null,
-                'alert_settings' => $userData['alert_settings'] ?? null,
-                'positions' => $userData['positions'] ?? [],
-                'locations' => $userData['locations'] ?? [],
-                'avatar_urls' => $userData['avatar'] ?? null,
-                'is_admin' => ($userData['role'] ?? 3) === 1,
-            ]
-        );
+        $locationsMap = [];
+
+        foreach ($locationsData as $locationData) {
+            $accountId = $locationData['account_id'] ?? null;
+            $name = $locationData['name'] ?? null;
+
+            if (! $accountId || ! $name) {
+                continue;
+            }
+
+            $location = Location::syncFromAccountId($accountId, $name);
+            $locationsMap[$accountId] = $location->id;
+
+            $this->logDebug('LOCATION_SYNCED', [
+                'account_id' => $accountId,
+                'name' => $name,
+                'location_id' => $location->id,
+            ]);
+        }
+
+        return $locationsMap;
+    }
+
+    /**
+     * Sync a single user from When I Work data with multi-account support.
+     *
+     * Uses composite key (account_id, wheniwork_id) to identify users,
+     * allowing same person to exist in multiple accounts/work locations.
+     *
+     * @param  array<int, int>  $locationsMap  Map of account_id => location.id
+     */
+    protected function syncSingleUser(array $userData, string $token, array $locationsMap = []): User
+    {
+        $accountId = $userData['account_id'] ?? null;
+        $wiwId = $userData['id'];
+
+        // Extract priority from notes field (e.g., "Priority=4")
+        $priority = User::extractPriorityFromNotes($userData['notes'] ?? null);
+
+        // Get location_id from the locationsMap based on account_id
+        $locationId = $accountId ? ($locationsMap[$accountId] ?? null) : null;
+
+        // Multi-account support: find existing user by account_id + wheniwork_id combination
+        $user = User::where('account_id', $accountId)
+            ->where('wheniwork_id', $wiwId)
+            ->first();
+
+        $attributes = [
+            'account_id' => $accountId,
+            'location_id' => $locationId,
+            'login_id' => $userData['login_id'] ?? null,
+            'email' => $userData['email'],
+            'first_name' => $userData['first_name'] ?? '',
+            'middle_name' => $userData['middle_name'] ?? null,
+            'last_name' => $userData['last_name'] ?? '',
+            'phone_number' => $userData['phone_number'] ?? null,
+            'employee_code' => $userData['employee_code'] ?? null,
+            'role' => $userData['role'] ?? 3,
+            'employment_type' => $userData['employment_type'] ?? 'hourly',
+            'is_payroll' => $userData['is_payroll'] ?? false,
+            'is_trusted' => $userData['is_trusted'] ?? false,
+            'is_private' => $userData['is_private'] ?? true,
+            'is_hidden' => $userData['is_hidden'] ?? false,
+            'activated' => $userData['activated'] ?? false,
+            'is_active' => $userData['is_active'] ?? true,
+            'hours_preferred' => $userData['hours_preferred'] ?? 0,
+            'hours_max' => $userData['hours_max'] ?? 0,
+            'hourly_rate' => $userData['hourly_rate'] ?? 0,
+            'notes' => $userData['notes'] ?? null,
+            'priority' => $priority,
+            'uuid' => $userData['uuid'] ?? null,
+            'timezone_name' => $userData['timezone_name'] ?? null,
+            'start_date' => ! empty($userData['start_date']) ? $userData['start_date'] : null,
+            'hired_on' => ! empty($userData['hired_on']) ? $userData['hired_on'] : null,
+            'terminated_at' => ! empty($userData['terminated_at']) ? $userData['terminated_at'] : null,
+            'alert_settings' => $userData['alert_settings'] ?? null,
+            'positions' => $userData['positions'] ?? [],
+            'locations' => $userData['locations'] ?? [],
+            'avatar_urls' => $userData['avatar'] ?? null,
+            'is_admin' => ($userData['role'] ?? 3) === 1,
+        ];
+
+        if ($user) {
+            $user->update($attributes);
+        } else {
+            $user = User::create(array_merge(['wheniwork_id' => $wiwId], $attributes));
+        }
+
+        return $user;
     }
 
     /**

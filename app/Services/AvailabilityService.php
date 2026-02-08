@@ -27,8 +27,8 @@ class AvailabilityService
         $availabilities = Availability::forUser($userId)
             ->whereBetween('availability_date', [$calendarStart, $calendarEnd])
             ->get()
-            ->keyBy(fn($item) => $item->availability_date->format('Y-m-d'))
-            ->map(fn($item) => $item->time_slot)
+            ->keyBy(fn ($item) => $item->availability_date->format('Y-m-d'))
+            ->map(fn ($item) => $item->time_slot)
             ->toArray();
 
         return $availabilities;
@@ -370,7 +370,7 @@ class AvailabilityService
 
             return [
                 'success' => false,
-                'error' => 'Failed to delete locally: ' . $e->getMessage(),
+                'error' => 'Failed to delete locally: '.$e->getMessage(),
             ];
         }
     }
@@ -519,7 +519,7 @@ class AvailabilityService
                 'total_blocks' => $weekendBlocks,
                 'is_met' => $weekendMet, // Boolean: True if >= 2
             ],
-            'overall_status' => ($weekdayMet && $weekendMet)
+            'overall_status' => ($weekdayMet && $weekendMet),
         ];
     }
 

@@ -413,65 +413,83 @@ export default function AvailabilityScheduler() {
     return (
         <AdminLayout>
             <Head title="Availability Scheduler" />
-            <SchedulerHeader />
+            {/* SchedulerHeader only on desktop - mobile has its own header */}
+            {!isMobile && <SchedulerHeader />}
 
             <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5 mb-6">
                 {/* Mobile Layout */}
                 {isMobile ? (
-                    <>
-                        {/* Mobile Header */}
-                        <MobileAvailabilityHeader
-                            currentMonth={formatMonthYear(currentDate)}
-                            onPrevMonth={handlePrevMonth}
-                            onNextMonth={handleNextMonth}
-                            onToday={handleToday}
-                            onMonthYearChange={handleMonthYearChange}
-                            currentMonthNum={currentDate.getMonth() + 1}
-                            currentYearNum={currentDate.getFullYear()}
-                            showStaffButton={auth.user.can_manage_users && !!users}
-                            onStaffListClick={handleOpenStaffListModal}
-                             selectedUserName={selectedUser?.name ?? auth.user.name}
-                            
-                        />
-
-                        {/* Mobile Calendar Grid */}
-                        <div className="mb-4">
-                            <MobileCalendarGrid
-                                calendarDays={calendarDays}
-                                currentMonth={currentDate}
-                                selections={selections}
-                                selectedDate={selectedMobileDate}
-                                onDateSelect={handleMobileDateSelect}
-                                canEditToday={canEditToday}
+                    <div className="flex flex-col">
+                        {/* Sticky Calendar Section - stays at top while scrolling */}
+                        <div className="sticky top-0 z-10 bg-background pb-2">
+                            {/* Mobile Header - Month Navigation */}
+                            <MobileAvailabilityHeader
+                                currentMonth={formatMonthYear(currentDate)}
+                                onPrevMonth={handlePrevMonth}
+                                onNextMonth={handleNextMonth}
+                                onToday={handleToday}
+                                onMonthYearChange={handleMonthYearChange}
+                                currentMonthNum={currentDate.getMonth() + 1}
+                                currentYearNum={currentDate.getFullYear()}
+                                showStaffButton={auth.user.can_manage_users && !!users}
+                                onStaffListClick={handleOpenStaffListModal}
+                                selectedUserName={selectedUser?.name ?? auth.user.name}
                             />
+
+                            {/* Mobile Calendar Grid */}
+                            <div className="bg-background">
+                                <MobileCalendarGrid
+                                    calendarDays={calendarDays}
+                                    currentMonth={currentDate}
+                                    selections={selections}
+                                    selectedDate={selectedMobileDate}
+                                    onDateSelect={handleMobileDateSelect}
+                                    canEditToday={canEditToday}
+                                />
+                            </div>
                         </div>
 
-                        {/* Mobile Expanded Availability Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {mobileExpandedDates.map((dateKey) => {
-                                const dateObj = calendarDays.find(
-                                    (d) => formatDateKey(d) === dateKey
-                                );
-                                const isDisabled = dateObj
-                                    ? isDateDisabled(dateObj, currentDate, canEditToday)
-                                    : true;
-                                const isPastDate = dateObj
-                                    ? isDateInPast(dateObj, canEditToday)
-                                    : false;
+                        {/* Availability Cards Section - scrolls with page */}
+                        <div className="pt-4 pb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {mobileExpandedDates.map((dateKey) => {
+                                    const dateObj = calendarDays.find(
+                                        (d) => formatDateKey(d) === dateKey
+                                    );
+                                    const isDisabled = dateObj
+                                        ? isDateDisabled(dateObj, currentDate, canEditToday)
+                                        : true;
+                                    const isPastDate = dateObj
+                                        ? isDateInPast(dateObj, canEditToday)
+                                        : false;
 
-                                return (
-                                    <MobileAvailabilityCard
-                                        key={dateKey}
-                                        dateKey={dateKey}
-                                        selectedOption={selections[dateKey] || null}
-                                        isDisabled={isDisabled}
-                                        isPastDate={isPastDate}
-                                        onOptionChange={handleSelectionChange}
-                                        allowCollapse={true}
-                                    />
-                                );
-                            })}
+                                    return (
+                                        <MobileAvailabilityCard
+                                            key={dateKey}
+                                            dateKey={dateKey}
+                                            selectedOption={selections[dateKey] || null}
+                                            isDisabled={isDisabled}
+                                            isPastDate={isPastDate}
+                                            onOptionChange={handleSelectionChange}
+                                            allowCollapse={true}
+                                        />
+                                    );
+                                })}
+                            </div>
                         </div>
+
+                        {/* Statistics Section - Separate from calendar scroll, appears after availability cards */}
+                        {auth.user.can_manage_users && statistics && selectedUserId && (
+                            <div className="pt-4 pb-8 border-t border-border mt-4">
+                                <MobileStatisticsPanel
+                                    statistics={statistics}
+                                    selectedUserId={selectedUserId}
+                                    currentYear={currentDate.getFullYear()}
+                                    currentMonth={currentDate.getMonth() + 1}
+                                    selectedUserName={selectedUser?.name ?? auth.user.name}
+                                />
+                            </div>
+                        )}
 
                         {/* Past Date Modal */}
                         <PastDateModal
@@ -493,18 +511,7 @@ export default function AvailabilityScheduler() {
                                 currentMonth={currentDate.getMonth() + 1}
                             />
                         )}
-
-                        {/* Mobile Statistics Panel */}
-                        {auth.user.can_manage_users && statistics && selectedUserId && (
-                            <MobileStatisticsPanel
-                                statistics={statistics}
-                                selectedUserId={selectedUserId}
-                                currentYear={currentDate.getFullYear()}
-                                currentMonth={currentDate.getMonth() + 1}
-                                selectedUserName={selectedUser?.name ?? auth.user.name}
-                            />
-                        )}
-                    </>
+                    </div>
                 ) : (
                     /* Desktop Layout */
                     <>

@@ -170,7 +170,7 @@ class WhenIWorkAvailabilityService
             return [
                 'success' => false,
                 'event' => null,
-                'error' => 'Exception: ' . $e->getMessage(),
+                'error' => 'Exception: '.$e->getMessage(),
                 'status' => null,
             ];
         }
@@ -260,7 +260,7 @@ class WhenIWorkAvailabilityService
             return [
                 'success' => false,
                 'event' => null,
-                'error' => 'Exception: ' . $e->getMessage(),
+                'error' => 'Exception: '.$e->getMessage(),
                 'status' => null,
             ];
         }
@@ -320,7 +320,7 @@ class WhenIWorkAvailabilityService
 
             return [
                 'success' => false,
-                'error' => 'Exception: ' . $e->getMessage(),
+                'error' => 'Exception: '.$e->getMessage(),
                 'status' => null,
             ];
         }
@@ -557,7 +557,7 @@ class WhenIWorkAvailabilityService
             throw new \Exception('When I Work token not available');
         }
 
-        $url = config('services.wheniwork.base_url') . ltrim($endpoint, '/');
+        $url = config('services.wheniwork.base_url').ltrim($endpoint, '/');
 
         $request = Http::withHeaders([
             'W-Token' => $token,

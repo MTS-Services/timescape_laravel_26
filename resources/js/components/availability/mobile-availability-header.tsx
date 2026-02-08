@@ -70,8 +70,8 @@ export function MobileAvailabilityHeader({
                 </div>
             </div>
 
-            {/* Bottom row: Month navigation */}
-            <div className="flex items-center justify-between px-2 py-1">
+            {/* Month navigation row - clean header with just < Month Year > */}
+            <div className="flex items-center justify-between px-2 py-1 bg-background">
                 <Button
                     onClick={onPrevMonth}
                     variant="ghost"
@@ -79,10 +79,10 @@ export function MobileAvailabilityHeader({
                     aria-label="Previous month"
                     className="cursor-pointer"
                 >
-                    <ChevronLeft className="h-10! w-10!" />
+                    <ChevronLeft className="h-6 w-6" />
                 </Button>
 
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-base font-semibold text-foreground">
                     {monthName} – {year}
                 </span>
 
@@ -93,7 +93,7 @@ export function MobileAvailabilityHeader({
                     aria-label="Next month"
                     className="cursor-pointer"
                 >
-                    <ChevronRight className="h-10! w-10!" />
+                    <ChevronRight className="h-6 w-6" />
                 </Button>
             </div>
         </div>

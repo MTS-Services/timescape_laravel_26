@@ -68,17 +68,27 @@ class AvailabilityController extends Controller
         }
 
         // Get all users if user has can_manage_users permission
+        // Scoped by account_id unless CAN_MANAGE_ALL is true
         $users = [];
         if ($user->can_manage_users) {
-            $users = \App\Models\User::select('id', 'first_name', 'last_name', 'email')
+            $query = \App\Models\User::select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
+                ->orderBy('priority', 'asc')
                 ->orderBy('first_name')
-                ->orderBy('last_name')
-                ->get()
+                ->orderBy('last_name');
+
+            // Scope to same account_id unless CAN_MANAGE_ALL is enabled
+            if (! config('availability.can_manage_all', false)) {
+                $query->where('account_id', $user->account_id);
+            }
+
+            $users = $query->get()
                 ->map(function ($u) {
                     return [
                         'id' => $u->id,
                         'name' => $u->name,
                         'email' => $u->email,
+                        'account_id' => $u->account_id,
+                        'priority' => $u->priority,
                     ];
                 });
         }
@@ -97,7 +107,7 @@ class AvailabilityController extends Controller
                 $hour = now()->hour;
                 $sessionKey = "availability_fetch_{$year}_{$month}_{$date}_{$hour}_user_{$targetUserId}";
 
-                if (!Session::has($sessionKey)) {
+                if (! Session::has($sessionKey)) {
                     Log::info('Dispatching availability sync job', [
                         'user_id' => $targetUserId,
                         'year' => $year,

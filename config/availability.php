@@ -57,6 +57,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Can Manage All Accounts
+    |--------------------------------------------------------------------------
+    |
+    | This option controls whether admin/permission users can manage users
+    | across ALL account_ids or only within their own account_id.
+    |
+    | - false: Admin can manage ONLY users with same account_id (default)
+    | - true: Admin can manage users across ALL account_ids
+    |
+    | This setting affects:
+    | - User listing in admin panels
+    | - User management operations
+    | - Statistics viewing
+    | - Availability management for other users
+    |
+    */
+
+    'can_manage_all' => env('CAN_MANAGE_ALL', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | When I Work API Settings
     |--------------------------------------------------------------------------
     |

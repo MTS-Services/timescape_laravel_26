@@ -1,9 +1,12 @@
 import { usePage } from "@inertiajs/react";
+import { useRef } from "react";
+import { toast } from "sonner";
+
 import type { User } from "@/types";
 import { AvailabilityRequirements } from "@/types/availability";
-import { toast } from "sonner";
+
 import RequirementsBanner from "./availability/requirements-banner";
-import { useRef } from "react";
+
 
 interface PageProps {
     auth: { user: User };

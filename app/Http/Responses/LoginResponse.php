@@ -13,12 +13,38 @@ class LoginResponse implements LoginResponseContract
     /**
      * Create an HTTP response that represents the object.
      *
+     * Handles multi-account login flow:
+     * - If multiple accounts detected, redirect to work location selection
+     * - Otherwise, proceed to dashboard
+     *
      * @param  \Illuminate\Http\Request  $request
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function toResponse($request)
     {
         $user = $request->user();
+
+        // Check if multi-location selection is needed
+        if (session('pending_location_selection')) {
+            $availableAccounts = session('available_accounts', []);
+            $loginEmail = session('login_email');
+
+            Log::info('Redirecting to work location selection', [
+                'email' => $loginEmail,
+                'account_count' => count($availableAccounts),
+            ]);
+
+            // For JSON requests (SPA), return redirect URL
+            if ($request->wantsJson()) {
+                return new JsonResponse([
+                    'two_factor' => false,
+                    'redirect' => route('auth.select-work-location'),
+                ]);
+            }
+
+            // Redirect to work location selection page
+            return redirect()->route('auth.select-work-location');
+        }
 
         if ($user && $user->wheniwork_token) {
             // Always sync WhenIWork users on login
