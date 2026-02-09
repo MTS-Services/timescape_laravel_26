@@ -104,6 +104,7 @@ class WhenIWorkAvailabilityService
         $this->logDebug('CREATE_REQUEST', $payload);
 
         try {
+            Log::debug('When I Work API CREATE_REQUEST', $payload);
             $response = $this->makeRequest('POST', $this->endpoint, $payload, $token);
             $responseData = $response->json();
             $status = $response->status();

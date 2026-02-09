@@ -90,7 +90,7 @@ export function MobileCalendarGrid({
                             onClick={handleDateClick}
                             disabled={!isCurrentMonthDay}
                             className={cn(
-                                'relative flex flex-col items-center justify-center p-2 rounded-lg transition-all min-h-[48px]',
+                                'relative flex flex-col items-center justify-center p-2 rounded-lg transition-all min-h-12',
                                 bgColor,
                                 isDisabled && 'cursor-not-allowed',
                                 isCurrentMonthDay ? 'cursor-pointer' : 'cursor-not-allowed opacity-70',

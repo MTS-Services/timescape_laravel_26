@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                         'phone_number',
                         'employee_code',
                         'avatar',
+                        'priority',
                     ]),
                     [
                         'name' => $request->user()->name,
@@ -57,6 +58,7 @@ class HandleInertiaRequests extends Middleware
                         'is_admin' => $request->user()->isAdmin(),
                         'can_manage_users' => $request->user()->canManageUsers(),
                         'avatar_url' => $request->user()->avatar_url,
+                        'can_view_requirements' => $request->user()->canViewRequirements(),
                     ]
                 ) : null,
             ],

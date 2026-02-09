@@ -110,7 +110,7 @@ class User extends Authenticatable
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => trim($this->first_name.' '.$this->last_name),
+            get: fn() => trim($this->first_name . ' ' . $this->last_name),
         );
     }
 
@@ -166,6 +166,18 @@ class User extends Authenticatable
     {
         return $this->role?->canAccessPayroll() ?? false;
     }
+
+    public function canViewRequirements(): bool
+    {
+        // If they can manage users, they are strictly forbidden from viewing requirements
+        if ($this->canManageUsers()) {
+            return false;
+        }
+
+        // Otherwise, check if priority exists and is greater than 3
+        return ($this->priority ?? 0) > 3;
+    }
+
 
     public function getAvatarUrlAttribute(): ?string
     {

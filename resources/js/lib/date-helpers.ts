@@ -208,3 +208,13 @@ export function getPastDateDisplay(selectedOption: string | null): {
         iconType: 'checkbox'
     };
 }
+
+/**
+ * Get week number for a given date (used to match with weekly requirements)
+ * Returns the index of the week within the calendar view
+ */
+export function getWeekNumber(date: Date, calendarStart: Date): number {
+    const diffTime = date.getTime() - calendarStart.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return Math.floor(diffDays / 7);
+}

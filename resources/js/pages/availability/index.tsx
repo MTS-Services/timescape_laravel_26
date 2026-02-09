@@ -45,12 +45,29 @@ interface UserSyncResult {
     details?: string[];
 }
 
+interface WeekRequirement {
+    start_date: string;
+    end_date: string;
+    weekday: {
+        total_blocks: number;
+        required: number;
+        is_met: boolean;
+    };
+    weekend: {
+        total_blocks: number;
+        required: number;
+        is_met: boolean;
+    };
+    is_complete: boolean;
+}
+
 interface PageProps {
     auth: {
         user: User;
     };
     initialSelections: AvailabilitySelections;
     requirements: AvailabilityRequirements;
+    weeklyRequirements?: WeekRequirement[];
     currentYear?: number;
     currentMonth?: number;
     flash?: {
@@ -84,7 +101,7 @@ const debugLog = (action: string, data: unknown) => {
 
 export default function AvailabilityScheduler() {
     const page = usePage<PageProps>();
-    const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false, userSyncSuccess, userSyncError } = page.props;
+    const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false, userSyncSuccess, userSyncError, weeklyRequirements = [] } = page.props;
     const flash = (page as unknown as { flash?: PageProps['flash'] }).flash ?? page.props.flash;
 
     const [currentDate, setCurrentDate] = useState(() => {
@@ -213,7 +230,7 @@ export default function AvailabilityScheduler() {
         router.get(
             route('availability.index'),
             { year: date.getFullYear(), month: date.getMonth() + 1, user_id: selectedUserId },
-            { preserveState: true, preserveScroll: true, only: ['initialSelections', 'requirements', 'users', 'statistics'] }
+            { preserveState: true, preserveScroll: true, only: ['initialSelections', 'requirements', 'weeklyRequirements', 'users', 'statistics'] }
         );
     }, [selectedUserId]);
 
@@ -257,6 +274,7 @@ export default function AvailabilityScheduler() {
             {
                 preserveState: true,
                 preserveScroll: true,
+                only: ['weeklyRequirements'],
                 onSuccess: (page) => {
                     const pageFlash = (page as unknown as { flash?: PageProps['flash'] }).flash;
                     if (pageFlash?.success) toast.success(pageFlash.success);
@@ -277,22 +295,6 @@ export default function AvailabilityScheduler() {
         const isInCurrentMonth = isSameMonth(dateObj, currentDate);
 
         if (!isInCurrentMonth) return;
-
-        // if (isPast) {
-        //     setPastDateForModal(dateKey);
-        //     setIsPastDateModalOpen(true);
-        //     setSelectedMobileDate(null);
-        // } else {
-        //     setSelectedMobileDate((prev) => (prev === dateKey ? null : dateKey));
-
-        //     // Trigger smooth scroll to the specific card
-        //     setTimeout(() => {
-        //         const element = document.getElementById(`card-${dateKey}`);
-        //         if (element) {
-        //             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        //         }
-        //     }, 50);
-        // }
 
         setSelectedMobileDate((prev) => (prev === dateKey ? null : dateKey));
 
@@ -455,6 +457,7 @@ export default function AvailabilityScheduler() {
                                     selections={selections}
                                     onSelectionChange={handleSelectionChange}
                                     canEditToday={canEditToday}
+                                    weeklyRequirements={weeklyRequirements}
                                 />
                             </div>
 

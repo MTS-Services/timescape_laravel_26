@@ -43,12 +43,15 @@ class AvailabilityController extends Controller
             $month
         );
 
-        // $requirements = $this->availabilityService->checkRequirements(
-        //     $targetUserId,
-        //     $year,
-        //     $month
-        // );
+        // Get current week requirements (for backward compatibility)
         $requirements = $this->availabilityService->checkRequirements($targetUserId);
+
+        // Get weekly requirements for the entire month view
+        $weeklyRequirements = $this->availabilityService->getWeeklyRequirements(
+            $targetUserId,
+            $year,
+            $month
+        );
 
         // Get user statistics if user has can_manage_users permission
         $statistics = null;
@@ -96,6 +99,7 @@ class AvailabilityController extends Controller
         Log::info('Returning availability data', [
             'availabilities_count' => count($availabilities),
             'requirements' => $requirements,
+            'weekly_requirements_count' => count($weeklyRequirements),
             'has_statistics' => ! is_null($statistics),
         ]);
 
@@ -142,6 +146,7 @@ class AvailabilityController extends Controller
         $props = [
             'initialSelections' => $availabilities,
             'requirements' => $requirements,
+            'weeklyRequirements' => $weeklyRequirements,
             'currentYear' => $year,
             'currentMonth' => $month,
             'statistics' => $statistics,
@@ -186,6 +191,11 @@ class AvailabilityController extends Controller
         $month = $request->input('month', now()->month);
 
         $requirements = $this->availabilityService->checkRequirements(
+            $targetUserId
+        );
+
+        // Get weekly requirements for the updated month
+        $weeklyRequirements = $this->availabilityService->getWeeklyRequirements(
             $targetUserId,
             $year,
             $month
@@ -217,12 +227,14 @@ class AvailabilityController extends Controller
             return Inertia::flash([
                 'error' => $errorMessage,
                 'requirements' => $requirements,
+                'weeklyRequirements' => $weeklyRequirements,
                 'save_results' => $results,
             ])->back();
         }
 
         Log::info('Availability saved successfully', [
             'requirements' => $requirements,
+            'weekly_requirements_count' => count($weeklyRequirements),
             'success_count' => count($results['success']),
             'skipped_count' => count($results['skipped']),
         ]);
@@ -231,6 +243,7 @@ class AvailabilityController extends Controller
         return Inertia::flash([
             'success' => 'Availability updated successfully!',
             'requirements' => $requirements,
+            'weeklyRequirements' => $weeklyRequirements,
         ])->back();
     }
 }
