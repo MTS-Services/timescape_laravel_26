@@ -22,7 +22,7 @@ export function AdminHeader() {
     };
 
     return (
-        <header className='container mx-auto flex items-center justify-between py-4 px-4'>
+        <header className='container mx-auto flex items-center justify-between py-2 lg:py-4 px-4'>
             <Link href={dashboard()} className='flex items-center gap-2'>
                 <AppLogo />
             </Link>

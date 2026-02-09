@@ -7,7 +7,7 @@ interface AppLogoProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 export default function AppLogo({ className, ...props }: AppLogoProps) {
     return (
         <>
-            <img src='/logo.svg' alt="App Logo" className={cn("w-auto max-w-[250px] object-contain", className)} {...props} />
+            <img src='/logo.svg' alt="App Logo" className={cn("w-auto max-w-[200px] lg:max-w-[250px] object-contain", className)} {...props} />
         </>
     );
 }

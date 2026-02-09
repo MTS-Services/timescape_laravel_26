@@ -1,5 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
 import { toast } from 'sonner';
 
 import { AvailabilityHeader } from '@/components/availability/availability-header';
@@ -58,7 +58,6 @@ interface PageProps {
         error?: string;
         save_results?: SaveResults;
     };
-    // Admin-specific properties
     users?: User[];
     statistics?: {
         total_duty_days: number;
@@ -72,13 +71,11 @@ interface PageProps {
     };
     selectedUserId?: number;
     canEditToday?: boolean;
-    // User sync notifications (from SyncWhenIWorkUsersJob)
     userSyncSuccess?: UserSyncResult;
     userSyncError?: UserSyncResult;
     [key: string]: unknown;
 }
 
-// Debug logging helper - only logs in development
 const debugLog = (action: string, data: unknown) => {
     if (import.meta.env.DEV) {
         console.log(`[Availability Debug] ${action}:`, data);
@@ -88,7 +85,6 @@ const debugLog = (action: string, data: unknown) => {
 export default function AvailabilityScheduler() {
     const page = usePage<PageProps>();
     const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false, userSyncSuccess, userSyncError } = page.props;
-    // Inertia v2.3.3+: flash data is at page.flash, not page.props.flash
     const flash = (page as unknown as { flash?: PageProps['flash'] }).flash ?? page.props.flash;
 
     const [currentDate, setCurrentDate] = useState(() => {
@@ -100,7 +96,10 @@ export default function AvailabilityScheduler() {
 
     const [selections, setSelections] = useState<AvailabilitySelections>({});
     const isMobile = useResponsiveMode({ isAdmin: auth.user.can_manage_users });
+
+    // Refs for layout measurement
     const calendarContainerRef = useRef<HTMLDivElement | null>(null);
+    const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
     const [calendarHeight, setCalendarHeight] = useState<number | null>(null);
 
     // Mobile-specific state
@@ -109,38 +108,57 @@ export default function AvailabilityScheduler() {
     const [pastDateForModal, setPastDateForModal] = useState<string | null>(null);
     const staffListModalRef = useRef<StaffListModalRef>(null);
 
-    // Use useMemo for derived state instead of useEffect
-    const calendarDays = useMemo(() => {
-        const days = generateCalendarDays(currentDate);
-        // console.log('Generated calendar days:', days);
-        return days;
-    }, [currentDate]);
+    /**
+     * DYNAMIC HEIGHT FIX: 
+     * Measures the sticky header height and sets it as global scroll-padding.
+     * This ensures card scroll targets are never hidden behind the sticky header.
+     */
+    useLayoutEffect(() => {
+        if (!isMobile) return;
+
+        const updateScrollPadding = () => {
+            if (stickyHeaderRef.current) {
+                const height = stickyHeaderRef.current.offsetHeight;
+                // height + 10px buffer for a clean look
+                document.documentElement.style.scrollPaddingTop = `${height}px`;
+            }
+        };
+
+        // Initialize ResizeObserver to catch height changes if text wraps
+        const resizeObserver = new ResizeObserver(() => updateScrollPadding());
+        if (stickyHeaderRef.current) resizeObserver.observe(stickyHeaderRef.current);
+
+        updateScrollPadding();
+        window.addEventListener('resize', updateScrollPadding);
+
+        return () => {
+            window.removeEventListener('resize', updateScrollPadding);
+            resizeObserver.disconnect();
+        };
+    }, [isMobile, currentDate]);
+
+    const calendarDays = useMemo(() => generateCalendarDays(currentDate), [currentDate]);
 
     const selectedUser = useMemo(() => {
-        if (!users || !selectedUserId) {
-            return null;
-        }
-
+        if (!users || !selectedUserId) return null;
         return users.find((user) => user.id === selectedUserId) ?? null;
     }, [users, selectedUserId]);
 
-    // Initialize selections from props once on mount
+    // Initial Selections Sync
     useEffect(() => {
         if (initialSelections && Object.keys(selections).length === 0) {
-            // console.log('Initializing selections from props:', initialSelections);
             setSelections(initialSelections);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [initialSelections]);
 
-    // Update selections when selectedUserId changes (admin switches users)
+    // Admin User Switch Sync
     useEffect(() => {
         if (initialSelections) {
-            // console.log('User changed, updating selections:', { selectedUserId, initialSelections });
             setSelections(initialSelections);
         }
     }, [selectedUserId, initialSelections]);
 
+    // Desktop Layout Height Sync
     useEffect(() => {
         if (!auth.user.can_manage_users || isMobile) {
             setCalendarHeight(null);
@@ -148,121 +166,51 @@ export default function AvailabilityScheduler() {
         }
 
         const container = calendarContainerRef.current;
-        if (!container || typeof ResizeObserver === 'undefined') {
-            return;
-        }
+        if (!container || typeof ResizeObserver === 'undefined') return;
 
-        const updateHeight = () => {
-            setCalendarHeight(container.getBoundingClientRect().height);
-        };
-
+        const updateHeight = () => setCalendarHeight(container.getBoundingClientRect().height);
         updateHeight();
 
-        const observer = new ResizeObserver(() => {
-            updateHeight();
-        });
-
+        const observer = new ResizeObserver(() => updateHeight());
         observer.observe(container);
 
-        return () => {
-            observer.disconnect();
-        };
+        return () => observer.disconnect();
     }, [auth.user.can_manage_users, isMobile, calendarDays]);
 
-    // Show success/error messages with detailed debug info
-    // Using refs to track which messages we've already shown
+    // Flash/Sync Notifications logic
     const shownFlashRef = useRef<string | null>(null);
     const shownUserSyncRef = useRef<string | null>(null);
 
     useEffect(() => {
-        // Create a unique key for current flash to avoid duplicate toasts
         const flashKey = flash ? JSON.stringify({ s: flash.success, e: flash.error }) : null;
-
-        // Skip if we've already shown this flash message
-        if (flashKey === shownFlashRef.current) {
-            return;
-        }
+        if (flashKey === shownFlashRef.current) return;
 
         if (flash?.success) {
-            // toast.success(flash.success);
             debugLog('SAVE_SUCCESS', { message: flash.success });
             shownFlashRef.current = flashKey;
         }
         if (flash?.error) {
-            toast.error(flash.error, {
-                duration: 6000, // Show error longer
-                description: 'Please try again or contact support if the issue persists.',
-            });
-            debugLog('SAVE_ERROR', {
-                message: flash.error,
-                results: flash.save_results,
-            });
-
-            // Log detailed failure info in development
-            if (flash.save_results?.failed && flash.save_results.failed.length > 0) {
-                console.error('[Availability] Failed operations:', flash.save_results.failed);
-            }
+            toast.error(flash.error, { duration: 6000 });
             shownFlashRef.current = flashKey;
         }
     }, [flash]);
 
-    // Show user sync notifications (from SyncWhenIWorkUsersJob on login)
     useEffect(() => {
         if (!userSyncSuccess && !userSyncError) return;
-
         const syncKey = JSON.stringify({ s: userSyncSuccess?.message, e: userSyncError?.message });
         if (syncKey === shownUserSyncRef.current) return;
 
-        if (userSyncSuccess) {
-            const description = userSyncSuccess.created || userSyncSuccess.updated
-                ? `Created: ${userSyncSuccess.created ?? 0}, Updated: ${userSyncSuccess.updated ?? 0}`
-                : undefined;
-            toast.success(userSyncSuccess.message, { description });
-            debugLog('USER_SYNC_SUCCESS', userSyncSuccess);
-        }
-
-        if (userSyncError) {
-            toast.error(userSyncError.message, {
-                duration: 8000,
-                description: userSyncError.details?.length
-                    ? `${userSyncError.details.length} error(s) occurred`
-                    : 'Please try logging in again or contact support.',
-            });
-            debugLog('USER_SYNC_ERROR', userSyncError);
-
-            if (import.meta.env.DEV && userSyncError.details) {
-                console.error('[User Sync] Errors:', userSyncError.details);
-            }
-        }
+        if (userSyncSuccess) toast.success(userSyncSuccess.message);
+        if (userSyncError) toast.error(userSyncError.message);
 
         shownUserSyncRef.current = syncKey;
     }, [userSyncSuccess, userSyncError]);
 
     const fetchMonthData = useCallback((date: Date) => {
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-
-        // console.log('Fetching month data:', { year, month, selectedUserId });
-
         router.get(
             route('availability.index'),
-            {
-                year,
-                month,
-                user_id: selectedUserId,
-            },
-            {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['initialSelections', 'requirements', 'currentYear', 'currentMonth', 'users', 'statistics', 'selectedUserId'],
-                onSuccess: () => {
-                    // console.log('Month data fetched successfully');
-                },
-                onError: (errors) => {
-                    console.error('Failed to fetch month data:', errors);
-                    toast.error('Failed to load calendar data');
-                },
-            }
+            { year: date.getFullYear(), month: date.getMonth() + 1, user_id: selectedUserId },
+            { preserveState: true, preserveScroll: true, only: ['initialSelections', 'requirements', 'users', 'statistics'] }
         );
     }, [selectedUserId]);
 
@@ -292,77 +240,27 @@ export default function AvailabilityScheduler() {
 
     const handleSelectionChange = useCallback((dateKey: string, optionId: string | null) => {
         const previousValue = selections[dateKey];
-
-        debugLog('SELECTION_CHANGE_START', {
-            dateKey,
-            optionId,
-            previousValue,
-            selectedUserId,
-        });
-
-        // Optimistically update UI
-        setSelections((prev) => ({
-            ...prev,
-            [dateKey]: optionId,
-        }));
-
-        const requestPayload = {
-            selections: { [dateKey]: optionId },
-            year: currentDate.getFullYear(),
-            month: currentDate.getMonth() + 1,
-            user_id: selectedUserId,
-            single_update: true,
-        };
-
-        debugLog('API_REQUEST', requestPayload);
+        setSelections((prev) => ({ ...prev, [dateKey]: optionId }));
 
         router.post(
             route('availability.store'),
-            requestPayload,
+            {
+                selections: { [dateKey]: optionId },
+                year: currentDate.getFullYear(),
+                month: currentDate.getMonth() + 1,
+                user_id: selectedUserId,
+                single_update: true,
+            },
             {
                 preserveState: true,
                 preserveScroll: true,
                 onSuccess: (page) => {
-                    // Inertia v2.3.3+: flash is at page.flash, not page.props.flash
                     const pageFlash = (page as unknown as { flash?: PageProps['flash'] }).flash;
-                    debugLog('API_SUCCESS', {
-                        dateKey,
-                        optionId,
-                        flash: pageFlash,
-                    });
-
-                    // Show toast immediately from the response flash data
-                    if (pageFlash?.success) {
-                        toast.success(pageFlash.success);
-                        debugLog('TOAST_SHOWN', { type: 'success', message: pageFlash.success });
-                    }
-                    if (pageFlash?.error) {
-                        toast.error(pageFlash.error, {
-                            duration: 6000,
-                            description: 'Please try again.',
-                        });
-                        debugLog('TOAST_SHOWN', { type: 'error', message: pageFlash.error });
-                    }
+                    if (pageFlash?.success) toast.success(pageFlash.success);
                 },
-                onError: (errors) => {
-                    console.error('[Availability] Save failed:', errors);
-                    debugLog('API_ERROR', { dateKey, optionId, errors });
-
-                    // Revert optimistic update on error
-                    setSelections((prev) => ({
-                        ...prev,
-                        [dateKey]: previousValue,
-                    }));
-
-                    // Show detailed error toast
-                    const errorMessage = typeof errors === 'object'
-                        ? Object.values(errors).flat().join(', ')
-                        : 'Failed to save your change';
-
-                    toast.error(errorMessage, {
-                        duration: 5000,
-                        description: `Failed to update ${dateKey}`,
-                    });
+                onError: () => {
+                    setSelections((prev) => ({ ...prev, [dateKey]: previousValue }));
+                    toast.error('Failed to save selection');
                 },
             }
         );
@@ -383,61 +281,56 @@ export default function AvailabilityScheduler() {
             setSelectedMobileDate(null);
         } else {
             setSelectedMobileDate((prev) => (prev === dateKey ? null : dateKey));
-            setPastDateForModal(null);
-            setIsPastDateModalOpen(false);
+
+            // Trigger smooth scroll to the specific card
+            setTimeout(() => {
+                const element = document.getElementById(`card-${dateKey}`);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 50);
         }
     }, [calendarDays, currentDate, canEditToday]);
 
-    const handleOpenStaffListModal = useCallback(() => {
-        staffListModalRef.current?.open();
-    }, []);
-
+    const handleOpenStaffListModal = useCallback(() => staffListModalRef.current?.open(), []);
     const handleClosePastDateModal = useCallback(() => {
         setIsPastDateModalOpen(false);
         setPastDateForModal(null);
     }, []);
 
-    // Get dates to show as expanded cards on mobile (today + future dates in current month)
     const mobileExpandedDates = useMemo(() => {
         if (!isMobile) return [];
-
         return calendarDays
-            .filter((date) => {
-                const isDisabled = isDateDisabled(date, currentDate, canEditToday);
-                // Show editable dates in the current month
-                return !isDisabled;
-            })
+            .filter((date) => !isDateDisabled(date, currentDate, canEditToday))
             .map((date) => formatDateKey(date));
     }, [calendarDays, currentDate, isMobile, canEditToday]);
 
     return (
         <AdminLayout>
             <Head title="Availability Scheduler" />
-            {/* SchedulerHeader only on desktop - mobile has its own header */}
-            {!isMobile && <SchedulerHeader />}
 
             <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5 mb-6">
-                {/* Mobile Layout */}
                 {isMobile ? (
                     <div className="flex flex-col">
-                        {/* Sticky Calendar Section - stays at top while scrolling */}
-                        <div className="sticky top-0 z-10 bg-background pb-2">
-                            {/* Mobile Header - Month Navigation */}
-                            <MobileAvailabilityHeader
-                                currentMonth={formatMonthYear(currentDate)}
-                                onPrevMonth={handlePrevMonth}
-                                onNextMonth={handleNextMonth}
-                                onToday={handleToday}
-                                onMonthYearChange={handleMonthYearChange}
-                                currentMonthNum={currentDate.getMonth() + 1}
-                                currentYearNum={currentDate.getFullYear()}
-                                showStaffButton={auth.user.can_manage_users && !!users}
-                                onStaffListClick={handleOpenStaffListModal}
-                                selectedUserName={selectedUser?.name ?? auth.user.name}
-                            />
+                        <div className='relative'>
+                            {/* Sticky Header Wrapper */}
+                            <div
+                                ref={stickyHeaderRef}
+                                className="bg-background pb-2 sticky top-0 z-40"
+                            >
+                                <MobileAvailabilityHeader
+                                    currentMonth={formatMonthYear(currentDate)}
+                                    onPrevMonth={handlePrevMonth}
+                                    onNextMonth={handleNextMonth}
+                                    onToday={handleToday}
+                                    onMonthYearChange={handleMonthYearChange}
+                                    currentMonthNum={currentDate.getMonth() + 1}
+                                    currentYearNum={currentDate.getFullYear()}
+                                    showStaffButton={auth.user.can_manage_users && !!users}
+                                    onStaffListClick={handleOpenStaffListModal}
+                                    selectedUserName={selectedUser?.name ?? auth.user.name}
+                                />
 
-                            {/* Mobile Calendar Grid */}
-                            <div className="bg-background">
                                 <MobileCalendarGrid
                                     calendarDays={calendarDays}
                                     currentMonth={currentDate}
@@ -447,38 +340,32 @@ export default function AvailabilityScheduler() {
                                     canEditToday={canEditToday}
                                 />
                             </div>
-                        </div>
 
-                        {/* Availability Cards Section - scrolls with page */}
-                        <div className="pt-4 pb-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {mobileExpandedDates.map((dateKey) => {
-                                    const dateObj = calendarDays.find(
-                                        (d) => formatDateKey(d) === dateKey
-                                    );
-                                    const isDisabled = dateObj
-                                        ? isDateDisabled(dateObj, currentDate, canEditToday)
-                                        : true;
-                                    const isPastDate = dateObj
-                                        ? isDateInPast(dateObj, canEditToday)
-                                        : false;
+                            {/* Availability Cards */}
+                            <div className="pt-4 pb-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {mobileExpandedDates.map((dateKey) => {
+                                        const dateObj = calendarDays.find((d) => formatDateKey(d) === dateKey);
+                                        const isDisabled = dateObj ? isDateDisabled(dateObj, currentDate, canEditToday) : true;
+                                        const isPastDate = dateObj ? isDateInPast(dateObj, canEditToday) : false;
 
-                                    return (
-                                        <MobileAvailabilityCard
-                                            key={dateKey}
-                                            dateKey={dateKey}
-                                            selectedOption={selections[dateKey] || null}
-                                            isDisabled={isDisabled}
-                                            isPastDate={isPastDate}
-                                            onOptionChange={handleSelectionChange}
-                                            allowCollapse={true}
-                                        />
-                                    );
-                                })}
+                                        return (
+                                            <div id={`card-${dateKey}`} key={dateKey} className="scroll-mt-4">
+                                                <MobileAvailabilityCard
+                                                    dateKey={dateKey}
+                                                    selectedOption={selections[dateKey] || null}
+                                                    isDisabled={isDisabled}
+                                                    isPastDate={isPastDate}
+                                                    onOptionChange={handleSelectionChange}
+                                                    allowCollapse={true}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Statistics Section - Separate from calendar scroll, appears after availability cards */}
                         {auth.user.can_manage_users && statistics && selectedUserId && (
                             <div className="pt-4 pb-8 border-t border-border mt-4">
                                 <MobileStatisticsPanel
@@ -491,17 +378,13 @@ export default function AvailabilityScheduler() {
                             </div>
                         )}
 
-                        {/* Past Date Modal */}
                         <PastDateModal
                             isOpen={isPastDateModalOpen}
                             onClose={handleClosePastDateModal}
                             dateKey={pastDateForModal}
-                            selectedOption={
-                                pastDateForModal ? selections[pastDateForModal] || null : null
-                            }
+                            selectedOption={pastDateForModal ? selections[pastDateForModal] || null : null}
                         />
 
-                        {/* Staff List Modal (Admin Only) */}
                         {auth.user.can_manage_users && users && (
                             <StaffListModal
                                 ref={staffListModalRef}
@@ -515,7 +398,6 @@ export default function AvailabilityScheduler() {
                 ) : (
                     /* Desktop Layout */
                     <>
-                        {/* Desktop Header */}
                         <AvailabilityHeader
                             currentMonth={formatMonthYear(currentDate)}
                             onPrevMonth={handlePrevMonth}
@@ -527,10 +409,8 @@ export default function AvailabilityScheduler() {
                         />
 
                         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5 lg:gap-6 items-start">
-                            {/* Calendar Grid */}
                             <div
-                                className={`${auth.user.can_manage_users ? 'lg:col-span-4' : 'lg:col-span-5'
-                                    }`}
+                                className={`${auth.user.can_manage_users ? 'lg:col-span-4' : 'lg:col-span-5'}`}
                                 id="calendar-grid-container"
                                 ref={calendarContainerRef}
                             >
@@ -543,7 +423,6 @@ export default function AvailabilityScheduler() {
                                 />
                             </div>
 
-                            {/* User Management Panel */}
                             {auth.user.can_manage_users && users && (
                                 <div className="lg:col-span-1 h-full min-h-[400px]">
                                     <UserSelectionPanel
@@ -557,7 +436,6 @@ export default function AvailabilityScheduler() {
                             )}
                         </div>
 
-                        {/* Statistics Panel */}
                         {auth.user.can_manage_users && statistics && selectedUserId && (
                             <StatisticsPanel
                                 statistics={statistics}

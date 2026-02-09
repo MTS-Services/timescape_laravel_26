@@ -199,7 +199,7 @@ export function getPastDateDisplay(selectedOption: string | null): {
     }
 
     if (selectedOption === 'all-day') {
-        return { label: 'Preferred All Day', iconType: 'checkbox' };
+        return { label: 'All Day', iconType: 'checkbox' };
     }
 
     const option = AVAILABILITY_OPTIONS.find(opt => opt.id === selectedOption);
