@@ -120,7 +120,7 @@ export default function AvailabilityScheduler() {
             if (stickyHeaderRef.current) {
                 const height = stickyHeaderRef.current.offsetHeight;
                 // height + 10px buffer for a clean look
-                document.documentElement.style.scrollPaddingTop = `${height}px`;
+                document.documentElement.style.scrollPaddingTop = `${height - 5}px`;
             }
         };
 
@@ -137,7 +137,10 @@ export default function AvailabilityScheduler() {
         };
     }, [isMobile, currentDate]);
 
-    const calendarDays = useMemo(() => generateCalendarDays(currentDate), [currentDate]);
+    const calendarDays = useMemo(() =>
+        generateCalendarDays(currentDate),
+        [currentDate.getFullYear(), currentDate.getMonth()]
+    );
 
     const selectedUser = useMemo(() => {
         if (!users || !selectedUserId) return null;
@@ -275,21 +278,30 @@ export default function AvailabilityScheduler() {
 
         if (!isInCurrentMonth) return;
 
-        if (isPast) {
-            setPastDateForModal(dateKey);
-            setIsPastDateModalOpen(true);
-            setSelectedMobileDate(null);
-        } else {
-            setSelectedMobileDate((prev) => (prev === dateKey ? null : dateKey));
+        // if (isPast) {
+        //     setPastDateForModal(dateKey);
+        //     setIsPastDateModalOpen(true);
+        //     setSelectedMobileDate(null);
+        // } else {
+        //     setSelectedMobileDate((prev) => (prev === dateKey ? null : dateKey));
 
-            // Trigger smooth scroll to the specific card
-            setTimeout(() => {
-                const element = document.getElementById(`card-${dateKey}`);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }, 50);
-        }
+        //     // Trigger smooth scroll to the specific card
+        //     setTimeout(() => {
+        //         const element = document.getElementById(`card-${dateKey}`);
+        //         if (element) {
+        //             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        //         }
+        //     }, 50);
+        // }
+
+        setSelectedMobileDate((prev) => (prev === dateKey ? null : dateKey));
+
+        // Trigger smooth scroll to the specific card
+        requestAnimationFrame(() => {
+            const element = document.getElementById(`card-${dateKey}`);
+            element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
     }, [calendarDays, currentDate, canEditToday]);
 
     const handleOpenStaffListModal = useCallback(() => staffListModalRef.current?.open(), []);
@@ -301,9 +313,32 @@ export default function AvailabilityScheduler() {
     const mobileExpandedDates = useMemo(() => {
         if (!isMobile) return [];
         return calendarDays
-            .filter((date) => !isDateDisabled(date, currentDate, canEditToday))
+            .filter((date) => !isDateDisabled(date, currentDate, canEditToday, true))
             .map((date) => formatDateKey(date));
     }, [calendarDays, currentDate, isMobile, canEditToday]);
+
+    useEffect(() => {
+        if (!isMobile) return;
+        setSelectedMobileDate(null);
+    }, [isMobile, currentDate]);
+
+    useEffect(() => {
+        if (!isMobile || selectedMobileDate) return;
+
+        const today = new Date();
+        const isCurrentMonth = isSameMonth(today, currentDate);
+
+        if (isCurrentMonth) {
+            // If viewing current month, select today
+            const todayKey = formatDateKey(today);
+            handleMobileDateSelect(todayKey);
+        } else {
+            // If viewing a different month, select the 1st day of that month
+            const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const firstDayKey = formatDateKey(firstDayOfMonth);
+            handleMobileDateSelect(firstDayKey);
+        }
+    }, [isMobile, currentDate, selectedMobileDate]);
 
     return (
         <AdminLayout>

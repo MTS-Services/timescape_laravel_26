@@ -115,7 +115,7 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
     };
 
     return (
-        <div className="mt-8 rounded-lg bg-muted dark:bg-blue-500 p-4 sm:p-5 lg:py-5 lg:px-16 flex items-start justify-between gap-9">
+        <div className="mt-8 rounded-lg bg-muted p-4 sm:p-5 lg:py-5 lg:px-16 flex items-start justify-between gap-9">
 
             <div className="flex-1">
                 <div className="space-y-2 mb-12">

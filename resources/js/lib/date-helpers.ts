@@ -134,7 +134,7 @@ export function isToday(date: Date): boolean {
  * @param viewingMonth - The currently viewed month
  * @param canEditToday - Whether editing today is allowed (from backend config)
  */
-export function isDateDisabled(date: Date, viewingMonth: Date, canEditToday: boolean = false): boolean {
+export function isDateDisabled(date: Date, viewingMonth: Date, canEditToday: boolean = false, isMobileOption: boolean = false): boolean {
     const isPast = isDateInPast(date, canEditToday);
     const notInViewingMonth = !isSameMonth(date, viewingMonth);
 
@@ -142,7 +142,7 @@ export function isDateDisabled(date: Date, viewingMonth: Date, canEditToday: boo
         return true;
     }
 
-    if (isPast) {
+    if (isPast && !isMobileOption) {
         return true;
     }
 
