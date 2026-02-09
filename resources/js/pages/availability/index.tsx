@@ -317,28 +317,28 @@ export default function AvailabilityScheduler() {
             .map((date) => formatDateKey(date));
     }, [calendarDays, currentDate, isMobile, canEditToday]);
 
-    useEffect(() => {
-        if (!isMobile) return;
-        setSelectedMobileDate(null);
-    }, [isMobile, currentDate]);
+    // useEffect(() => {
+    //     if (!isMobile) return;
+    //     setSelectedMobileDate(null);
+    // }, [isMobile, currentDate]);
 
-    useEffect(() => {
-        if (!isMobile || selectedMobileDate) return;
+    // useEffect(() => {
+    //     if (!isMobile || selectedMobileDate) return;
 
-        const today = new Date();
-        const isCurrentMonth = isSameMonth(today, currentDate);
+    //     const today = new Date();
+    //     const isCurrentMonth = isSameMonth(today, currentDate);
 
-        if (isCurrentMonth) {
-            // If viewing current month, select today
-            const todayKey = formatDateKey(today);
-            handleMobileDateSelect(todayKey);
-        } else {
-            // If viewing a different month, select the 1st day of that month
-            const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-            const firstDayKey = formatDateKey(firstDayOfMonth);
-            handleMobileDateSelect(firstDayKey);
-        }
-    }, [isMobile, currentDate, selectedMobileDate]);
+    //     if (isCurrentMonth) {
+    //         // If viewing current month, select today
+    //         const todayKey = formatDateKey(today);
+    //         handleMobileDateSelect(todayKey);
+    //     } else {
+    //         // If viewing a different month, select the 1st day of that month
+    //         const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    //         const firstDayKey = formatDateKey(firstDayOfMonth);
+    //         handleMobileDateSelect(firstDayKey);
+    //     }
+    // }, [isMobile, currentDate, selectedMobileDate]);
 
     return (
         <AdminLayout>
