@@ -424,6 +424,7 @@ export default function AvailabilityScheduler() {
                 /* Desktop Layout */
                 <>
                     <AdminHeader />
+                    <SchedulerHeader />
                     <div className="container mx-auto px-3 sm:px-4 mb-4">
                         <AvailabilityHeader
                             currentMonth={formatMonthYear(currentDate)}

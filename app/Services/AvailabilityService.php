@@ -431,6 +431,8 @@ class AvailabilityService
                 $points = 0;
                 if ($slot === 'all-day') {
                     $points = 2;
+                } elseif ($slot === 'holiday') {
+                    $points = 2;
                 } elseif (in_array($slot, ['9:30-4:30', '3:30-10:30'])) {
                     $points = 1;
                 }
