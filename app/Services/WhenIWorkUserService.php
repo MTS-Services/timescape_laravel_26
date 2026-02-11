@@ -26,7 +26,7 @@ class WhenIWorkUserService
         $this->logDebug('FETCH_USERS_START', ['token_length' => strlen($token)]);
 
         try {
-            $url = config('services.wheniwork.base_url').'users';
+            $url = config('services.wheniwork.base_url') . 'users';
 
             /** @var \Illuminate\Http\Client\Response $response */
             $response = Http::withHeaders([
@@ -215,61 +215,9 @@ class WhenIWorkUserService
     protected function syncSingleUser(array $userData, string $token, array $locationsMap = []): User
     {
         $accountId = $userData['account_id'] ?? null;
-        $wiwId = $userData['id'];
-
-        // Extract priority from notes field (e.g., "Priority=4")
-        $priority = User::extractPriorityFromNotes($userData['notes'] ?? null);
-
-        // Get location_id from the locationsMap based on account_id
         $locationId = $accountId ? ($locationsMap[$accountId] ?? null) : null;
 
-        // Multi-account support: find existing user by account_id + wheniwork_id combination
-        $user = User::where('account_id', $accountId)
-            ->where('wheniwork_id', $wiwId)
-            ->first();
-
-        $attributes = [
-            'account_id' => $accountId,
-            'location_id' => $locationId,
-            'login_id' => $userData['login_id'] ?? null,
-            'email' => $userData['email'],
-            'first_name' => $userData['first_name'] ?? '',
-            'middle_name' => $userData['middle_name'] ?? null,
-            'last_name' => $userData['last_name'] ?? '',
-            'phone_number' => $userData['phone_number'] ?? null,
-            'employee_code' => $userData['employee_code'] ?? null,
-            'role' => $userData['role'] ?? 3,
-            'employment_type' => $userData['employment_type'] ?? 'hourly',
-            'is_payroll' => $userData['is_payroll'] ?? false,
-            'is_trusted' => $userData['is_trusted'] ?? false,
-            'is_private' => $userData['is_private'] ?? true,
-            'is_hidden' => $userData['is_hidden'] ?? false,
-            'activated' => $userData['activated'] ?? false,
-            'is_active' => $userData['is_active'] ?? true,
-            'hours_preferred' => $userData['hours_preferred'] ?? 0,
-            'hours_max' => $userData['hours_max'] ?? 0,
-            'hourly_rate' => $userData['hourly_rate'] ?? 0,
-            'notes' => $userData['notes'] ?? null,
-            'priority' => $priority,
-            'uuid' => $userData['uuid'] ?? null,
-            'timezone_name' => $userData['timezone_name'] ?? null,
-            'start_date' => ! empty($userData['start_date']) ? $userData['start_date'] : null,
-            'hired_on' => ! empty($userData['hired_on']) ? $userData['hired_on'] : null,
-            'terminated_at' => ! empty($userData['terminated_at']) ? $userData['terminated_at'] : null,
-            'alert_settings' => $userData['alert_settings'] ?? null,
-            'positions' => $userData['positions'] ?? [],
-            'locations' => $userData['locations'] ?? [],
-            'avatar_urls' => $userData['avatar'] ?? null,
-            'is_admin' => ($userData['role'] ?? 3) === 1,
-        ];
-
-        if ($user) {
-            $user->update($attributes);
-        } else {
-            $user = User::create(array_merge(['wheniwork_id' => $wiwId], $attributes));
-        }
-
-        return $user;
+        return User::syncFromWhenIWorkData($userData, $token, $locationId);
     }
 
     /**

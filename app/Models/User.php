@@ -214,47 +214,93 @@ class User extends Authenticatable
             ->where('wheniwork_id', $wiwId)
             ->first();
 
-        $attributes = [
+        // Fields that are always set (core identity / session data)
+        $coreAttributes = [
             'account_id' => $accountId,
             'location_id' => $locationId,
             'login_id' => $loginId,
             'wheniwork_token' => $token,
             'email' => $email,
-            'first_name' => $userData['first_name'] ?? '',
-            'middle_name' => $userData['middle_name'] ?? null,
-            'last_name' => $userData['last_name'] ?? '',
-            'phone_number' => $userData['phone_number'] ?? null,
-            'employee_code' => $userData['employee_code'] ?? null,
-            'role' => $userData['role'] ?? 3,
-            'employment_type' => $userData['employment_type'] ?? 'hourly',
-            'is_payroll' => $userData['is_payroll'] ?? false,
-            'is_trusted' => $userData['is_trusted'] ?? false,
-            'is_private' => $userData['is_private'] ?? true,
-            'is_hidden' => $userData['is_hidden'] ?? false,
-            'activated' => $userData['activated'] ?? false,
-            'is_active' => $userData['is_active'] ?? true,
-            'hours_preferred' => $userData['hours_preferred'] ?? 0,
-            'hours_max' => $userData['hours_max'] ?? 0,
-            'hourly_rate' => $userData['hourly_rate'] ?? 0,
-            'notes' => $userData['notes'] ?? null,
-            'priority' => $priority,
-            'uuid' => $userData['uuid'] ?? null,
-            'timezone_name' => $userData['timezone_name'] ?? null,
-            'start_date' => ! empty($userData['start_date']) ? $userData['start_date'] : null,
-            'hired_on' => ! empty($userData['hired_on']) ? $userData['hired_on'] : null,
-            'terminated_at' => ! empty($userData['terminated_at']) ? $userData['terminated_at'] : null,
             'last_login' => now(),
-            'alert_settings' => $userData['alert_settings'] ?? null,
-            'positions' => $userData['positions'] ?? [],
-            'locations' => $userData['locations'] ?? [],
-            'avatar_urls' => $userData['avatar'] ?? null,
-            'is_admin' => ($userData['role'] ?? 3) === 1,
+        ];
+
+        // Fields sourced from the API — keyed by model attribute => API source key.
+        // These are only included when the source key exists in $userData,
+        // preventing incomplete API responses from nulling out existing data.
+        $apiFields = [
+            'first_name'      => ['key' => 'first_name',      'default' => ''],
+            'middle_name'     => ['key' => 'middle_name',     'default' => null],
+            'last_name'       => ['key' => 'last_name',       'default' => ''],
+            'phone_number'    => ['key' => 'phone_number',    'default' => null],
+            'employee_code'   => ['key' => 'employee_code',   'default' => null],
+            'role'            => ['key' => 'role',            'default' => 3],
+            'employment_type' => ['key' => 'employment_type', 'default' => 'hourly'],
+            'is_payroll'      => ['key' => 'is_payroll',      'default' => false],
+            'is_trusted'      => ['key' => 'is_trusted',      'default' => false],
+            'is_private'      => ['key' => 'is_private',      'default' => true],
+            'is_hidden'       => ['key' => 'is_hidden',       'default' => false],
+            'activated'       => ['key' => 'activated',       'default' => false],
+            'is_active'       => ['key' => 'is_active',       'default' => true],
+            'hours_preferred' => ['key' => 'hours_preferred', 'default' => 0],
+            'hours_max'       => ['key' => 'hours_max',       'default' => 0],
+            'hourly_rate'     => ['key' => 'hourly_rate',     'default' => 0],
+            'notes'           => ['key' => 'notes',           'default' => null],
+            'uuid'            => ['key' => 'uuid',            'default' => null],
+            'timezone_name'   => ['key' => 'timezone_name',   'default' => null],
+            'alert_settings'  => ['key' => 'alert_settings',  'default' => null],
+            'positions'       => ['key' => 'positions',       'default' => []],
+            'locations'       => ['key' => 'locations',       'default' => []],
+            'avatar_urls'     => ['key' => 'avatar',          'default' => null],
+        ];
+
+        // Date fields that use !empty() instead of ?? for safety
+        $dateFields = [
+            'start_date'    => 'start_date',
+            'hired_on'      => 'hired_on',
+            'terminated_at' => 'terminated_at',
         ];
 
         if ($user) {
-            $user->update($attributes);
+            // UPDATE: only include fields whose source key exists in $userData
+            $updateAttributes = $coreAttributes;
+
+            foreach ($apiFields as $attr => $meta) {
+                if (array_key_exists($meta['key'], $userData)) {
+                    $updateAttributes[$attr] = $userData[$meta['key']] ?? $meta['default'];
+                }
+            }
+
+            foreach ($dateFields as $attr => $sourceKey) {
+                if (array_key_exists($sourceKey, $userData)) {
+                    $updateAttributes[$attr] = ! empty($userData[$sourceKey]) ? $userData[$sourceKey] : null;
+                }
+            }
+
+            // Derived fields: only set when their source key is present
+            if (array_key_exists('notes', $userData)) {
+                $updateAttributes['priority'] = $priority;
+            }
+            if (array_key_exists('role', $userData)) {
+                $updateAttributes['is_admin'] = ($userData['role'] ?? 3) === 1;
+            }
+
+            $user->update($updateAttributes);
         } else {
-            $user = static::create(array_merge(['wheniwork_id' => $wiwId], $attributes));
+            // CREATE: use all fields with defaults for missing keys
+            $createAttributes = $coreAttributes;
+
+            foreach ($apiFields as $attr => $meta) {
+                $createAttributes[$attr] = $userData[$meta['key']] ?? $meta['default'];
+            }
+
+            foreach ($dateFields as $attr => $sourceKey) {
+                $createAttributes[$attr] = ! empty($userData[$sourceKey]) ? $userData[$sourceKey] : null;
+            }
+
+            $createAttributes['priority'] = $priority;
+            $createAttributes['is_admin'] = ($userData['role'] ?? 3) === 1;
+
+            $user = static::create(array_merge(['wheniwork_id' => $wiwId], $createAttributes));
         }
 
         return $user;
