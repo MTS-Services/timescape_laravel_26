@@ -21,6 +21,8 @@ export default function SchedulerHeader() {
     const hasTriggeredThisSession = useRef(false);
 
     const shouldShowRequirements = requirements && !isAdmin;
+    console.log('shouldShowRequirements:', shouldShowRequirements, 'requirements:', requirements, 'isAdmin:', isAdmin);
+
 
     // Direct Logic (No useEffect)
     if (!isAdmin && requirements && !requirements.overall_status && !hasTriggeredThisSession.current) {
@@ -64,16 +66,15 @@ export default function SchedulerHeader() {
     }
 
     return (
-        <div className="container px-3 sm:px-4 lg:px-6 xl:px-8 mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between mt-2 lg:mt-10 mb-5 gap-4 lg:gap-0">
-            <div>
+        <div className="container px-3 sm:px-4 lg:px-6 xl:px-8 mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between lg:mt-10 mb-2 gap-2 lg:gap-0">
+            {/* <div>
                 <h4 className="text-2xl md:text-[32px] font-semibold">Availability Scheduler</h4>
                 <h6 className="text-sm sm:text-base font-semibold text-text-muted">Calendar Dashboard</h6>
-            </div>
-
+            </div> */}
             {!isAdmin && (
-                <div className="font-bold font-montserrat text-destructive text-left lg:text-center text-base md:text-lg w-full max-w-[578px]">
+                <p className="font-bold font-montserrat text-destructive text-left lg:text-center text-xs md:text-lg w-full max-w-144.5 ">
                     Availability for the following week must be entered by the end of Saturday each week.
-                </div>
+                </p>
             )}
 
             {shouldShowRequirements && (

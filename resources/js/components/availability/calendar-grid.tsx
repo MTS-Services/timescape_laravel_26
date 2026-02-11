@@ -59,7 +59,7 @@ export function CalendarGrid({
     return (
         <div>
             {/* Weekday Headers */}
-            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 px-2 sm:px-3 lg:px-4 pt-3 pb-6 ">
+            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 pt-3 pb-6 ">
                 {WEEKDAYS.map((day) => (
                     <div
                         key={day}
@@ -75,14 +75,17 @@ export function CalendarGrid({
                 {weeks.map((weekDays, weekIndex) => {
                     const weekRequirement = weeklyRequirements[weekIndex];
                     return (
-                        <div key={weekIndex} className="">
+                        <div key={weekIndex}>
                             {/* Weekly Progress Bar */}
                             {auth.user.can_view_requirements && weekRequirement && (
                                 <WeeklyProgress weekRequirement={weekRequirement} />
                             )}
 
                             {/* Week Days Grid */}
-                            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 px-2 sm:px-3 lg:px-4">
+                            <div className="grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 relative">
+                                {weekRequirement?.is_complete && (
+                                    <span className="absolute top-0 left-0 h-full w-full bg-green-500/20 rounded-md"></span>
+                                )}
                                 {weekDays.map((date, dayIndex) => {
                                     const dateKey = formatDateKey(date);
                                     const isCurrentMonthDay = isSameMonth(date, currentMonth);

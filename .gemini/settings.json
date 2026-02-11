@@ -7,12 +7,12 @@
                 "boost:mcp"
             ]
         },
-         "shadcn": {
+        "shadcn": {
             "command": "npx",
             "args": [
                 "shadcn@latest",
                 "mcp"
             ]
         }
-    }     
+    }
 }

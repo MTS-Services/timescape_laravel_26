@@ -22,7 +22,6 @@ import type {
     AvailabilityRequirements,
 } from '@/types/availability';
 import { AdminHeader } from '@/layouts/partials/admin/header';
-import MobileMonthSwitch from '@/components/availability/mobile-month-switch';
 
 interface SaveResult {
     date: string;
@@ -101,7 +100,7 @@ const debugLog = (action: string, data: unknown) => {
     }
 };
 
-export default function AvailabilityScheduler() {
+export default function AvailabilitySchedulerCopy() {
     const page = usePage<PageProps>();
     const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false, userSyncSuccess, userSyncError, weeklyRequirements = [] } = page.props;
     const flash = (page as unknown as { flash?: PageProps['flash'] }).flash ?? page.props.flash;
@@ -326,16 +325,31 @@ export default function AvailabilityScheduler() {
             <Head title="Availability Scheduler" />
 
             {isMobile ? (
-                /* Mobile Layout */
                 <>
-                    <div className='bg-white'>
+                    <div className='sticky top-0 left-0'>
                         <AdminHeader />
                         <SchedulerHeader />
-                        <div className='container mx-auto px-3 sm:px-4 mb-1 flex flex-col'>
+                    </div>
+                </>
+            ) : (
+                <>
 
-                            <div ref={stickyHeaderRef} className="sticky top-0 left-0 z-40 bg-white">
+                </>
+            )}
+
+            <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5 mb-6">
+                {isMobile ? (
+                    <div className="flex flex-col">
+                        <div className='relative'>
+                            {/* Sticky Header Wrapper */}
+                            <div
+                                ref={stickyHeaderRef}
+                                className="bg-background pb-2 sticky top-0 z-40"
+                            >
                                 <MobileAvailabilityHeader
                                     currentMonth={formatMonthYear(currentDate)}
+                                    onPrevMonth={handlePrevMonth}
+                                    onNextMonth={handleNextMonth}
                                     onToday={handleToday}
                                     onMonthYearChange={handleMonthYearChange}
                                     currentMonthNum={currentDate.getMonth() + 1}
@@ -345,14 +359,6 @@ export default function AvailabilityScheduler() {
                                     selectedUserName={selectedUser?.name ?? auth.user.name}
                                 />
 
-                                {/* Should be Collapsable on Mobile */}
-                                {/* MoblieMonthSwitch is header of the Collapsible Content */}
-                                <MobileMonthSwitch
-                                    currentMonth={formatMonthYear(currentDate)}
-                                    onPrevMonth={handlePrevMonth}
-                                    onNextMonth={handleNextMonth} />
-
-                                {/* Collapsible Content */}
                                 <MobileCalendarGrid
                                     calendarDays={calendarDays}
                                     currentMonth={currentDate}
@@ -362,11 +368,10 @@ export default function AvailabilityScheduler() {
                                     canEditToday={canEditToday}
                                     weeklyRequirements={weeklyRequirements}
                                 />
-                                {/* End of Collapsible Content */}
                             </div>
 
                             {/* Availability Cards */}
-                            <div className="relative pt-4 pb-6">
+                            <div className="pt-4 pb-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {mobileExpandedDates.map((dateKey) => {
                                         const dateObj = calendarDays.find((d) => formatDateKey(d) === dateKey);
@@ -389,42 +394,39 @@ export default function AvailabilityScheduler() {
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {auth.user.can_manage_users && statistics && selectedUserId && (
-                        <div className="container mx-auto px-3 sm:px-4 mb-1 pt-4 pb-8 border-t border-border mt-4">
-                            <MobileStatisticsPanel
-                                statistics={statistics}
+                        {auth.user.can_manage_users && statistics && selectedUserId && (
+                            <div className="pt-4 pb-8 border-t border-border mt-4">
+                                <MobileStatisticsPanel
+                                    statistics={statistics}
+                                    selectedUserId={selectedUserId}
+                                    currentYear={currentDate.getFullYear()}
+                                    currentMonth={currentDate.getMonth() + 1}
+                                    selectedUserName={selectedUser?.name ?? auth.user.name}
+                                />
+                            </div>
+                        )}
+
+                        <PastDateModal
+                            isOpen={isPastDateModalOpen}
+                            onClose={handleClosePastDateModal}
+                            dateKey={pastDateForModal}
+                            selectedOption={pastDateForModal ? selections[pastDateForModal] || null : null}
+                        />
+
+                        {auth.user.can_manage_users && users && (
+                            <StaffListModal
+                                ref={staffListModalRef}
+                                users={users}
                                 selectedUserId={selectedUserId}
                                 currentYear={currentDate.getFullYear()}
                                 currentMonth={currentDate.getMonth() + 1}
-                                selectedUserName={selectedUser?.name ?? auth.user.name}
                             />
-                        </div>
-                    )}
-
-                    <PastDateModal
-                        isOpen={isPastDateModalOpen}
-                        onClose={handleClosePastDateModal}
-                        dateKey={pastDateForModal}
-                        selectedOption={pastDateForModal ? selections[pastDateForModal] || null : null}
-                    />
-
-                    {auth.user.can_manage_users && users && (
-                        <StaffListModal
-                            ref={staffListModalRef}
-                            users={users}
-                            selectedUserId={selectedUserId}
-                            currentYear={currentDate.getFullYear()}
-                            currentMonth={currentDate.getMonth() + 1}
-                        />
-                    )}
-                </>
-            ) : (
-                /* Desktop Layout */
-                <>
-                    <AdminHeader />
-                    <div className="container mx-auto px-3 sm:px-4 mb-4">
+                        )}
+                    </div>
+                ) : (
+                    /* Desktop Layout */
+                    <>
                         <AvailabilityHeader
                             currentMonth={formatMonthYear(currentDate)}
                             onPrevMonth={handlePrevMonth}
@@ -473,10 +475,9 @@ export default function AvailabilityScheduler() {
                                 selectedUserName={selectedUser?.name ?? auth.user.name}
                             />
                         )}
-                    </div>
-                </>
-            )
-            }
-        </AdminLayout >
+                    </>
+                )}
+            </div>
+        </AdminLayout>
     );
 }

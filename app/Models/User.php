@@ -170,14 +170,13 @@ class User extends Authenticatable
 
     public function canViewRequirements(): bool
     {
-        // If they can manage users, they are strictly forbidden from viewing requirements
+        // If they can manage users, they are strictly allowed to view requirements
         if ($this->canManageUsers()) {
-            return false;
+            return true;
         }
 
         // Otherwise, check if priority exists and is greater than 3
-        // return ($this->priority ?? 0) > 3;
-        return true;
+        return ($this->priority ?? 0) > 3;
     }
 
 

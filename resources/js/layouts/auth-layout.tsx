@@ -1,8 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import * as React from 'react';
+import React, { useEffect } from 'react';
 
 import AppLogo from '@/components/app-logo';
 import { login } from '@/routes';
+import { useAppearance } from '@/hooks/use-appearance';
 
 interface AuthLayoutProps {
     children: React.ReactNode;
@@ -17,6 +18,13 @@ export default function AuthLayout({
     title,
     description,
 }: AuthLayoutProps) {
+
+    const { appearance, updateAppearance } = useAppearance();
+    useEffect(() => {
+        if (appearance !== 'light') {
+            updateAppearance('light');
+        }
+    }, [appearance, updateAppearance]);
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative bg-background overflow-hidden">
 

@@ -1,14 +1,20 @@
 {
     "agents": [
         "claude_code",
+        "codex",
         "cursor",
         "gemini",
+        "opencode",
+        "phpstorm",
         "windsurf"
     ],
     "editors": [
         "claude_code",
+        "codex",
         "cursor",
         "gemini",
+        "opencode",
+        "phpstorm",
         "vscode",
         "windsurf"
     ],
