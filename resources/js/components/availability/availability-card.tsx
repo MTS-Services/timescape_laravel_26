@@ -1,6 +1,7 @@
 import { CheckSquare, Minus, X } from 'lucide-react';
 
-import { cn, getCardBackgroundColor } from '@/lib/calendar-utils';
+import { getCardBackgroundColor } from '@/lib/calendar-utils';
+import { cn } from '@/lib/utils';
 import { AVAILABILITY_OPTIONS, getPastDateDisplay } from '@/lib/date-helpers';
 
 import { AvailabilityOptionComponent } from './availability-option';
@@ -24,6 +25,7 @@ interface AvailabilityCardProps {
     isToday: boolean;
     selectedOption: string | null;
     onOptionChange: (date: string, optionId: string | null) => void;
+    isComplete: boolean;
 }
 
 export function AvailabilityCard({
@@ -36,8 +38,9 @@ export function AvailabilityCard({
     isToday,
     selectedOption,
     onOptionChange,
+    isComplete = false,
 }: AvailabilityCardProps) {
-    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonth);
+    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonth, isComplete);
 
     const handleOptionChange = (optionId: string, checked: boolean) => {
         if (isDisabled) return;

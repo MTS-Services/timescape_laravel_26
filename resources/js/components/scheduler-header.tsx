@@ -23,47 +23,45 @@ export default function SchedulerHeader() {
     const shouldShowRequirements = requirements && !isAdmin;
     console.log('shouldShowRequirements:', shouldShowRequirements, 'requirements:', requirements, 'isAdmin:', isAdmin);
 
+    // if (!isAdmin && requirements && !requirements.overall_status && !hasTriggeredThisSession.current) {
+    //     const now = new Date();
+    //     const userId = auth.user.id;
+    //     const dateStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    //     const storageKey = `toast_suppress_${userId}_${dateStr}`;
 
-    // Direct Logic (No useEffect)
-    if (!isAdmin && requirements && !requirements.overall_status && !hasTriggeredThisSession.current) {
-        const now = new Date();
-        const userId = auth.user.id;
-        const dateStr = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-        const storageKey = `toast_suppress_${userId}_${dateStr}`;
+    //     const storedData = localStorage.getItem(storageKey);
+    //     let shouldShowToast = false;
 
-        const storedData = localStorage.getItem(storageKey);
-        let shouldShowToast = false;
-
-        if (storedData) {
-            const lastShownTime = parseInt(storedData);
-            const hoursPassed = (now.getTime() - lastShownTime) / (1000 * 60 * 60);
-            if (hoursPassed >= 4) {
-                shouldShowToast = true;
-            }
-        } else {
-            shouldShowToast = true;
-        }
+    //     if (storedData) {
+    //         const lastShownTime = parseInt(storedData);
+    //         const hoursPassed = (now.getTime() - lastShownTime) / (1000 * 60 * 60);
+    //         if (hoursPassed >= 4) {
+    //             shouldShowToast = true;
+    //         }
+    //     } else {
+    //         shouldShowToast = true;
+    //     }
 
 
-        if (shouldShowToast) {
-            // Update the Ref immediately to prevent re-renders from triggering it again
-            hasTriggeredThisSession.current = true;
+    //     if (shouldShowToast) {
+    //         // Update the Ref immediately to prevent re-renders from triggering it again
+    //         hasTriggeredThisSession.current = true;
 
-            // setTimeout ensures the Toaster component is ready in the DOM
-            setTimeout(() => {
-                console.log('Executing toast.warning now');
-                toast.warning('weekly availability Fis currently incomplete (Requirement: 3 weekday & 2 weekend blocks). Please finalize your entries by the end of Saturday to ensure you are included in next week\'s roster.Thank you!', {
-                    duration: 10000,
-                    position: "top-center"
-                });
-            }, 0);
+    //         // setTimeout ensures the Toaster component is ready in the DOM
+    //         setTimeout(() => {
+    //             console.log('Executing toast.warning now');
+    //             toast.warning('weekly availability Fis currently incomplete (Requirement: 3 weekday & 2 weekend blocks). Please finalize your entries by the end of Saturday to ensure you are included in next week\'s roster.Thank you!', {
+    //                 duration: 10000,
+    //                 position: "top-center"
+    //             });
+    //         }, 0);
 
-            // Update localStorage
-            localStorage.setItem(storageKey, now.getTime().toString());
-        } else {
-            hasTriggeredThisSession.current = true;
-        }
-    }
+    //         // Update localStorage
+    //         localStorage.setItem(storageKey, now.getTime().toString());
+    //     } else {
+    //         hasTriggeredThisSession.current = true;
+    //     }
+    // }
 
     return (
         <div className="container px-3 sm:px-4 lg:px-6 xl:px-8 mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between mb-2 gap-2 lg:gap-0">
@@ -71,14 +69,14 @@ export default function SchedulerHeader() {
                 <h4 className="text-2xl md:text-[32px] font-semibold">Availability Scheduler</h4>
                 <h6 className="text-sm sm:text-base font-semibold text-text-muted">Calendar Dashboard</h6>
             </div> */}
-            {!isAdmin && (
-                <p className="font-bold font-montserrat text-destructive text-left lg:text-center text-xs md:text-lg w-full max-w-144.5 ">
-                    Availability for the following week must be entered by the end of Saturday each week.
-                </p>
-            )}
 
             {shouldShowRequirements && (
-                <RequirementsBanner requirements={requirements} />
+                <>
+                    <p className="font-bold font-montserrat text-destructive text-left lg:text-center text-xs md:text-lg w-full max-w-144.5 ">
+                        Availability for the following week must be entered by the end of Saturday each week.
+                    </p>
+                    <RequirementsBanner requirements={requirements} />
+                </>
             )}
         </div>
     );

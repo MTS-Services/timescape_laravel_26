@@ -82,11 +82,13 @@ export function MobileCalendarGrid({
                             )}
 
                             {/* Week Days Grid */}
-                            <div className="grid grid-cols-7 gap-1 relative">
+                            <div className={cn('grid grid-cols-7 gap-1 relative',
+                                weekRequirement?.is_complete && 'bg-green-500/20 rounded-md'
+                            )}>
 
-                                {weekRequirement?.is_complete && (
+                                {/* {weekRequirement?.is_complete && (
                                     <span className="absolute top-0 left-0 h-full w-full bg-green-500/20 rounded-md"></span>
-                                )}
+                                )} */}
 
                                 {weekDays.map((date, dayIndex) => {
                                     const dateKey = formatDateKey(date);
@@ -107,7 +109,7 @@ export function MobileCalendarGrid({
                                     const showRedIndicator = isPastDate && !hasData && isCurrentMonthDay;
                                     const showGrayIndicator = isPastDate && !isCurrentMonthDay && !hasData;
 
-                                    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonthDay);
+                                    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonthDay, weekRequirement?.is_complete || false);
 
                                     const handleDateClick = () => {
                                         onDateSelect(dateKey);
