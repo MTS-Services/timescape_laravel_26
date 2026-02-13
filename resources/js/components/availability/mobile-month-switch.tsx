@@ -1,22 +1,30 @@
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface MobileMonthSwitchProps {
+    currentMonth: string;
+    onPrevMonth: () => void;
+    onNextMonth: () => void;
+    isCalendarOpen?: boolean;
+    onToggleCalendar?: () => void;
+}
 
 export default function MobileMonthSwitch({
     currentMonth,
     onPrevMonth,
     onNextMonth,
-}: {
-    currentMonth: string;
-    onPrevMonth: () => void;
-    onNextMonth: () => void;
-}) {
+    isCalendarOpen = true,
+    onToggleCalendar,
+}: MobileMonthSwitchProps) {
 
     const monthName = currentMonth.split(' ')[0];
     const year = currentMonth.split(' ')[1];
 
     return (
-        <>
-            <div className="flex items-center justify-between px-2 bg-background my-1 rounded">
+        <div className="flex items-center justify-between bg-background my-1 rounded" >
+            <div className="flex items-center justify-between flex-1">
                 <Button
                     onClick={onPrevMonth}
                     variant="ghost"
@@ -42,7 +50,22 @@ export default function MobileMonthSwitch({
                 </Button>
             </div>
 
-            {/* There will be a Down/Up button here for collapsing the calendar on smaller screens */}
-        </>
+            {onToggleCalendar && (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onToggleCalendar}
+                    className="flex items-center justify-center mx-auto py-0.5 cursor-pointer bg-red-50 transition-all"
+                    aria-label={isCalendarOpen ? 'Collapse calendar' : 'Expand calendar'}
+                >
+                    <ChevronDown
+                        className={cn(
+                            'h-5 w-5 text-text-primary transition-transform duration-200',
+                            !isCalendarOpen && 'rotate-180',
+                        )}
+                    />
+                </Button>
+            )}
+        </div>
     )
 }

@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import type { AvailabilitySelections } from '@/types/availability';
 
 import { MobileWeeklyProgress } from './mobile-weekly-progress';
+import { usePage } from '@inertiajs/react';
+import { SharedData } from '@/types';
 
 interface WeekRequirement {
     start_date: string;
@@ -55,6 +57,8 @@ export function MobileCalendarGrid({
         weeks.push(calendarDays.slice(i, i + 7));
     }
 
+    const { auth } = usePage<SharedData>().props;
+
     return (
         <div className="w-full space-y-1">
             {weeks.map((weekDays, weekIndex) => {
@@ -77,13 +81,13 @@ export function MobileCalendarGrid({
 
                         <div key={weekIndex} className="space-y-1">
                             {/* Weekly Progress Bar */}
-                            {weekRequirement && (
+                            {auth.user.can_view_requirements && weekRequirement && (
                                 <MobileWeeklyProgress weekRequirement={weekRequirement} />
                             )}
 
                             {/* Week Days Grid */}
                             <div className={cn('grid grid-cols-7 gap-1 relative',
-                                weekRequirement?.is_complete && 'bg-green-500/20 rounded-md'
+                                weekRequirement?.is_complete && auth.user.can_view_requirements && 'bg-green-500/20 rounded-md'
                             )}>
 
                                 {/* {weekRequirement?.is_complete && (

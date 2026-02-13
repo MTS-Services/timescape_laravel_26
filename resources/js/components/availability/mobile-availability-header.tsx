@@ -1,9 +1,9 @@
 import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 
 import { MonthYearSelector } from './month-year-selector';
-import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 
 interface MobileAvailabilityHeaderProps {
     currentMonth: string;

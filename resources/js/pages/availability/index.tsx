@@ -7,22 +7,23 @@ import { CalendarGrid } from '@/components/availability/calendar-grid';
 import { MobileAvailabilityCard } from '@/components/availability/mobile-availability-card';
 import { MobileAvailabilityHeader } from '@/components/availability/mobile-availability-header';
 import { MobileCalendarGrid } from '@/components/availability/mobile-calendar-grid';
+import MobileMonthSwitch from '@/components/availability/mobile-month-switch';
 import { MobileStatisticsPanel } from '@/components/availability/mobile-statistics-panel';
 import { PastDateModal } from '@/components/availability/past-date-modal';
 import { StaffListModal, StaffListModalRef } from '@/components/availability/staff-list-modal';
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
 import SchedulerHeader from '@/components/scheduler-header';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 import AdminLayout from '@/layouts/admin-layout';
+import { AdminHeader } from '@/layouts/partials/admin/header';
 import { generateCalendarDays, formatMonthYear, addMonths, isDateInPast, formatDateKey, isDateDisabled, isSameMonth } from '@/lib/date-helpers';
 import type { User } from '@/types';
 import type {
     AvailabilitySelections,
     AvailabilityRequirements,
 } from '@/types/availability';
-import { AdminHeader } from '@/layouts/partials/admin/header';
-import MobileMonthSwitch from '@/components/availability/mobile-month-switch';
 
 interface SaveResult {
     date: string;
@@ -120,6 +121,7 @@ export default function AvailabilityScheduler() {
     const calendarContainerRef = useRef<HTMLDivElement | null>(null);
     const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
     const [calendarHeight, setCalendarHeight] = useState<number | null>(null);
+    const [stickyHeaderHeight, setStickyHeaderHeight] = useState<number | null>(null);
 
     // Mobile-specific state
     const [selectedMobileDate, setSelectedMobileDate] = useState<string | null>(null);
@@ -127,38 +129,56 @@ export default function AvailabilityScheduler() {
     const [pastDateForModal, setPastDateForModal] = useState<string | null>(null);
     const staffListModalRef = useRef<StaffListModalRef>(null);
 
+    // Mobile calendar collapsible state
+    const [isCalendarOpen, setIsCalendarOpen] = useState(true);
+    const isCalendarOpenRef = useRef(true);
+    const handleToggleCalendar = useCallback(() => {
+        setIsCalendarOpen((prev) => {
+            const next = !prev;
+            isCalendarOpenRef.current = next;
+            return next;
+        });
+    }, []);
+
     /**
      * DYNAMIC HEIGHT FIX: 
      * Measures the sticky header height and sets it as global scroll-padding.
      * This ensures card scroll targets are never hidden behind the sticky header.
      */
     useLayoutEffect(() => {
-        if (!isMobile) return;
+        if (!isMobile) {
+            setStickyHeaderHeight(null);
+            return;
+        }
 
-        const updateScrollPadding = () => {
-            if (stickyHeaderRef.current) {
-                const height = stickyHeaderRef.current.offsetHeight;
-                // height + 10px buffer for a clean look
-                document.documentElement.style.scrollPaddingTop = `${height - 5}px`;
+        const updateMeasurements = () => {
+            if (!stickyHeaderRef.current) {
+                return;
             }
+
+            const height = stickyHeaderRef.current.offsetHeight;
+            setStickyHeaderHeight(height);
+            document.documentElement.style.scrollPaddingTop = `${Math.max(height - 5, 0)}px`;
         };
 
         // Initialize ResizeObserver to catch height changes if text wraps
-        const resizeObserver = new ResizeObserver(() => updateScrollPadding());
-        if (stickyHeaderRef.current) resizeObserver.observe(stickyHeaderRef.current);
+        const resizeObserver = new ResizeObserver(() => updateMeasurements());
+        if (stickyHeaderRef.current) {
+            resizeObserver.observe(stickyHeaderRef.current);
+        }
 
-        updateScrollPadding();
-        window.addEventListener('resize', updateScrollPadding);
+        updateMeasurements();
+        window.addEventListener('resize', updateMeasurements);
 
         return () => {
-            window.removeEventListener('resize', updateScrollPadding);
+            window.removeEventListener('resize', updateMeasurements);
             resizeObserver.disconnect();
         };
     }, [isMobile, currentDate]);
 
     const calendarDays = useMemo(() =>
         generateCalendarDays(currentDate),
-        [currentDate.getFullYear(), currentDate.getMonth()]
+        [currentDate]
     );
 
     const selectedUser = useMemo(() => {
@@ -171,6 +191,7 @@ export default function AvailabilityScheduler() {
         if (initialSelections && Object.keys(selections).length === 0) {
             setSelections(initialSelections);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialSelections]);
 
     // Admin User Switch Sync
@@ -293,7 +314,6 @@ export default function AvailabilityScheduler() {
         const dateObj = calendarDays.find((d) => formatDateKey(d) === dateKey);
         if (!dateObj) return;
 
-        const isPast = isDateInPast(dateObj, canEditToday);
         const isInCurrentMonth = isSameMonth(dateObj, currentDate);
 
         if (!isInCurrentMonth) return;
@@ -345,28 +365,34 @@ export default function AvailabilityScheduler() {
                                     selectedUserName={selectedUser?.name ?? auth.user.name}
                                 />
 
-                                {/* Should be Collapsable on Mobile */}
-                                {/* MoblieMonthSwitch is header of the Collapsible Content */}
-                                <MobileMonthSwitch
-                                    currentMonth={formatMonthYear(currentDate)}
-                                    onPrevMonth={handlePrevMonth}
-                                    onNextMonth={handleNextMonth} />
+                                <Collapsible open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                                    <MobileMonthSwitch
+                                        currentMonth={formatMonthYear(currentDate)}
+                                        onPrevMonth={handlePrevMonth}
+                                        onNextMonth={handleNextMonth}
+                                        isCalendarOpen={isCalendarOpen}
+                                        onToggleCalendar={handleToggleCalendar}
+                                    />
 
-                                {/* Collapsible Content */}
-                                <MobileCalendarGrid
-                                    calendarDays={calendarDays}
-                                    currentMonth={currentDate}
-                                    selections={selections}
-                                    selectedDate={selectedMobileDate}
-                                    onDateSelect={handleMobileDateSelect}
-                                    canEditToday={canEditToday}
-                                    weeklyRequirements={weeklyRequirements}
-                                />
-                                {/* End of Collapsible Content */}
+                                    <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200">
+                                        <MobileCalendarGrid
+                                            calendarDays={calendarDays}
+                                            currentMonth={currentDate}
+                                            selections={selections}
+                                            selectedDate={selectedMobileDate}
+                                            onDateSelect={handleMobileDateSelect}
+                                            canEditToday={canEditToday}
+                                            weeklyRequirements={weeklyRequirements}
+                                        />
+                                    </CollapsibleContent>
+                                </Collapsible>
                             </div>
 
                             {/* Availability Cards */}
-                            <div className="relative pt-4 pb-6">
+                            <div
+                                className="relative pt-4 pb-6 overflow-x-hidden overflow-y-auto"
+                                style={stickyHeaderHeight ? { height: `calc(100vh - ${stickyHeaderHeight}px)` } : undefined}
+                            >
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {mobileExpandedDates.map((dateKey) => {
                                         const dateObj = calendarDays.find((d) => formatDateKey(d) === dateKey);

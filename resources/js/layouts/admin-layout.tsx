@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 
+import { useAppearance } from '@/hooks/use-appearance';
 import { AdminHeader } from '@/layouts/partials/admin/header';
 
 import { AdminFooter } from './partials/admin/footer';
-import { useAppearance } from '@/hooks/use-appearance';
 
 interface AdminLayoutProps {
     children: React.ReactNode;

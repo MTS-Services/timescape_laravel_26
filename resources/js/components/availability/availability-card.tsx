@@ -1,8 +1,8 @@
 import { CheckSquare, Minus, X } from 'lucide-react';
 
 import { getCardBackgroundColor } from '@/lib/calendar-utils';
-import { cn } from '@/lib/utils';
 import { AVAILABILITY_OPTIONS, getPastDateDisplay } from '@/lib/date-helpers';
+import { cn } from '@/lib/utils';
 
 import { AvailabilityOptionComponent } from './availability-option';
 

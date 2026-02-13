@@ -2,8 +2,8 @@ import { Head, Link } from '@inertiajs/react';
 import React, { useEffect } from 'react';
 
 import AppLogo from '@/components/app-logo';
-import { login } from '@/routes';
 import { useAppearance } from '@/hooks/use-appearance';
+import { login } from '@/routes';
 
 interface AuthLayoutProps {
     children: React.ReactNode;

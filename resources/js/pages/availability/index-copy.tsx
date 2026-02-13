@@ -15,13 +15,13 @@ import { UserSelectionPanel } from '@/components/availability/user-selection-pan
 import SchedulerHeader from '@/components/scheduler-header';
 import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 import AdminLayout from '@/layouts/admin-layout';
+import { AdminHeader } from '@/layouts/partials/admin/header';
 import { generateCalendarDays, formatMonthYear, addMonths, isDateInPast, formatDateKey, isDateDisabled, isSameMonth } from '@/lib/date-helpers';
 import type { User } from '@/types';
 import type {
     AvailabilitySelections,
     AvailabilityRequirements,
 } from '@/types/availability';
-import { AdminHeader } from '@/layouts/partials/admin/header';
 
 interface SaveResult {
     date: string;
@@ -348,8 +348,6 @@ export default function AvailabilitySchedulerCopy() {
                             >
                                 <MobileAvailabilityHeader
                                     currentMonth={formatMonthYear(currentDate)}
-                                    onPrevMonth={handlePrevMonth}
-                                    onNextMonth={handleNextMonth}
                                     onToday={handleToday}
                                     onMonthYearChange={handleMonthYearChange}
                                     currentMonthNum={currentDate.getMonth() + 1}

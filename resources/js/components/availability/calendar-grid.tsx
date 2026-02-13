@@ -1,3 +1,5 @@
+import { usePage } from '@inertiajs/react';
+
 import { WEEKDAYS } from '@/lib/date-helpers';
 import {
     formatDayNumber,
@@ -9,13 +11,12 @@ import {
     isToday,
     getWeekNumber,
 } from '@/lib/date-helpers';
+import { cn } from '@/lib/utils';
+import { SharedData } from '@/types';
 import type { AvailabilitySelections } from '@/types/availability';
 
 import { AvailabilityCard } from './availability-card';
 import { WeeklyProgress } from './weekly-progress';
-import { SharedData } from '@/types';
-import { usePage } from '@inertiajs/react';
-import { cn } from '@/lib/utils';
 
 interface WeekRequirement {
     start_date: string;
@@ -85,7 +86,7 @@ export function CalendarGrid({
                             {/* Week Days Grid */}
                             <div className={cn(
                                 'grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 relative',
-                                weekRequirement?.is_complete && 'bg-green-500/20 rounded-md'
+                                weekRequirement?.is_complete && auth.user.can_view_requirements && 'bg-green-500/20 rounded-md'
                             )}>
                                 {weekDays.map((date, dayIndex) => {
                                     const dateKey = formatDateKey(date);

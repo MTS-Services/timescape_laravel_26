@@ -20,8 +20,7 @@ export default function SchedulerHeader() {
 
     const hasTriggeredThisSession = useRef(false);
 
-    const shouldShowRequirements = requirements && !isAdmin;
-    console.log('shouldShowRequirements:', shouldShowRequirements, 'requirements:', requirements, 'isAdmin:', isAdmin);
+    const shouldShowRequirements = auth.user.can_view_requirements && !isAdmin;
 
     // if (!isAdmin && requirements && !requirements.overall_status && !hasTriggeredThisSession.current) {
     //     const now = new Date();

@@ -7,10 +7,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 import { logout } from '@/routes';
 import { dashboard } from '@/routes';
 import { type SharedData } from '@/types';
-import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 
 
 export function AdminHeader() {

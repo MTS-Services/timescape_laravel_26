@@ -64,7 +64,7 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
                 {
                     preserveState: true,
                     preserveScroll: true,
-                    only: ['initialSelections', 'requirements', 'statistics', 'selectedUserId'],
+                    only: ['initialSelections', 'requirements', 'statistics', 'selectedUserId', 'weeklyRequirements'],
                     onSuccess: () => {
                         setIsOpen(false);
                     },
