@@ -4,7 +4,8 @@ export function getCardBackgroundColor(
     isWeekend: boolean,
     isDisabled: boolean,
     isCurrentMonth: boolean,
-    isComplete: boolean = false
+    isComplete: boolean = false,
+    canViewRequirements: boolean = false
 ): string {
     // Weekend cards are always red, regardless of disabled state
     // if (isWeekend) {
@@ -12,7 +13,7 @@ export function getCardBackgroundColor(
     // }
 
     // Complete
-    if (isComplete && !isDisabled) {
+    if (isComplete && !isDisabled && canViewRequirements) {
         return 'bg-transparent border-muted/50';
     }
 

@@ -26,6 +26,7 @@ interface AvailabilityCardProps {
     selectedOption: string | null;
     onOptionChange: (date: string, optionId: string | null) => void;
     isComplete: boolean;
+    canViewRequirements: boolean;
 }
 
 export function AvailabilityCard({
@@ -39,8 +40,9 @@ export function AvailabilityCard({
     selectedOption,
     onOptionChange,
     isComplete = false,
+    canViewRequirements = false,
 }: AvailabilityCardProps) {
-    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonth, isComplete);
+    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonth, isComplete, canViewRequirements);
 
     const handleOptionChange = (optionId: string, checked: boolean) => {
         if (isDisabled) return;

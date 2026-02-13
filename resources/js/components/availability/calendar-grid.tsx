@@ -113,6 +113,7 @@ export function CalendarGrid({
                                             selectedOption={selectedOption}
                                             onOptionChange={onSelectionChange}
                                             isComplete={weekRequirement?.is_complete || false}
+                                            canViewRequirements={auth.user.can_view_requirements || false}
                                         />
                                     );
                                 })}
