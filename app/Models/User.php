@@ -175,8 +175,9 @@ class User extends Authenticatable
             return true;
         }
 
-        // Otherwise, check if priority exists and is greater than 3
-        return ($this->priority ?? 0) > 3;
+        // Otherwise, check if priority exists and is less than 4
+        return ($this->priority !== null && $this->priority < 4);
+        // return ($this->priority ?? 0) < 3;
     }
 
 
