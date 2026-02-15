@@ -81,18 +81,15 @@ export function MobileCalendarGrid({
 
                         <div key={weekIndex} className="space-y-1">
                             {/* Weekly Progress Bar */}
-                            {auth.user.can_view_requirements && weekRequirement && (
-                                <MobileWeeklyProgress weekRequirement={weekRequirement} />
-                            )}
+                            {/* {auth.user.can_view_requirements && weekRequirement && ( */}
+                            <MobileWeeklyProgress weekRequirement={weekRequirement} />
+                            {/* )} */}
 
                             {/* Week Days Grid */}
                             <div className={cn('grid grid-cols-7 gap-1 relative',
-                                weekRequirement?.is_complete && auth.user.can_view_requirements && 'bg-green-500/20 rounded-md'
+                                weekRequirement?.is_complete && 'bg-green-500/20 rounded-md'
+                                // weekRequirement?.is_complete && auth.user.can_view_requirements && 'bg-green-500/20 rounded-md'
                             )}>
-
-                                {/* {weekRequirement?.is_complete && (
-                                    <span className="absolute top-0 left-0 h-full w-full bg-green-500/20 rounded-md"></span>
-                                )} */}
 
                                 {weekDays.map((date, dayIndex) => {
                                     const dateKey = formatDateKey(date);
