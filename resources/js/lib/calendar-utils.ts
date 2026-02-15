@@ -13,7 +13,10 @@ export function getCardBackgroundColor(
     // }
 
     // Complete
-    if (isComplete && !isDisabled && canViewRequirements) {
+    // if (isComplete && !isDisabled && canViewRequirements) {
+    //     return 'bg-transparent border-muted/50';
+    // }
+    if (isComplete && !isDisabled) {
         return 'bg-transparent border-muted/50';
     }
 
