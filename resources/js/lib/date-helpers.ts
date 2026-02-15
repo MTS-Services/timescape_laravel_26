@@ -134,7 +134,7 @@ export function isToday(date: Date): boolean {
  * @param viewingMonth - The currently viewed month
  * @param canEditToday - Whether editing today is allowed (from backend config)
  */
-export function isDateDisabled(date: Date, viewingMonth: Date, canEditToday: boolean = false): boolean {
+export function isDateDisabled(date: Date, viewingMonth: Date, canEditToday: boolean = false, isMobileOption: boolean = false): boolean {
     const isPast = isDateInPast(date, canEditToday);
     const notInViewingMonth = !isSameMonth(date, viewingMonth);
 
@@ -142,7 +142,7 @@ export function isDateDisabled(date: Date, viewingMonth: Date, canEditToday: boo
         return true;
     }
 
-    if (isPast) {
+    if (isPast && !isMobileOption) {
         return true;
     }
 
@@ -188,18 +188,18 @@ export function addMonths(date: Date, months: number): Date {
  */
 export function getPastDateDisplay(selectedOption: string | null): {
     label: string;
-    iconType: 'minus' | 'checkbox';
+    iconType: 'minus' | 'checkbox' | null;
 } {
     if (!selectedOption) {
-        return { label: 'Unavailable All Day', iconType: 'minus' };
+        return { label: '', iconType: null };
     }
 
     if (selectedOption === 'holiday') {
-        return { label: 'Unavailable All Day', iconType: 'minus' };
+        return { label: 'Holiday', iconType: 'minus' };
     }
 
     if (selectedOption === 'all-day') {
-        return { label: 'Preferred All Day', iconType: 'checkbox' };
+        return { label: 'All Day', iconType: 'checkbox' };
     }
 
     const option = AVAILABILITY_OPTIONS.find(opt => opt.id === selectedOption);
@@ -207,4 +207,14 @@ export function getPastDateDisplay(selectedOption: string | null): {
         label: option?.label || selectedOption,
         iconType: 'checkbox'
     };
+}
+
+/**
+ * Get week number for a given date (used to match with weekly requirements)
+ * Returns the index of the week within the calendar view
+ */
+export function getWeekNumber(date: Date, calendarStart: Date): number {
+    const diffTime = date.getTime() - calendarStart.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return Math.floor(diffDays / 7);
 }

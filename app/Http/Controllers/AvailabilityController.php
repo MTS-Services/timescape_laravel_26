@@ -43,12 +43,15 @@ class AvailabilityController extends Controller
             $month
         );
 
-        // $requirements = $this->availabilityService->checkRequirements(
-        //     $targetUserId,
-        //     $year,
-        //     $month
-        // );
+        // Get current week requirements (for backward compatibility)
         $requirements = $this->availabilityService->checkRequirements($targetUserId);
+
+        // Get weekly requirements for the entire month view
+        $weeklyRequirements = $this->availabilityService->getWeeklyRequirements(
+            $targetUserId,
+            $year,
+            $month
+        );
 
         // Get user statistics if user has can_manage_users permission
         $statistics = null;
@@ -68,17 +71,27 @@ class AvailabilityController extends Controller
         }
 
         // Get all users if user has can_manage_users permission
+        // Scoped by account_id unless CAN_MANAGE_ALL is true
         $users = [];
         if ($user->can_manage_users) {
-            $users = \App\Models\User::select('id', 'first_name', 'last_name', 'email')
+            $query = \App\Models\User::select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
+                ->orderBy('priority', 'asc')
                 ->orderBy('first_name')
-                ->orderBy('last_name')
-                ->get()
+                ->orderBy('last_name');
+
+            // Scope to same account_id unless CAN_MANAGE_ALL is enabled
+            if (! config('availability.can_manage_all', false)) {
+                $query->where('account_id', $user->account_id);
+            }
+
+            $users = $query->get()
                 ->map(function ($u) {
                     return [
                         'id' => $u->id,
                         'name' => $u->name,
                         'email' => $u->email,
+                        'account_id' => $u->account_id,
+                        'priority' => $u->priority,
                     ];
                 });
         }
@@ -86,6 +99,7 @@ class AvailabilityController extends Controller
         Log::info('Returning availability data', [
             'availabilities_count' => count($availabilities),
             'requirements' => $requirements,
+            'weekly_requirements_count' => count($weeklyRequirements),
             'has_statistics' => ! is_null($statistics),
         ]);
 
@@ -93,10 +107,11 @@ class AvailabilityController extends Controller
             $targetUser = \App\Models\User::find($targetUserId);
             if ($targetUser && $targetUser->wheniwork_id) {
                 $date = $request->get('date', now()->toDateString());
-                // Session-based job deduplication: only fetch once per month per session
-                $sessionKey = "availability_fetch_{$year}_{$month}_{$date}_user_{$targetUserId}";
+                // Session-based job deduplication: only fetch once per month per session per date and per hour
+                $hour = now()->hour;
+                $sessionKey = "availability_fetch_{$year}_{$month}_{$date}_{$hour}_user_{$targetUserId}";
 
-                if (!Session::has($sessionKey)) {
+                if (! Session::has($sessionKey)) {
                     Log::info('Dispatching availability sync job', [
                         'user_id' => $targetUserId,
                         'year' => $year,
@@ -107,7 +122,7 @@ class AvailabilityController extends Controller
 
                     SyncUserAvailabilityJob::dispatch(
                         $targetUserId,
-                        $targetUser->wheniwork_token,
+                        $user->wheniwork_token,
                         $year,
                         $month,
                         $date
@@ -131,6 +146,7 @@ class AvailabilityController extends Controller
         $props = [
             'initialSelections' => $availabilities,
             'requirements' => $requirements,
+            'weeklyRequirements' => $weeklyRequirements,
             'currentYear' => $year,
             'currentMonth' => $month,
             'statistics' => $statistics,
@@ -175,6 +191,11 @@ class AvailabilityController extends Controller
         $month = $request->input('month', now()->month);
 
         $requirements = $this->availabilityService->checkRequirements(
+            $targetUserId
+        );
+
+        // Get weekly requirements for the updated month
+        $weeklyRequirements = $this->availabilityService->getWeeklyRequirements(
             $targetUserId,
             $year,
             $month
@@ -206,12 +227,14 @@ class AvailabilityController extends Controller
             return Inertia::flash([
                 'error' => $errorMessage,
                 'requirements' => $requirements,
+                'weeklyRequirements' => $weeklyRequirements,
                 'save_results' => $results,
             ])->back();
         }
 
         Log::info('Availability saved successfully', [
             'requirements' => $requirements,
+            'weekly_requirements_count' => count($weeklyRequirements),
             'success_count' => count($results['success']),
             'skipped_count' => count($results['skipped']),
         ]);
@@ -220,6 +243,7 @@ class AvailabilityController extends Controller
         return Inertia::flash([
             'success' => 'Availability updated successfully!',
             'requirements' => $requirements,
+            'weeklyRequirements' => $weeklyRequirements,
         ])->back();
     }
 }

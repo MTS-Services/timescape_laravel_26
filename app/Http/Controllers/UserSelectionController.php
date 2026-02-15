@@ -8,27 +8,40 @@ use Illuminate\Http\Request;
 class UserSelectionController extends Controller
 {
     /**
-     * Get a list of all users for admin selection panel
+     * Get a list of users for admin selection panel
+     *
+     * Scoped by account_id unless CAN_MANAGE_ALL is true.
      *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getUsers(Request $request)
     {
+        $currentUser = $request->user();
+
         // Check if user is admin
-        if (! $request->user()->is_admin) {
+        if (! $currentUser->is_admin) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // Get all users
-        $users = User::select('id', 'first_name', 'last_name', 'email')
+        // Build query with account_id scoping based on CAN_MANAGE_ALL config
+        $query = User::select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
+            ->orderBy('priority', 'asc')
             ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get()
+            ->orderBy('last_name');
+
+        // Scope to same account_id unless CAN_MANAGE_ALL is enabled
+        if (! config('availability.can_manage_all', false)) {
+            $query->where('account_id', $currentUser->account_id);
+        }
+
+        $users = $query->get()
             ->map(function ($user) {
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
+                    'account_id' => $user->account_id,
+                    'priority' => $user->priority,
                 ];
             });
 
@@ -40,10 +53,14 @@ class UserSelectionController extends Controller
     /**
      * Get availability data for a specific user (admin only)
      *
+     * Enforces account_id scoping unless CAN_MANAGE_ALL is true.
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getUserAvailability(Request $request)
     {
+        $currentUser = $request->user();
+
         // Validate request
         $validated = $request->validate([
             'user_id' => ['required', 'exists:users,id'],
@@ -52,14 +69,21 @@ class UserSelectionController extends Controller
         ]);
 
         // Check if user is admin
-        if (! $request->user()->is_admin) {
+        if (! $currentUser->is_admin) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        // Get the user
+        // Get the target user
         $targetUser = User::find($validated['user_id']);
         if (! $targetUser) {
             return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Enforce account_id scoping unless CAN_MANAGE_ALL is enabled
+        if (! config('availability.can_manage_all', false)) {
+            if ($targetUser->account_id !== $currentUser->account_id) {
+                return response()->json(['error' => 'Cannot access users from other accounts'], 403);
+            }
         }
 
         // Get availability data from the service

@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import { UserInfo } from '@/components/user-info';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 import { logout } from '@/routes';
 import { dashboard } from '@/routes';
 import { type SharedData } from '@/types';
@@ -15,6 +16,7 @@ import { type SharedData } from '@/types';
 export function AdminHeader() {
     const { auth } = usePage<SharedData>().props;
     const cleanup = useMobileNavigation();
+    const isMobile = useResponsiveMode({ isAdmin: auth.user.can_manage_users });
 
     const handleLogout = () => {
         cleanup();
@@ -22,9 +24,9 @@ export function AdminHeader() {
     };
 
     return (
-        <header className='container mx-auto flex items-center justify-between py-4 px-4'>
+        <header className='container mx-auto flex items-center justify-between py-2 lg:py-4 px-4'>
             <Link href={dashboard()} className='flex items-center gap-2'>
-                <AppLogo />
+                <AppLogo isMobile={isMobile} />
             </Link>
             <div className='hidden md:flex items-center gap-4'>
                 <div className='flex items-center justify-end gap-2 w-full min-w-32'>

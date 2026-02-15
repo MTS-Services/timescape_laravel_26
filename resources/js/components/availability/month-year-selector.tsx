@@ -3,17 +3,20 @@ import React, { useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 interface MonthYearSelectorProps {
     currentMonth: number; // 1-12
     currentYear: number;
     onMonthYearChange: (month: number, year: number) => void;
+    isMobile?: boolean;
 }
 
 export function MonthYearSelector({
     currentMonth,
     currentYear,
     onMonthYearChange,
+    isMobile = false,
 }: MonthYearSelectorProps) {
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
     const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -60,10 +63,12 @@ export function MonthYearSelector({
             <Button
                 variant="ghost"
                 onClick={toggleCalendar}
-                size="icon"
+                size={isMobile ? 'sm' : 'icon'}
                 className="flex items-center justify-center cursor-pointer"
             >
-                <CalendarDays className="w-7! h-7!" />
+                <CalendarDays className={cn(
+                    isMobile ? 'w-5! h-5!' : 'w-7! h-7!',
+                )} />
             </Button>
 
             <div

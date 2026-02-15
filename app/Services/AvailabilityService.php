@@ -212,31 +212,22 @@ class AvailabilityService
             Log::error('Failed to save availability to When I Work', [
                 'user_id' => $user->id,
                 'date' => $date,
-                'time_slot' => $timeSlot,
                 'error' => $apiResult['error'] ?? 'Unknown error',
-                'status' => $apiResult['status'] ?? null,
             ]);
 
             return [
                 'success' => false,
-                'error' => $apiResult['error'] ?? 'Failed to save to When I Work',
+                'error' => $apiResult['error'] ?? 'API request failed',
                 'event_id' => null,
             ];
         }
 
-        $eventId = $apiResult['event']['id'] ?? null;
-
-        Log::info('Successfully saved to When I Work', [
-            'user_id' => $user->id,
-            'date' => $date,
-            'time_slot' => $timeSlot,
-            'event_id' => $eventId,
-        ]);
-
+        // Save to local database with the event ID from WhenIWork
+        $eventId = $apiResult['event_id'] ?? null;
         $localSaved = $this->saveLocally($user->id, $date, $timeSlot, $eventId);
 
         if (! $localSaved) {
-            Log::error('API succeeded but local save failed', [
+            Log::error('Failed to save availability to local database after successful API save', [
                 'user_id' => $user->id,
                 'date' => $date,
                 'event_id' => $eventId,
@@ -244,7 +235,7 @@ class AvailabilityService
 
             return [
                 'success' => false,
-                'error' => 'Saved to When I Work but failed to save locally',
+                'error' => 'Failed to save to local database',
                 'event_id' => $eventId,
             ];
         }
@@ -257,25 +248,57 @@ class AvailabilityService
     }
 
     /**
-     * Check if an event overlaps with a target date
+     * Delete availability with sync to When I Work
+     *
+     * @return array ['success' => bool, 'error' => string|null]
      */
-    protected function eventsOverlap(array $event, string $targetDate): bool
+    protected function deleteAvailabilityWithSync(User $user, string $date): array
     {
-        $eventStart = Carbon::parse($event['start_time'])->startOfDay();
-        $eventEnd = isset($event['end_time'])
-            ? Carbon::parse($event['end_time'])->startOfDay()
-            : $eventStart;
-        $target = Carbon::parse($targetDate)->startOfDay();
+        // First, try to delete from When I Work if user has wheniwork_id
+        if ($user->wheniwork_id) {
+            $existingEvent = $this->wiwService->findExistingEvent($user->wheniwork_id, $date);
 
-        return $target->between($eventStart, $eventEnd) ||
-            $eventStart->eq($target) ||
-            $eventEnd->eq($target);
+            if ($existingEvent) {
+                $apiResult = $this->wiwService->deleteAvailabilityEvent($existingEvent['id']);
+
+                if (! $apiResult['success']) {
+                    Log::error('Failed to delete availability from When I Work', [
+                        'user_id' => $user->id,
+                        'date' => $date,
+                        'event_id' => $existingEvent['id'],
+                        'error' => $apiResult['error'] ?? 'Unknown error',
+                    ]);
+
+                    return [
+                        'success' => false,
+                        'error' => $apiResult['error'] ?? 'Failed to delete from When I Work',
+                    ];
+                }
+            }
+        }
+
+        // Delete from local database
+        $deleted = Availability::forUser($user->id)
+            ->where('availability_date', $date)
+            ->delete();
+
+        if (! $deleted) {
+            Log::warning('No local availability record found to delete', [
+                'user_id' => $user->id,
+                'date' => $date,
+            ]);
+        }
+
+        return [
+            'success' => true,
+            'error' => null,
+        ];
     }
 
     /**
      * Save availability to local database
      */
-    protected function saveLocally(int $userId, string $date, string $timeSlot, ?int $wiwEventId): bool
+    protected function saveLocally(int $userId, string $date, string $timeSlot, ?int $eventId): bool
     {
         try {
             Availability::updateOrCreate(
@@ -284,22 +307,14 @@ class AvailabilityService
                     'availability_date' => $date,
                 ],
                 [
-                    'wheniwork_availability_id' => $wiwEventId,
                     'time_slot' => $timeSlot,
-                    'status' => 'available',
+                    'wheniwork_event_id' => $eventId,
                 ]
             );
 
-            Log::info('Saved availability locally', [
-                'user_id' => $userId,
-                'date' => $date,
-                'time_slot' => $timeSlot,
-                'wiw_event_id' => $wiwEventId,
-            ]);
-
             return true;
         } catch (\Exception $e) {
-            Log::error('Failed to save availability locally', [
+            Log::error('Failed to save availability to local database', [
                 'user_id' => $userId,
                 'date' => $date,
                 'error' => $e->getMessage(),
@@ -310,87 +325,27 @@ class AvailabilityService
     }
 
     /**
-     * Delete availability from When I Work and local database
-     *
-     * @return array ['success' => bool, 'error' => string|null]
+     * Check if two events overlap
      */
-    protected function deleteAvailabilityWithSync(User $user, string $date): array
+    protected function eventsOverlap(array $event, string $targetDate): bool
     {
-        Log::info('Starting availability deletion', [
-            'user_id' => $user->id,
-            'date' => $date,
-        ]);
+        $eventStart = Carbon::parse($event['start_time'] ?? $event['start']);
+        $eventEnd = Carbon::parse($event['end_time'] ?? $event['end']);
+        $targetStart = Carbon::parse($targetDate)->startOfDay();
+        $targetEnd = Carbon::parse($targetDate)->endOfDay();
 
-        // If user has When I Work integration, delete from API first
-        if ($user->wheniwork_id) {
-            $existingEvent = $this->wiwService->findExistingEvent($user->wheniwork_id, $date);
-
-            if ($existingEvent) {
-                $deleteResult = $this->wiwService->deleteAvailabilityEvent($existingEvent['id']);
-
-                if (! $deleteResult['success']) {
-                    Log::error('Failed to delete from When I Work', [
-                        'user_id' => $user->id,
-                        'date' => $date,
-                        'event_id' => $existingEvent['id'],
-                        'error' => $deleteResult['error'],
-                    ]);
-
-                    return [
-                        'success' => false,
-                        'error' => $deleteResult['error'] ?? 'Failed to delete from When I Work',
-                    ];
-                }
-
-                Log::info('Deleted from When I Work', [
-                    'event_id' => $existingEvent['id'],
-                    'date' => $date,
-                ]);
-            }
-        }
-
-        // Delete from local database
-        try {
-            Availability::where('user_id', $user->id)
-                ->where('availability_date', $date)
-                ->delete();
-
-            Log::info('Deleted availability locally', [
-                'user_id' => $user->id,
-                'date' => $date,
-            ]);
-
-            return ['success' => true, 'error' => null];
-        } catch (\Exception $e) {
-            Log::error('Failed to delete locally', [
-                'user_id' => $user->id,
-                'date' => $date,
-                'error' => $e->getMessage(),
-            ]);
-
-            return [
-                'success' => false,
-                'error' => 'Failed to delete locally: ' . $e->getMessage(),
-            ];
-        }
+        return $eventStart->lt($targetEnd) && $eventEnd->gt($targetStart);
     }
 
     /**
-     * SINGLE SOURCE OF TRUTH: Classify a date as 'past' or 'future'
-     *
-     * Business Rule:
-     * - If targetDate < today → PAST
-     * - If targetDate == today:
-     *     - If CAN_EDIT_TODAY = true → FUTURE
-     *     - If CAN_EDIT_TODAY = false → PAST
-     * - If targetDate > today → FUTURE
+     * Classify a date as 'past' or 'future' based on CAN_EDIT_TODAY config
      *
      * @param  Carbon|string  $date  The date to classify
      * @return string 'past' or 'future'
      */
     public function classifyDate(Carbon|string $date): string
     {
-        $dateCarbon = $date instanceof Carbon ? $date->copy()->startOfDay() : Carbon::parse($date)->startOfDay();
+        $dateCarbon = $date instanceof Carbon ? $date : Carbon::parse($date);
         $today = Carbon::now()->startOfDay();
         $canEditToday = config('availability.can_edit_today', false);
 
@@ -433,39 +388,94 @@ class AvailabilityService
         return $this->isDateFuture($date);
     }
 
-    // public function checkRequirements(int $userId, int $year, int $month): array
-    // {
-    //     $startDate = Carbon::create($year, $month, 1)->startOfMonth();
-    //     $endDate = Carbon::create($year, $month, 1)->endOfMonth();
-    //     $today = Carbon::now()->startOfDay();
+    /**
+     * Get weekly requirements for the entire month view
+     * Returns an array of weekly requirements covering all weeks displayed in the calendar
+     */
+    public function getWeeklyRequirements(int $userId, int $year, int $month): array
+    {
+        $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+        $monthEnd = Carbon::create($year, $month, 1)->endOfMonth();
 
-    //     $availabilities = Availability::forUser($userId)
-    //         ->whereBetween('availability_date', [$startDate, $endDate])
-    //         ->where('availability_date', '>=', $today)
-    //         ->whereNotNull('time_slot')
-    //         ->get();
+        // Expand to full weeks for calendar view
+        $calendarStart = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
+        $calendarEnd = $monthEnd->copy()->endOfWeek(Carbon::SUNDAY);
 
-    //     $weekdayCount = $availabilities->filter(function ($availability) {
-    //         $dayOfWeek = $availability->availability_date->dayOfWeek;
+        // Get all availabilities for the entire calendar view
+        $availabilities = Availability::forUser($userId)
+            ->whereBetween('availability_date', [$calendarStart, $calendarEnd])
+            ->get();
 
-    //         return $dayOfWeek >= 1 && $dayOfWeek <= 5;
-    //     })->count();
+        $weeks = [];
+        $currentWeekStart = $calendarStart->copy();
 
-    //     $weekendCount = $availabilities->filter(function ($availability) {
-    //         $dayOfWeek = $availability->availability_date->dayOfWeek;
+        while ($currentWeekStart->lte($calendarEnd)) {
+            $weekEnd = $currentWeekStart->copy()->endOfWeek(Carbon::SUNDAY);
 
-    //         return $dayOfWeek === 0 || $dayOfWeek === 6;
-    //     })->count();
+            // Get Monday-Friday range for this week
+            $monday = $currentWeekStart->copy();
+            $friday = $currentWeekStart->copy()->addDays(4); // Friday
 
-    //     return [
-    //         'weekday_blocks' => $weekdayCount,
-    //         'weekend_blocks' => $weekendCount,
-    //         'weekday_requirement_met' => $weekdayCount >= 3,
-    //         'weekend_requirement_met' => $weekendCount >= 2,
-    //         'all_requirements_met' => $weekdayCount >= 3 && $weekendCount >= 2,
-    //     ];
-    // }
+            // Get Saturday-Sunday range for this week
+            $saturday = $currentWeekStart->copy()->addDays(5); // Saturday
+            $sunday = $weekEnd->copy();
 
+            $weekdayBlocks = 0;
+            $weekendBlocks = 0;
+
+            foreach ($availabilities as $availability) {
+                $date = $availability->availability_date;
+                $slot = strtolower($availability->time_slot);
+
+                // Determine point value
+                $points = 0;
+                if ($slot === 'all-day') {
+                    $points = 2;
+                } elseif ($slot === 'holiday') {
+                    $points = 2;
+                } elseif (in_array($slot, ['9:30-4:30', '3:30-10:30'])) {
+                    $points = 1;
+                }
+
+                // Check if date is in Monday-Friday of this week
+                if ($date->between($monday, $friday)) {
+                    $weekdayBlocks += $points;
+                }
+                // Check if date is in Saturday-Sunday of this week
+                elseif ($date->between($saturday, $sunday)) {
+                    $weekendBlocks += $points;
+                }
+            }
+
+            $weekdayMet = $weekdayBlocks >= 3;
+            $weekendMet = $weekendBlocks >= 2;
+            $weekComplete = $weekdayMet && $weekendMet;
+
+            $weeks[] = [
+                'start_date' => $currentWeekStart->format('Y-m-d'),
+                'end_date' => $weekEnd->format('Y-m-d'),
+                'weekday' => [
+                    'total_blocks' => $weekdayBlocks,
+                    'required' => 3,
+                    'is_met' => $weekdayMet,
+                ],
+                'weekend' => [
+                    'total_blocks' => $weekendBlocks,
+                    'required' => 2,
+                    'is_met' => $weekendMet,
+                ],
+                'is_complete' => $weekComplete,
+            ];
+
+            $currentWeekStart->addWeek();
+        }
+
+        return $weeks;
+    }
+
+    /**
+     * Check requirements for current week only (kept for backward compatibility)
+     */
     public function checkRequirements(int $userId): array
     {
         $now = Carbon::now();
@@ -513,13 +523,13 @@ class AvailabilityService
         return [
             'weekday' => [
                 'total_blocks' => $weekdayBlocks,
-                'is_met' => $weekdayMet, // Boolean: True if >= 3
+                'is_met' => $weekdayMet,
             ],
             'weekend' => [
                 'total_blocks' => $weekendBlocks,
-                'is_met' => $weekendMet, // Boolean: True if >= 2
+                'is_met' => $weekendMet,
             ],
-            'overall_status' => ($weekdayMet && $weekendMet)
+            'overall_status' => ($weekdayMet && $weekendMet),
         ];
     }
 

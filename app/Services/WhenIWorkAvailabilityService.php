@@ -104,6 +104,7 @@ class WhenIWorkAvailabilityService
         $this->logDebug('CREATE_REQUEST', $payload);
 
         try {
+            Log::debug('When I Work API CREATE_REQUEST', $payload);
             $response = $this->makeRequest('POST', $this->endpoint, $payload, $token);
             $responseData = $response->json();
             $status = $response->status();
@@ -170,7 +171,7 @@ class WhenIWorkAvailabilityService
             return [
                 'success' => false,
                 'event' => null,
-                'error' => 'Exception: ' . $e->getMessage(),
+                'error' => 'Exception: '.$e->getMessage(),
                 'status' => null,
             ];
         }
@@ -260,7 +261,7 @@ class WhenIWorkAvailabilityService
             return [
                 'success' => false,
                 'event' => null,
-                'error' => 'Exception: ' . $e->getMessage(),
+                'error' => 'Exception: '.$e->getMessage(),
                 'status' => null,
             ];
         }
@@ -320,7 +321,7 @@ class WhenIWorkAvailabilityService
 
             return [
                 'success' => false,
-                'error' => 'Exception: ' . $e->getMessage(),
+                'error' => 'Exception: '.$e->getMessage(),
                 'status' => null,
             ];
         }
@@ -557,7 +558,7 @@ class WhenIWorkAvailabilityService
             throw new \Exception('When I Work token not available');
         }
 
-        $url = config('services.wheniwork.base_url') . ltrim($endpoint, '/');
+        $url = config('services.wheniwork.base_url').ltrim($endpoint, '/');
 
         $request = Http::withHeaders([
             'W-Token' => $token,

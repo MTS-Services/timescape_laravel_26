@@ -2,7 +2,8 @@ import { useState } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { cn, getOptionColorClasses } from '@/lib/calendar-utils';
+import { getOptionColorClasses } from '@/lib/calendar-utils';
+import { cn } from '@/lib/utils';
 import type { AvailabilityOption } from '@/types/availability';
 
 interface AvailabilityOptionProps {

@@ -7,14 +7,12 @@ import { CalendarGrid } from '@/components/availability/calendar-grid';
 import { MobileAvailabilityCard } from '@/components/availability/mobile-availability-card';
 import { MobileAvailabilityHeader } from '@/components/availability/mobile-availability-header';
 import { MobileCalendarGrid } from '@/components/availability/mobile-calendar-grid';
-import MobileMonthSwitch from '@/components/availability/mobile-month-switch';
 import { MobileStatisticsPanel } from '@/components/availability/mobile-statistics-panel';
 import { PastDateModal } from '@/components/availability/past-date-modal';
 import { StaffListModal, StaffListModalRef } from '@/components/availability/staff-list-modal';
 import { StatisticsPanel } from '@/components/availability/statistics-panel';
 import { UserSelectionPanel } from '@/components/availability/user-selection-panel';
 import SchedulerHeader from '@/components/scheduler-header';
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 import AdminLayout from '@/layouts/admin-layout';
 import { AdminHeader } from '@/layouts/partials/admin/header';
@@ -102,7 +100,7 @@ const debugLog = (action: string, data: unknown) => {
     }
 };
 
-export default function AvailabilityScheduler() {
+export default function AvailabilitySchedulerCopy() {
     const page = usePage<PageProps>();
     const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false, userSyncSuccess, userSyncError, weeklyRequirements = [] } = page.props;
     const flash = (page as unknown as { flash?: PageProps['flash'] }).flash ?? page.props.flash;
@@ -121,7 +119,6 @@ export default function AvailabilityScheduler() {
     const calendarContainerRef = useRef<HTMLDivElement | null>(null);
     const stickyHeaderRef = useRef<HTMLDivElement | null>(null);
     const [calendarHeight, setCalendarHeight] = useState<number | null>(null);
-    const [stickyHeaderHeight, setStickyHeaderHeight] = useState<number | null>(null);
 
     // Mobile-specific state
     const [selectedMobileDate, setSelectedMobileDate] = useState<string | null>(null);
@@ -129,56 +126,38 @@ export default function AvailabilityScheduler() {
     const [pastDateForModal, setPastDateForModal] = useState<string | null>(null);
     const staffListModalRef = useRef<StaffListModalRef>(null);
 
-    // Mobile calendar collapsible state
-    const [isCalendarOpen, setIsCalendarOpen] = useState(true);
-    const isCalendarOpenRef = useRef(true);
-    const handleToggleCalendar = useCallback(() => {
-        setIsCalendarOpen((prev) => {
-            const next = !prev;
-            isCalendarOpenRef.current = next;
-            return next;
-        });
-    }, []);
-
     /**
      * DYNAMIC HEIGHT FIX: 
      * Measures the sticky header height and sets it as global scroll-padding.
      * This ensures card scroll targets are never hidden behind the sticky header.
      */
     useLayoutEffect(() => {
-        if (!isMobile) {
-            setStickyHeaderHeight(null);
-            return;
-        }
+        if (!isMobile) return;
 
-        const updateMeasurements = () => {
-            if (!stickyHeaderRef.current) {
-                return;
+        const updateScrollPadding = () => {
+            if (stickyHeaderRef.current) {
+                const height = stickyHeaderRef.current.offsetHeight;
+                // height + 10px buffer for a clean look
+                document.documentElement.style.scrollPaddingTop = `${height - 5}px`;
             }
-
-            const height = stickyHeaderRef.current.offsetHeight;
-            setStickyHeaderHeight(height);
-            document.documentElement.style.scrollPaddingTop = `${Math.max(height - 5, 0)}px`;
         };
 
         // Initialize ResizeObserver to catch height changes if text wraps
-        const resizeObserver = new ResizeObserver(() => updateMeasurements());
-        if (stickyHeaderRef.current) {
-            resizeObserver.observe(stickyHeaderRef.current);
-        }
+        const resizeObserver = new ResizeObserver(() => updateScrollPadding());
+        if (stickyHeaderRef.current) resizeObserver.observe(stickyHeaderRef.current);
 
-        updateMeasurements();
-        window.addEventListener('resize', updateMeasurements);
+        updateScrollPadding();
+        window.addEventListener('resize', updateScrollPadding);
 
         return () => {
-            window.removeEventListener('resize', updateMeasurements);
+            window.removeEventListener('resize', updateScrollPadding);
             resizeObserver.disconnect();
         };
     }, [isMobile, currentDate]);
 
     const calendarDays = useMemo(() =>
         generateCalendarDays(currentDate),
-        [currentDate]
+        [currentDate.getFullYear(), currentDate.getMonth()]
     );
 
     const selectedUser = useMemo(() => {
@@ -191,7 +170,6 @@ export default function AvailabilityScheduler() {
         if (initialSelections && Object.keys(selections).length === 0) {
             setSelections(initialSelections);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialSelections]);
 
     // Admin User Switch Sync
@@ -314,6 +292,7 @@ export default function AvailabilityScheduler() {
         const dateObj = calendarDays.find((d) => formatDateKey(d) === dateKey);
         if (!dateObj) return;
 
+        const isPast = isDateInPast(dateObj, canEditToday);
         const isInCurrentMonth = isSameMonth(dateObj, currentDate);
 
         if (!isInCurrentMonth) return;
@@ -346,14 +325,27 @@ export default function AvailabilityScheduler() {
             <Head title="Availability Scheduler" />
 
             {isMobile ? (
-                /* Mobile Layout */
                 <>
-                    <div className='bg-white'>
+                    <div className='sticky top-0 left-0'>
                         <AdminHeader />
                         <SchedulerHeader />
-                        <div className='container mx-auto px-3 sm:px-4 mb-1 flex flex-col'>
+                    </div>
+                </>
+            ) : (
+                <>
 
-                            <div ref={stickyHeaderRef} className="sticky top-0 left-0 z-40 bg-white">
+                </>
+            )}
+
+            <div className="container mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 mt-0.5 mb-6">
+                {isMobile ? (
+                    <div className="flex flex-col">
+                        <div className='relative'>
+                            {/* Sticky Header Wrapper */}
+                            <div
+                                ref={stickyHeaderRef}
+                                className="bg-background pb-2 sticky top-0 z-40"
+                            >
                                 <MobileAvailabilityHeader
                                     currentMonth={formatMonthYear(currentDate)}
                                     onToday={handleToday}
@@ -365,34 +357,19 @@ export default function AvailabilityScheduler() {
                                     selectedUserName={selectedUser?.name ?? auth.user.name}
                                 />
 
-                                <Collapsible open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                                    <MobileMonthSwitch
-                                        currentMonth={formatMonthYear(currentDate)}
-                                        onPrevMonth={handlePrevMonth}
-                                        onNextMonth={handleNextMonth}
-                                        isCalendarOpen={isCalendarOpen}
-                                        onToggleCalendar={handleToggleCalendar}
-                                    />
-
-                                    <CollapsibleContent className="overflow-hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2 duration-200">
-                                        <MobileCalendarGrid
-                                            calendarDays={calendarDays}
-                                            currentMonth={currentDate}
-                                            selections={selections}
-                                            selectedDate={selectedMobileDate}
-                                            onDateSelect={handleMobileDateSelect}
-                                            canEditToday={canEditToday}
-                                            weeklyRequirements={weeklyRequirements}
-                                        />
-                                    </CollapsibleContent>
-                                </Collapsible>
+                                <MobileCalendarGrid
+                                    calendarDays={calendarDays}
+                                    currentMonth={currentDate}
+                                    selections={selections}
+                                    selectedDate={selectedMobileDate}
+                                    onDateSelect={handleMobileDateSelect}
+                                    canEditToday={canEditToday}
+                                    weeklyRequirements={weeklyRequirements}
+                                />
                             </div>
 
                             {/* Availability Cards */}
-                            <div
-                                className="relative pt-4 pb-6 overflow-x-hidden overflow-y-auto"
-                                style={stickyHeaderHeight ? { height: `calc(100vh - ${stickyHeaderHeight}px)` } : undefined}
-                            >
+                            <div className="pt-4 pb-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {mobileExpandedDates.map((dateKey) => {
                                         const dateObj = calendarDays.find((d) => formatDateKey(d) === dateKey);
@@ -415,43 +392,39 @@ export default function AvailabilityScheduler() {
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {auth.user.can_manage_users && statistics && selectedUserId && (
-                        <div className="container mx-auto px-3 sm:px-4 mb-1 pt-4 pb-8 border-t border-border mt-4">
-                            <MobileStatisticsPanel
-                                statistics={statistics}
+                        {auth.user.can_manage_users && statistics && selectedUserId && (
+                            <div className="pt-4 pb-8 border-t border-border mt-4">
+                                <MobileStatisticsPanel
+                                    statistics={statistics}
+                                    selectedUserId={selectedUserId}
+                                    currentYear={currentDate.getFullYear()}
+                                    currentMonth={currentDate.getMonth() + 1}
+                                    selectedUserName={selectedUser?.name ?? auth.user.name}
+                                />
+                            </div>
+                        )}
+
+                        <PastDateModal
+                            isOpen={isPastDateModalOpen}
+                            onClose={handleClosePastDateModal}
+                            dateKey={pastDateForModal}
+                            selectedOption={pastDateForModal ? selections[pastDateForModal] || null : null}
+                        />
+
+                        {auth.user.can_manage_users && users && (
+                            <StaffListModal
+                                ref={staffListModalRef}
+                                users={users}
                                 selectedUserId={selectedUserId}
                                 currentYear={currentDate.getFullYear()}
                                 currentMonth={currentDate.getMonth() + 1}
-                                selectedUserName={selectedUser?.name ?? auth.user.name}
                             />
-                        </div>
-                    )}
-
-                    <PastDateModal
-                        isOpen={isPastDateModalOpen}
-                        onClose={handleClosePastDateModal}
-                        dateKey={pastDateForModal}
-                        selectedOption={pastDateForModal ? selections[pastDateForModal] || null : null}
-                    />
-
-                    {auth.user.can_manage_users && users && (
-                        <StaffListModal
-                            ref={staffListModalRef}
-                            users={users}
-                            selectedUserId={selectedUserId}
-                            currentYear={currentDate.getFullYear()}
-                            currentMonth={currentDate.getMonth() + 1}
-                        />
-                    )}
-                </>
-            ) : (
-                /* Desktop Layout */
-                <>
-                    <AdminHeader />
-                    <SchedulerHeader />
-                    <div className="container mx-auto px-3 sm:px-4 mb-4">
+                        )}
+                    </div>
+                ) : (
+                    /* Desktop Layout */
+                    <>
                         <AvailabilityHeader
                             currentMonth={formatMonthYear(currentDate)}
                             onPrevMonth={handlePrevMonth}
@@ -500,10 +473,9 @@ export default function AvailabilityScheduler() {
                                 selectedUserName={selectedUser?.name ?? auth.user.name}
                             />
                         )}
-                    </div>
-                </>
-            )
-            }
-        </AdminLayout >
+                    </>
+                )}
+            </div>
+        </AdminLayout>
     );
 }

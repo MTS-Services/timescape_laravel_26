@@ -115,11 +115,11 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
     };
 
     return (
-        <div className="mt-8 rounded-lg bg-muted dark:bg-blue-500 p-4 sm:p-5 lg:py-5 lg:px-16 flex items-start justify-between gap-9">
+        <div className="mt-8 rounded-lg bg-muted p-4 sm:p-5 lg:py-5 lg:px-16 flex items-start justify-between gap-9">
 
             <div className="flex-1">
                 <div className="space-y-2 mb-12">
-                    <h3 className="text-2xl md:text-[32px] font-montserrat font-semibold">Staff Duty History</h3>
+                    <h3 className="text-2xl md:text-[32px] font-montserrat font-semibold">Staff Availability History</h3>
                     <p>
                         {selectedUserName ? selectedUserName : 'Selected user'}
                         {showMonthYearLabel && ` - ${displayMonthYear}`}
@@ -131,7 +131,7 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
                     <div className="flex-1 rounded-lg border border-[#e6e6e6] bg-[#F8FCFC] p-4 py-5">
                         <div className="flex justify-between items-center space-y-2">
                             <div className='space-y-2'>
-                                <h4 className="text-muted-foreground text-2xl font-semibold ">Total Duty Days</h4>
+                                <h4 className="text-muted-foreground text-2xl font-semibold ">Total Work Days</h4>
                                 <p className="text-xl md:text-2xl lg:text-4xl font-bold text-[#0A6F66]">{statistics.total_duty_days}</p>
                             </div>
                             <div className='flex items-center justify-center bg-[#DBEFED] w-18 h-18 rounded-2xl p-2'>
@@ -146,7 +146,7 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
                     <div className="flex-1 rounded-lg border border-[#e6e6e6] bg-[#FFF7F5] p-4 py-5">
                         <div className="flex justify-between items-center space-y-2">
                             <div className='space-y-2'>
-                                <h4 className="text-muted-foreground text-2xl font-semibold ">Leave Taken</h4>
+                                <h4 className="text-muted-foreground text-2xl font-semibold ">Holiday Taken</h4>
                                 <p className="text-xl md:text-2xl lg:text-4xl font-bold text-[#9C1D2A]">{statistics.leave_taken}</p>
                             </div>
                             <div className='flex items-center justify-center bg-[#F8DFE1] w-18 h-18 rounded-2xl p-2'>
@@ -161,7 +161,7 @@ export function StatisticsPanel({ statistics, selectedUserId, currentYear, curre
                     <div className="flex-1 rounded-lg border border-[#e6e6e6] bg-[#FFFFF5] p-4 py-5">
                         <div className="flex justify-between items-center space-y-2">
                             <div className='space-y-2'>
-                                <h4 className="text-muted-foreground text-2xl font-semibold ">Upcoming Leave</h4>
+                                <h4 className="text-muted-foreground text-2xl font-semibold ">Upcoming Holiday</h4>
                                 <p className="text-xl md:text-2xl lg:text-4xl font-bold text-[#5D7E00]">{statistics.upcoming_leave}</p>
                             </div>
                             <div className='flex items-center justify-center bg-[#FFFB8F] w-18 h-18 rounded-2xl p-2'>

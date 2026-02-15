@@ -73,6 +73,8 @@ export interface User {
     role_label?: string;
     can_manage_users?: boolean;
     avatar_url?: string;
+    priority?: number | null;
+    can_view_requirements?: boolean;
     [key: string]: unknown;
 }
 
