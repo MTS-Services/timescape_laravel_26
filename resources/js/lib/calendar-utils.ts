@@ -13,12 +13,12 @@ export function getCardBackgroundColor(
     // }
 
     // Complete
-    // if (isComplete && !isDisabled && canViewRequirements) {
-    //     return 'bg-transparent border-muted/50';
-    // }
-    if (isComplete && !isDisabled) {
+    if (isComplete && !isDisabled && canViewRequirements) {
         return 'bg-transparent border-muted/50';
     }
+    // if (isComplete && !isDisabled) {
+    //     return 'bg-transparent border-muted/50';
+    // }
 
     // Not in current month
     if (!isCurrentMonth) {
