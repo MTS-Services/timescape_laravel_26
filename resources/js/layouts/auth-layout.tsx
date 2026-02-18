@@ -42,7 +42,7 @@ export default function AuthLayout({
                 <Head title={title} />
 
                 <Link href={login()} className="flex flex-col items-center">
-                    <AppLogo className="fill-current text-foreground h-12 w-auto md:h-auto" />
+                    <AppLogo className="fill-current text-foreground w-24 overflow-hidden bg-red-50" />
                 </Link>
 
                 <div className="space-y-2 text-center mt-6">
