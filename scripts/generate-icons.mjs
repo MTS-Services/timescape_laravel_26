@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SOURCE = resolve(__dirname, '../public/logo.png'); // change to logo.svg if preferred
-const OUTPUT_DIR = resolve(__dirname, '../public/icons');
+const OUTPUT_DIR = resolve(__dirname, '../public');
 
 const SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
 
