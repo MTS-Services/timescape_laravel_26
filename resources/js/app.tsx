@@ -9,6 +9,7 @@ import { Toaster } from 'sonner';
 
 import ErrorFallback from './components/error-fallback';
 import { ErrorBadge, ErrorOverlay } from './components/error-overlay';
+import PwaInstallButton from './components/pwa-install-button';
 import { initializeTheme } from './hooks/use-appearance';
 import { ErrorObservabilityProvider } from './lib/errors/error-context';
 
@@ -41,6 +42,7 @@ createInertiaApp({
                             closeButton
                             expand={true}
                         />
+                        <PwaInstallButton />
                         <ErrorOverlay />
                         <ErrorBadge />
                     </ErrorBoundary>
