@@ -1,7 +1,7 @@
 {
-    "name": "Availability",
-    "short_name": "Availability",
-    "description": "Availability - Scheduler Web App",
+    "name": "Timescape",
+    "short_name": "Timescape",
+    "description": "Timescape - Scheduler Web App",
     "start_url": "/",
     "display": "standalone",
     "background_color": "transparent",
