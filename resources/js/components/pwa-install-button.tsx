@@ -78,7 +78,7 @@ export default function PwaInstallButton() {
             type="button"
             onClick={handleInstall}
             disabled={installing}
-            className="fixed bottom-4 left-4 z-[9999] flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-lg transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-70"
+            className="fixed bottom-4 right-4 z-[9999] flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-lg transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-70"
             aria-label="Install app"
         >
             <Download className="h-5 w-5 shrink-0" />
