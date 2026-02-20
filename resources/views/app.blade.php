@@ -33,18 +33,16 @@
 
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-    {{-- Favicons --}}
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png">
+    {{-- <link rel="icon" href="/favicon.ico" sizes="any"> --}}
+    <link rel="icon" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
 
     {{-- PWA manifest and theme --}}
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <meta name="theme-color" content="#b91c1c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Availability') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Timescape') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
@@ -63,12 +61,8 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('{{ asset('sw.js') }}').then(
-                    function(reg) {
-                        /* registered */
-                    },
-                    function(err) {
-                        console.warn('Service worker registration failed:', err);
-                    }
+                    function(reg) { /* registered */ },
+                    function(err) { console.warn('Service worker registration failed:', err); }
                 );
             });
         }
