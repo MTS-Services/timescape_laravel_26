@@ -68,15 +68,20 @@ export default function SchedulerHeader() {
                 <h4 className="text-2xl md:text-[32px] font-semibold">Availability Scheduler</h4>
                 <h6 className="text-sm sm:text-base font-semibold text-text-muted">Calendar Dashboard</h6>
             </div> */}
+            {!isAdmin && (
+                <p className="font-bold font-montserrat text-destructive text-left lg:text-center text-xs md:text-lg w-full max-w-144.5 ">
+                        Availability for the following week must be entered by the end of Saturday each week.
+                </p>
+            )}
+            
 
             {shouldShowRequirements && (
                 <>
-                    <p className="font-bold font-montserrat text-destructive text-left lg:text-center text-xs md:text-lg w-full max-w-144.5 ">
-                        Availability for the following week must be entered by the end of Saturday each week.
-                    </p>
+                    
                     <RequirementsBanner requirements={requirements} />
                 </>
             )}
+            
         </div>
     );
 }
