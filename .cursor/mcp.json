@@ -1,11 +1,21 @@
 {
     "mcpServers": {
-        "laravel-boost": {
-            "command": "php",
-            "args": [
-                "artisan",
-                "boost:mcp"
-            ]
-        }
+      "laravel-boost": {
+        "command": "php",
+        "args": [
+          "artisan",
+          "boost:mcp"
+        ]
+      },
+      "shadcn": {
+        "command": "npx",
+        "args": [
+          "shadcn@latest",
+          "mcp"
+        ]
+      }
+    },
+    "registries": {
+      "@acme": "https://acme.com/r/{name}.json"
     }
-}
+  }
