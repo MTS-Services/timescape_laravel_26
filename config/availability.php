@@ -48,12 +48,12 @@ return [
     |--------------------------------------------------------------------------
     |
     | This option controls when availability data is synced from When I Work.
-    | - 'login': Fetch all availability data immediately upon user login
-    | - 'periodic': Fetch availability data only when a specific month is visited
+    | - 'login': Fetch 1 year availability on login (and for all employees when admin logs in)
+    | - 'periodic': Fetch availability only when a specific month is visited
     |
     */
 
-    'sync_mode' => env('AVAILABILITY_SYNC_MODE', 'periodic'),
+    'sync_mode' => env('AVAILABILITY_SYNC_MODE', 'login'),
 
     /*
     |--------------------------------------------------------------------------
@@ -78,6 +78,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Full Sync on Login (Job)
+    |--------------------------------------------------------------------------
+    |
+    | When the availability job runs on login (sync_mode = 'login'), it syncs
+    | the current calendar year (Jan–Dec) with 12 API calls (one per month).
+    | Manual month switch still fetches only the selected month.
+    |
+    */
+
+    /*
+    |--------------------------------------------------------------------------
     | When I Work API Settings
     |--------------------------------------------------------------------------
     |
@@ -87,6 +98,8 @@ return [
 
     'wheniwork' => [
         'availability_endpoint' => 'availabilityevents',
+        // When I Work API returns at most 45 days per request; full-range sync chunks by month (≤31 days)
+        'max_days_per_request' => (int) env('WHENIWORK_MAX_DAYS_PER_REQUEST', 45),
     ],
 
 ];
