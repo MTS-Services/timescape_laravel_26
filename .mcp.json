@@ -1,18 +1,11 @@
 {
-  "mcpServers": {
-    "laravel-boost": {
-      "command": "C:\\xampp\\php\\php.exe",
-      "args": [
-        "artisan",
-        "boost:mcp"
-      ]
-    },
-    "shadcn": {
-      "command": "npx.cmd",
-      "args": [
-        "shadcn@latest",
-        "mcp"
-      ]
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "php",
+            "args": [
+                "artisan",
+                "boost:mcp"
+            ]
+        }
     }
-  }
 }

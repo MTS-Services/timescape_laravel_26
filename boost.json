@@ -1,24 +1,23 @@
 {
     "agents": [
         "claude_code",
-        "codex",
         "cursor",
-        "gemini",
-        "opencode",
-        "phpstorm",
-        "windsurf"
+        "copilot"
     ],
-    "editors": [
-        "claude_code",
-        "codex",
-        "cursor",
-        "gemini",
-        "opencode",
-        "phpstorm",
-        "vscode",
-        "windsurf"
-    ],
-    "guidelines": [
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch_mcp": false,
+    "packages": [
         "laravel/fortify"
+    ],
+    "sail": false,
+    "skills": [
+        "laravel-best-practices",
+        "mcp-development",
+        "wayfinder-development",
+        "pest-testing",
+        "inertia-react-development",
+        "tailwindcss-development",
+        "fortify-development"
     ]
 }
