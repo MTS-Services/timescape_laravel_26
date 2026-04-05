@@ -42,7 +42,14 @@ export function AvailabilityCard({
     isComplete = false,
     canViewRequirements = false,
 }: AvailabilityCardProps) {
-    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonth, isComplete, canViewRequirements);
+    const bgColor = getCardBackgroundColor(
+        isWeekend,
+        isDisabled,
+        isCurrentMonth,
+        isComplete,
+        canViewRequirements,
+        selectedOption
+    );
 
     const handleOptionChange = (optionId: string, checked: boolean) => {
         if (isDisabled) return;

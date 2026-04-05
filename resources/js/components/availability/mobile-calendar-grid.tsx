@@ -110,7 +110,15 @@ export function MobileCalendarGrid({
                                     const showRedIndicator = isPastDate && !hasData && isCurrentMonthDay;
                                     const showGrayIndicator = isPastDate && !isCurrentMonthDay && !hasData;
 
-                                    const bgColor = getCardBackgroundColor(isWeekend, isDisabled, isCurrentMonthDay, weekRequirement?.is_complete || false, auth.user.can_view_requirements || false);
+                                    const selectedOption = selections[dateKey] ?? null;
+                                    const bgColor = getCardBackgroundColor(
+                                        isWeekend,
+                                        isDisabled,
+                                        isCurrentMonthDay,
+                                        weekRequirement?.is_complete || false,
+                                        auth.user.can_view_requirements || false,
+                                        selectedOption
+                                    );
 
                                     const handleDateClick = () => {
                                         onDateSelect(dateKey);

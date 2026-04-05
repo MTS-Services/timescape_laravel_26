@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
+import { HOLIDAY_CARD_SURFACE_CLASSES } from '@/lib/calendar-utils';
 import { AVAILABILITY_OPTIONS, parseLocalDate, getPastDateDisplay, isDateDisabled } from '@/lib/date-helpers';
 import { cn } from '@/lib/utils';
 
@@ -64,7 +65,12 @@ export function MobileAvailabilityCard({
             onOpenChange={allowCollapse ? setIsOpen : undefined}
             className="w-full"
         >
-            <div className="rounded-lg border bg-card overflow-hidden">
+            <div
+                className={cn(
+                    'rounded-lg border overflow-hidden',
+                    selectedOption === 'holiday' ? HOLIDAY_CARD_SURFACE_CLASSES : 'bg-card border-border'
+                )}
+            >
                 {allowCollapse ? (
                     <CollapsibleTrigger asChild>
                         <button
