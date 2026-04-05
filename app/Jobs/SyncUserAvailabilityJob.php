@@ -60,23 +60,49 @@ class SyncUserAvailabilityJob implements ShouldQueue
     }
 
     /**
-     * Sync a full date range (for login sync mode)
+     * Sync current calendar year (for login sync mode).
+     * When I Work API only supports up to 45 days per request, so we call the API once per month:
+     * 12 API calls = Jan through Dec of current year.
      */
     protected function syncFullRange(User $user, WhenIWorkAvailabilityService $wiwService, string $token): void
     {
-        $startDate = Carbon::now()->subMonths(1)->startOfMonth()->format('Y-m-d');
-        $endDate = Carbon::now()->addMonths(3)->endOfMonth()->format('Y-m-d');
+        $rangeStart = Carbon::now()->startOfYear();
+        $rangeEnd = Carbon::now()->endOfYear();
 
-        Log::info('SyncUserAvailabilityJob: Starting full sync', [
+        Log::info('SyncUserAvailabilityJob: Starting current-year sync (12 months, 12 API calls)', [
             'user_id' => $user->id,
             'wheniwork_id' => $user->wheniwork_id,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
+            'start_date' => $rangeStart->format('Y-m-d'),
+            'end_date' => $rangeEnd->format('Y-m-d'),
+            'year' => $rangeStart->year,
         ]);
 
-        $events = $wiwService->fetchUserAvailabilities($user->wheniwork_id, $startDate, $endDate, $token);
+        $current = $rangeStart->copy();
+        $chunkIndex = 0;
 
-        $this->processEvents($user, $events, $wiwService);
+        while ($current->lte($rangeEnd)) {
+            $chunkStart = $current->format('Y-m-d');
+            $chunkEnd = $current->copy()->addMonth()->startOfMonth()->format('Y-m-d');
+            $chunkIndex++;
+
+            Log::info('SyncUserAvailabilityJob: API call', [
+                'user_id' => $user->id,
+                'chunk' => $chunkIndex,
+                'of' => 12,
+                'start' => $chunkStart,
+                'end' => $chunkEnd,
+            ]);
+
+            $events = $wiwService->fetchUserAvailabilities($user->wheniwork_id, $chunkStart, $chunkEnd, $token);
+            $this->processEvents($user, $events, $wiwService);
+
+            $current->addMonth();
+        }
+
+        Log::info('SyncUserAvailabilityJob: Current-year sync completed', [
+            'user_id' => $user->id,
+            'api_calls' => $chunkIndex,
+        ]);
     }
 
     /**

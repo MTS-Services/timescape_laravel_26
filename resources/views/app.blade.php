@@ -34,8 +34,10 @@
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
     {{-- <link rel="icon" href="/favicon.ico" sizes="any"> --}}
-    <link rel="icon" href="/logo.png">
-    <link rel="apple-touch-icon" href="/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-96x96.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192x192.png">
 
     {{-- PWA manifest and theme --}}
     <link rel="manifest" href="{{ asset('manifest.json') }}">
@@ -61,8 +63,12 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('{{ asset('sw.js') }}').then(
-                    function(reg) { /* registered */ },
-                    function(err) { console.warn('Service worker registration failed:', err); }
+                    function(reg) {
+                        /* registered */
+                    },
+                    function(err) {
+                        console.warn('Service worker registration failed:', err);
+                    }
                 );
             });
         }
