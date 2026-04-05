@@ -91,13 +91,39 @@ class WorkLocationController extends Controller
             SyncWhenIWorkUsersJob::dispatch($selectedUser->id, $selectedUser->wheniwork_token);
 
             if (config('availability.sync_mode') === 'login') {
+                // 1 year availability for the selected user
                 SyncUserAvailabilityJob::dispatch(
                     $selectedUser->id,
                     $selectedUser->wheniwork_token
                 );
+                // When admin selects location, sync 1 year for all employees in account
+                $this->dispatchAvailabilitySyncForAllEmployees($selectedUser);
             }
         }
 
         return redirect()->route('dashboard');
+    }
+
+    /**
+     * When admin selects work location, dispatch 1-year availability sync for all other employees in the account.
+     */
+    protected function dispatchAvailabilitySyncForAllEmployees(User $selectedUser): void
+    {
+        if (! $selectedUser->canManageUsers()) {
+            return;
+        }
+
+        $query = User::query()
+            ->whereNotNull('wheniwork_id')
+            ->whereNotNull('wheniwork_token')
+            ->where('id', '!=', $selectedUser->id);
+
+        if (! config('availability.can_manage_all', false)) {
+            $query->where('account_id', $selectedUser->account_id);
+        }
+
+        foreach ($query->get() as $employee) {
+            SyncUserAvailabilityJob::dispatch($employee->id, $employee->wheniwork_token);
+        }
     }
 }
