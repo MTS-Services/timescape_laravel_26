@@ -90,7 +90,7 @@ return [
     |
     */
 
-    'highlight_admin_in_requirements_staff_list' => env('HIGHLIGHT_ADMIN_IN_REQUIREMENTS_STAFF_LIST', true),
+    'highlight_admin_in_requirements_staff_list' => env('HIGHLIGHT_ADMIN_IN_REQUIREMENTS_STAFF_LIST', false),
 
     /*
     |--------------------------------------------------------------------------

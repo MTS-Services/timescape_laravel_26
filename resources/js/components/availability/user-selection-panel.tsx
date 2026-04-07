@@ -59,7 +59,7 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
             <h3 className="text-lg font-semibold mb-3">Staff List</h3>
 
             <ScrollArea className="flex-1 min-h-0 h-full overscroll-y-auto" style={scrollAreaStyle}>
-                <div className="space-y-2 pr-4">
+                <div className="space-y-2 pr-4 p-1">
                     {users.map((user) => {
                         const isSelected = selectedUserId === user.id;
                         const isUnmet =
