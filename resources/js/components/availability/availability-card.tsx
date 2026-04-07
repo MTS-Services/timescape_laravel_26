@@ -1,8 +1,9 @@
 import { CheckSquare, Minus, X } from 'lucide-react';
 
 import { getCardBackgroundColor } from '@/lib/calendar-utils';
-import { AVAILABILITY_OPTIONS, getPastDateDisplay } from '@/lib/date-helpers';
+import { getPastDateDisplay } from '@/lib/date-helpers';
 import { cn } from '@/lib/utils';
+import type { AvailabilityOption } from '@/types/availability';
 
 import { AvailabilityOptionComponent } from './availability-option';
 
@@ -24,6 +25,7 @@ interface AvailabilityCardProps {
     isPastDate: boolean;
     isToday: boolean;
     selectedOption: string | null;
+    availabilityOptions: AvailabilityOption[];
     onOptionChange: (date: string, optionId: string | null) => void;
     isComplete: boolean;
     canViewRequirements: boolean;
@@ -38,6 +40,7 @@ export function AvailabilityCard({
     isPastDate,
     isToday,
     selectedOption,
+    availabilityOptions,
     onOptionChange,
     isComplete = false,
     canViewRequirements = false,
@@ -111,7 +114,7 @@ export function AvailabilityCard({
                 ) : (
                     /* Show all options for editable dates (today when editable, and future) */
                     <div className="space-y-1.5">
-                        {AVAILABILITY_OPTIONS.map((option) => (
+                        {availabilityOptions.map((option) => (
                             <AvailabilityOptionComponent
                                 key={option.id}
                                 date={date}

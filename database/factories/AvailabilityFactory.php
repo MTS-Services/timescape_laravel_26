@@ -8,7 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\Availability>
+ * @extends Factory<Availability>
  */
 class AvailabilityFactory extends Factory
 {
@@ -19,7 +19,9 @@ class AvailabilityFactory extends Factory
         return [
             'user_id' => User::factory(),
             'availability_date' => Carbon::parse(fake()->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d')),
-            'time_slot' => fake()->randomElement(['9:30-4:30', '3:30-10:30', 'all-day', 'holiday']),
+            'time_slot' => fake()->randomElement([
+                '9:30-4:30', '3:30-10:30', '9:30-5:30', '2:00-10:00', 'all-day', 'holiday',
+            ]),
             'status' => 'available',
             'notes' => fake()->optional()->sentence(),
         ];

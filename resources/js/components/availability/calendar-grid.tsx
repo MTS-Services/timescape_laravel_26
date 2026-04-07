@@ -13,7 +13,7 @@ import {
 } from '@/lib/date-helpers';
 import { cn } from '@/lib/utils';
 import { SharedData } from '@/types';
-import type { AvailabilitySelections } from '@/types/availability';
+import type { AvailabilityOption, AvailabilitySelections } from '@/types/availability';
 
 import { AvailabilityCard } from './availability-card';
 import { WeeklyProgress } from './weekly-progress';
@@ -38,6 +38,7 @@ interface CalendarGridProps {
     calendarDays: Date[];
     currentMonth: Date;
     selections: AvailabilitySelections;
+    availabilityOptions: AvailabilityOption[];
     onSelectionChange: (date: string, optionId: string | null) => void;
     canEditToday?: boolean;
     weeklyRequirements?: WeekRequirement[];
@@ -47,6 +48,7 @@ export function CalendarGrid({
     calendarDays,
     currentMonth,
     selections,
+    availabilityOptions,
     onSelectionChange,
     canEditToday = false,
     weeklyRequirements = [],
@@ -112,6 +114,7 @@ export function CalendarGrid({
                                             isPastDate={isPastDate}
                                             isToday={isTodayDate}
                                             selectedOption={selectedOption}
+                                            availabilityOptions={availabilityOptions}
                                             onOptionChange={onSelectionChange}
                                             isComplete={weekRequirement?.is_complete || false}
                                             canViewRequirements={auth.user.can_view_requirements || false}

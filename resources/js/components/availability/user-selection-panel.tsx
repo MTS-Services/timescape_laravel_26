@@ -35,7 +35,14 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
             {
                 preserveState: true,
                 preserveScroll: true,
-                only: ['initialSelections', 'requirements', 'statistics', 'selectedUserId', 'weeklyRequirements']
+                only: [
+                    'initialSelections',
+                    'requirements',
+                    'statistics',
+                    'selectedUserId',
+                    'targetUserPriority',
+                    'weeklyRequirements',
+                ],
             }
         );
     };

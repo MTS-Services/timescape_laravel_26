@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAvailabilityRequest;
 use App\Jobs\SyncUserAvailabilityJob;
+use App\Models\User;
 use App\Services\AvailabilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,6 +37,10 @@ class AvailabilityController extends Controller
 
         // If user has can_manage_users permission, they can view other users' data
         $targetUserId = $user->can_manage_users && $selectedUserId !== $user->id ? $selectedUserId : $user->id;
+
+        $targetUserPriority = User::query()
+            ->whereKey($targetUserId)
+            ->value('priority');
 
         $availabilities = $this->availabilityService->getAvailabilitiesForMonth(
             $targetUserId,
@@ -74,7 +79,7 @@ class AvailabilityController extends Controller
         // Scoped by account_id unless CAN_MANAGE_ALL is true
         $users = [];
         if ($user->can_manage_users) {
-            $query = \App\Models\User::select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
+            $query = User::select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
                 ->orderBy('priority', 'asc')
                 ->orderBy('first_name')
                 ->orderBy('last_name');
@@ -104,7 +109,7 @@ class AvailabilityController extends Controller
         ]);
 
         if (config('availability.sync_mode') === 'periodic') {
-            $targetUser = \App\Models\User::find($targetUserId);
+            $targetUser = User::find($targetUserId);
             if ($targetUser && $targetUser->wheniwork_id) {
                 $date = $request->get('date', now()->toDateString());
                 // Session-based job deduplication: only fetch once per month per session per date and per hour
@@ -152,6 +157,7 @@ class AvailabilityController extends Controller
             'statistics' => $statistics,
             'users' => $users,
             'selectedUserId' => $targetUserId,
+            'targetUserPriority' => $targetUserPriority,
             'canEditToday' => config('availability.can_edit_today', false),
         ];
 

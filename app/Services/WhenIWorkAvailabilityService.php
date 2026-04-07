@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Helpers\WhenIWorkHelper;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -461,8 +462,16 @@ class WhenIWorkAvailabilityService
             return '9:30-4:30';
         }
 
+        if ($startHour === '9:30' && $endHour === '17:30') {
+            return '9:30-5:30';
+        }
+
         if ($startHour === '15:30' && $endHour === '22:30') {
             return '3:30-10:30';
+        }
+
+        if ($startHour === '14:00' && $endHour === '22:00') {
+            return '2:00-10:00';
         }
 
         return 'all-day';
@@ -477,7 +486,9 @@ class WhenIWorkAvailabilityService
     {
         return match ($timeSlot) {
             '9:30-4:30' => ['09:30:00', '16:30:00'],
+            '9:30-5:30' => ['09:30:00', '17:30:00'],
             '3:30-10:30' => ['15:30:00', '22:30:00'],
+            '2:00-10:00' => ['14:00:00', '22:00:00'],
             default => ['00:00:00', '23:59:59'],
         };
     }
@@ -538,7 +549,9 @@ class WhenIWorkAvailabilityService
     {
         return match ($timeSlot) {
             '9:30-4:30' => 'Morning shift availability',
+            '9:30-5:30' => 'Morning shift availability (extended)',
             '3:30-10:30' => 'Evening shift availability',
+            '2:00-10:00' => 'Evening shift availability (extended)',
             'all-day' => 'Available all day',
             'holiday' => 'Holiday/Day off',
             default => 'Availability',
@@ -548,7 +561,7 @@ class WhenIWorkAvailabilityService
     /**
      * Make an HTTP request to When I Work API
      *
-     * @return \Illuminate\Http\Client\Response
+     * @return Response
      */
     protected function makeRequest(string $method, string $endpoint, array $data = [], ?string $token = null)
     {

@@ -12,16 +12,44 @@ export const weekdays = [
     'Mon', 'Tu', 'Wed', 'Th', 'Fri', 'Sat', 'Sun'
 ] as const;
 
-export const AVAILABILITY_OPTIONS: Array<{
+export type AvailabilityOptionItem = {
     id: string;
     label: string;
     color: 'teal' | 'gray';
-}> = [
-        { id: '9:30-4:30', label: '9:30 AM - 4:30 PM', color: 'teal' },
-        { id: '3:30-10:30', label: '3:30 PM - 10:30 PM', color: 'gray' },
-        { id: 'all-day', label: 'All Day', color: 'gray' },
-        { id: 'holiday', label: 'Holiday', color: 'gray' },
-    ];
+};
+
+export const STANDARD_AVAILABILITY_OPTIONS: AvailabilityOptionItem[] = [
+    { id: '9:30-4:30', label: '9:30 AM - 4:30 PM', color: 'teal' },
+    { id: '3:30-10:30', label: '3:30 PM - 10:30 PM', color: 'gray' },
+    { id: 'all-day', label: 'All Day', color: 'gray' },
+    { id: 'holiday', label: 'Holiday', color: 'gray' },
+];
+
+/** Priority 1 users (from When I Work notes): extended shift windows */
+export const PRIORITY_ONE_AVAILABILITY_OPTIONS: AvailabilityOptionItem[] = [
+    { id: '9:30-5:30', label: '9:30 AM - 5:30 PM', color: 'teal' },
+    { id: '2:00-10:00', label: '2:00 PM - 10:00 PM', color: 'gray' },
+    { id: 'all-day', label: 'All Day', color: 'gray' },
+    { id: 'holiday', label: 'Holiday', color: 'gray' },
+];
+
+/** Default options for non-priority-1 users (backward compatibility) */
+export const AVAILABILITY_OPTIONS = STANDARD_AVAILABILITY_OPTIONS;
+
+export function getAvailabilityOptionsForPriority(
+    priority: number | null | undefined
+): AvailabilityOptionItem[] {
+    return priority === 1 ? PRIORITY_ONE_AVAILABILITY_OPTIONS : STANDARD_AVAILABILITY_OPTIONS;
+}
+
+const AVAILABILITY_SLOT_LABELS: Record<string, string> = {
+    '9:30-4:30': '9:30 AM - 4:30 PM',
+    '3:30-10:30': '3:30 PM - 10:30 PM',
+    '9:30-5:30': '9:30 AM - 5:30 PM',
+    '2:00-10:00': '2:00 PM - 10:00 PM',
+    'all-day': 'All Day',
+    holiday: 'Holiday',
+};
 
 /**
  * Create a date in local timezone without time component
@@ -195,17 +223,16 @@ export function getPastDateDisplay(selectedOption: string | null): {
     }
 
     if (selectedOption === 'holiday') {
-        return { label: 'Holiday', iconType: 'minus' };
+        return { label: AVAILABILITY_SLOT_LABELS.holiday, iconType: 'minus' };
     }
 
     if (selectedOption === 'all-day') {
-        return { label: 'All Day', iconType: 'checkbox' };
+        return { label: AVAILABILITY_SLOT_LABELS['all-day'], iconType: 'checkbox' };
     }
 
-    const option = AVAILABILITY_OPTIONS.find(opt => opt.id === selectedOption);
     return {
-        label: option?.label || selectedOption,
-        iconType: 'checkbox'
+        label: AVAILABILITY_SLOT_LABELS[selectedOption] ?? selectedOption,
+        iconType: 'checkbox',
     };
 }
 

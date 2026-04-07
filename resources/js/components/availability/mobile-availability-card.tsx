@@ -5,7 +5,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
 import { HOLIDAY_CARD_SURFACE_CLASSES } from '@/lib/calendar-utils';
-import { AVAILABILITY_OPTIONS, parseLocalDate, getPastDateDisplay, isDateDisabled } from '@/lib/date-helpers';
+import { parseLocalDate, getPastDateDisplay } from '@/lib/date-helpers';
+import type { AvailabilityOption } from '@/types/availability';
 import { cn } from '@/lib/utils';
 
 /**
@@ -15,6 +16,7 @@ import { cn } from '@/lib/utils';
 interface MobileAvailabilityCardProps {
     dateKey: string;
     selectedOption: string | null;
+    availabilityOptions: AvailabilityOption[];
     isDisabled: boolean;
     isPastDate: boolean;
     onOptionChange: (dateKey: string, optionId: string | null) => void;
@@ -24,6 +26,7 @@ interface MobileAvailabilityCardProps {
 export function MobileAvailabilityCard({
     dateKey,
     selectedOption,
+    availabilityOptions,
     isDisabled,
     isPastDate,
     onOptionChange,
@@ -101,7 +104,7 @@ export function MobileAvailabilityCard({
                     <div className="p-4 space-y-3">
 
                         {/* Show all options for editable dates  */}
-                        {AVAILABILITY_OPTIONS.map((option) => {
+                        {availabilityOptions.map((option) => {
                             const isSelected = selectedOption === option.id;
                             const isSaving = savingOption === option.id;
                             const checkboxId = `mobile-option-${dateKey}-${option.id}`;

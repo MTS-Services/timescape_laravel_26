@@ -16,7 +16,16 @@ import SchedulerHeader from '@/components/scheduler-header';
 import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 import AdminLayout from '@/layouts/admin-layout';
 import { AdminHeader } from '@/layouts/partials/admin/header';
-import { generateCalendarDays, formatMonthYear, addMonths, isDateInPast, formatDateKey, isDateDisabled, isSameMonth } from '@/lib/date-helpers';
+import {
+    generateCalendarDays,
+    formatMonthYear,
+    addMonths,
+    isDateInPast,
+    formatDateKey,
+    isDateDisabled,
+    isSameMonth,
+    getAvailabilityOptionsForPriority,
+} from '@/lib/date-helpers';
 import type { User } from '@/types';
 import type {
     AvailabilitySelections,
@@ -88,6 +97,7 @@ interface PageProps {
         };
     };
     selectedUserId?: number;
+    targetUserPriority?: number | null;
     canEditToday?: boolean;
     userSyncSuccess?: UserSyncResult;
     userSyncError?: UserSyncResult;
@@ -102,7 +112,20 @@ const debugLog = (action: string, data: unknown) => {
 
 export default function AvailabilitySchedulerCopy() {
     const page = usePage<PageProps>();
-    const { auth, initialSelections, currentYear, currentMonth, users, statistics, selectedUserId, canEditToday = false, userSyncSuccess, userSyncError, weeklyRequirements = [] } = page.props;
+    const {
+        auth,
+        initialSelections,
+        currentYear,
+        currentMonth,
+        users,
+        statistics,
+        selectedUserId,
+        targetUserPriority = null,
+        canEditToday = false,
+        userSyncSuccess,
+        userSyncError,
+        weeklyRequirements = [],
+    } = page.props;
     const flash = (page as unknown as { flash?: PageProps['flash'] }).flash ?? page.props.flash;
 
     const [currentDate, setCurrentDate] = useState(() => {
@@ -158,6 +181,11 @@ export default function AvailabilitySchedulerCopy() {
     const calendarDays = useMemo(() =>
         generateCalendarDays(currentDate),
         [currentDate.getFullYear(), currentDate.getMonth()]
+    );
+
+    const availabilityOptions = useMemo(
+        () => getAvailabilityOptionsForPriority(targetUserPriority),
+        [targetUserPriority]
     );
 
     const selectedUser = useMemo(() => {
@@ -231,7 +259,18 @@ export default function AvailabilitySchedulerCopy() {
         router.get(
             route('availability.index'),
             { year: date.getFullYear(), month: date.getMonth() + 1, user_id: selectedUserId },
-            { preserveState: true, preserveScroll: true, only: ['initialSelections', 'requirements', 'weeklyRequirements', 'users', 'statistics'] }
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: [
+                    'initialSelections',
+                    'requirements',
+                    'weeklyRequirements',
+                    'users',
+                    'statistics',
+                    'targetUserPriority',
+                ],
+            }
         );
     }, [selectedUserId]);
 
@@ -381,6 +420,7 @@ export default function AvailabilitySchedulerCopy() {
                                                 <MobileAvailabilityCard
                                                     dateKey={dateKey}
                                                     selectedOption={selections[dateKey] || null}
+                                                    availabilityOptions={availabilityOptions}
                                                     isDisabled={isDisabled}
                                                     isPastDate={isPastDate}
                                                     onOptionChange={handleSelectionChange}
@@ -445,6 +485,7 @@ export default function AvailabilitySchedulerCopy() {
                                     calendarDays={calendarDays}
                                     currentMonth={currentDate}
                                     selections={selections}
+                                    availabilityOptions={availabilityOptions}
                                     onSelectionChange={handleSelectionChange}
                                     canEditToday={canEditToday}
                                     weeklyRequirements={weeklyRequirements}

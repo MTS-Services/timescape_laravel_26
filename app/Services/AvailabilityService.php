@@ -27,8 +27,8 @@ class AvailabilityService
         $availabilities = Availability::forUser($userId)
             ->whereBetween('availability_date', [$calendarStart, $calendarEnd])
             ->get()
-            ->keyBy(fn($item) => $item->availability_date->format('Y-m-d'))
-            ->map(fn($item) => $item->time_slot)
+            ->keyBy(fn ($item) => $item->availability_date->format('Y-m-d'))
+            ->map(fn ($item) => $item->time_slot)
             ->toArray();
 
         return $availabilities;
@@ -433,7 +433,7 @@ class AvailabilityService
                     $points = 2;
                 } elseif ($slot === 'holiday') {
                     $points = 0;
-                } elseif (in_array($slot, ['9:30-4:30', '3:30-10:30'])) {
+                } elseif (in_array($slot, ['9:30-4:30', '3:30-10:30', '9:30-5:30', '2:00-10:00'], true)) {
                     $points = 1;
                 }
 
@@ -503,7 +503,7 @@ class AvailabilityService
             $points = 0;
             if ($slot === 'all-day') {
                 $points = 2;
-            } elseif (in_array($slot, ['9:30-4:30', '3:30-10:30'])) {
+            } elseif (in_array($slot, ['9:30-4:30', '3:30-10:30', '9:30-5:30', '2:00-10:00'], true)) {
                 $points = 1;
             }
 
