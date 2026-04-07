@@ -96,7 +96,9 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
                         <div className="space-y-2 py-2">
                             {users.map((user) => {
                                 const isSelected = selectedUserId === user.id;
-                                const isUnmet = user.meets_current_week_requirements === false;
+                                const isUnmet =
+                                    user.meets_current_week_requirements === false ||
+                                    (user.meets_current_week_requirements as unknown) === 0;
 
                                 return (
                                     <Button

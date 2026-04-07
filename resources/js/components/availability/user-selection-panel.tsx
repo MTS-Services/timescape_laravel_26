@@ -62,7 +62,9 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
                 <div className="space-y-2 pr-4">
                     {users.map((user) => {
                         const isSelected = selectedUserId === user.id;
-                        const isUnmet = user.meets_current_week_requirements === false;
+                        const isUnmet =
+                            user.meets_current_week_requirements === false ||
+                            (user.meets_current_week_requirements as unknown) === 0;
 
                         return (
                             <Button
