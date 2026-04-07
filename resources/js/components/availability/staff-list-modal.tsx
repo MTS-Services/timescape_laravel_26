@@ -18,6 +18,7 @@ interface User {
     id: number;
     name: string;
     email: string;
+    meets_current_week_requirements?: boolean;
 }
 
 interface StaffListModalProps {
@@ -95,6 +96,7 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
                         <div className="space-y-2 py-2">
                             {users.map((user) => {
                                 const isSelected = selectedUserId === user.id;
+                                const isUnmet = user.meets_current_week_requirements === false;
 
                                 return (
                                     <Button
@@ -104,7 +106,12 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
                                         className={cn(
                                             'w-full justify-start text-left',
                                             isSelected ? ' font-semibold bg-[#F64E06] ring-2 ring-offset-1' : 'bg-transparent',
-                                            user.id == auth.user.id ? 'border-destructive/30' : ''
+                                            user.id == auth.user.id ? 'border-destructive/30' : '',
+                                            isUnmet && [
+                                                isSelected
+                                                    ? 'ring-orange-500'
+                                                    : 'border-orange-300 bg-orange-50 hover:bg-orange-100 dark:border-orange-800/60 dark:bg-orange-950/20',
+                                            ]
                                         )}
                                         onClick={() => handleUserSelect(user.id)}
                                     >

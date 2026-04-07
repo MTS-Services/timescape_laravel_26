@@ -10,6 +10,7 @@ interface User {
     id: number;
     name: string;
     email: string;
+    meets_current_week_requirements?: boolean;
 }
 
 interface UserSelectionPanelProps {
@@ -59,18 +60,31 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
 
             <ScrollArea className="flex-1 min-h-0 h-full overscroll-y-auto" style={scrollAreaStyle}>
                 <div className="space-y-2 pr-4">
-                    {users.map((user) => (
-                        <Button
-                            key={user.id}
-                            variant={selectedUserId === user.id ? "default" : "outline"}
-                            size="sm"
-                            // className={`w-full justify-start cursor-pointer ${selectedUserId === user.id ? "bg-[#F64E06] font-semibold" : "bg-transparent"}`}
-                            className={cn('w-full justify-start cursor-pointer', selectedUserId === user.id ? "bg-[#F64E06] font-semibold" : "bg-transparent", user.id == auth.user.id ? 'border-destructive/30' : '')}
-                            onClick={() => handleUserSelect(user.id)}
-                        >
-                            {user.name}
-                        </Button>
-                    ))}
+                    {users.map((user) => {
+                        const isSelected = selectedUserId === user.id;
+                        const isUnmet = user.meets_current_week_requirements === false;
+
+                        return (
+                            <Button
+                                key={user.id}
+                                variant={isSelected ? 'default' : 'outline'}
+                                size="sm"
+                                className={cn(
+                                    'w-full justify-start cursor-pointer',
+                                    isSelected ? 'bg-[#F64E06] font-semibold' : 'bg-transparent',
+                                    user.id == auth.user.id ? 'border-destructive/30' : '',
+                                    isUnmet && [
+                                        isSelected
+                                            ? 'ring-2 ring-orange-500 ring-offset-1'
+                                            : 'border-orange-300 bg-orange-50 hover:bg-orange-100 dark:border-orange-800/60 dark:bg-orange-950/20',
+                                    ]
+                                )}
+                                onClick={() => handleUserSelect(user.id)}
+                            >
+                                {user.name}
+                            </Button>
+                        );
+                    })}
                 </div>
             </ScrollArea>
         </div>

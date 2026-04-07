@@ -611,4 +611,64 @@ class AvailabilityService
             ],
         ];
     }
+
+    /**
+     * Build a current-week requirements status map for many users.
+     *
+     * @param  list<int>  $userIds
+     * @return array<int, bool> user_id => meets_overall_status
+     */
+    public function getCurrentWeekRequirementsStatusMap(array $userIds): array
+    {
+        if ($userIds === []) {
+            return [];
+        }
+
+        $now = Carbon::now();
+
+        $monday = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $friday = $now->copy()->next(Carbon::FRIDAY)->setHour(23)->setMinute(59);
+        $saturday = $now->copy()->startOfWeek(Carbon::MONDAY)->next(Carbon::SATURDAY);
+        $sunday = $now->copy()->endOfWeek(Carbon::SUNDAY);
+
+        $shiftSlots = ['9:30-4:30', '3:30-10:30', '9:30-5:30', '2:00-10:00'];
+
+        $counts = [];
+        foreach ($userIds as $userId) {
+            $counts[$userId] = ['weekday' => 0, 'weekend' => 0];
+        }
+
+        $availabilities = Availability::query()
+            ->whereIn('user_id', $userIds)
+            ->whereBetween('availability_date', [$monday, $sunday])
+            ->get(['user_id', 'availability_date', 'time_slot']);
+
+        foreach ($availabilities as $availability) {
+            $userId = (int) $availability->user_id;
+            $date = $availability->availability_date;
+            $slot = strtolower((string) $availability->time_slot);
+
+            $points = 0;
+            if ($slot === 'all-day') {
+                $points = 2;
+            } elseif (in_array($slot, $shiftSlots, true)) {
+                $points = 1;
+            }
+
+            if ($date->between($monday, $friday)) {
+                $counts[$userId]['weekday'] += $points;
+            } elseif ($date->between($saturday, $sunday)) {
+                $counts[$userId]['weekend'] += $points;
+            }
+        }
+
+        $status = [];
+        foreach ($counts as $userId => $c) {
+            $weekdayMet = $c['weekday'] >= 3;
+            $weekendMet = $c['weekend'] >= 2;
+            $status[$userId] = (bool) ($weekdayMet && $weekendMet);
+        }
+
+        return $status;
+    }
 }

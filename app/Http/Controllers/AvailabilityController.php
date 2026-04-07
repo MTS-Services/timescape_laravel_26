@@ -89,16 +89,25 @@ class AvailabilityController extends Controller
                 $query->where('account_id', $user->account_id);
             }
 
-            $users = $query->get()
-                ->map(function ($u) {
-                    return [
-                        'id' => $u->id,
-                        'name' => $u->name,
-                        'email' => $u->email,
-                        'account_id' => $u->account_id,
-                        'priority' => $u->priority,
-                    ];
-                });
+            $usersCollection = $query->get();
+            $weekStatusMap = $this->availabilityService->getCurrentWeekRequirementsStatusMap(
+                $usersCollection->pluck('id')->map(fn ($id) => (int) $id)->all()
+            );
+
+            $highlightAdmin = (bool) config('availability.highlight_admin_in_requirements_staff_list', false);
+
+            $users = $usersCollection->map(function ($u) use ($weekStatusMap, $highlightAdmin, $user) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'account_id' => $u->account_id,
+                    'priority' => $u->priority,
+                    'meets_current_week_requirements' => (! $highlightAdmin && (int) $u->id === (int) $user->id)
+                        ? true
+                        : ($weekStatusMap[(int) $u->id] ?? false),
+                ];
+            });
         }
 
         Log::info('Returning availability data', [

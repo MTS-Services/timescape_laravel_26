@@ -78,6 +78,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Highlight Admin In Requirements Staff List
+    |--------------------------------------------------------------------------
+    |
+    | When admins view the availability page, the staff list can highlight users
+    | who do not meet the current-week requirements. This option controls
+    | whether the logged-in admin's own entry is also eligible for that highlight.
+    |
+    | - false: never highlight the logged-in admin (default)
+    | - true: highlight the logged-in admin as well when unmet
+    |
+    */
+
+    'highlight_admin_in_requirements_staff_list' => env('HIGHLIGHT_ADMIN_IN_REQUIREMENTS_STAFF_LIST', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Full Sync on Login (Job)
     |--------------------------------------------------------------------------
     |
