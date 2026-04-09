@@ -1,5 +1,4 @@
 import { router, usePage } from '@inertiajs/react';
-import React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,7 +20,13 @@ interface UserSelectionPanelProps {
     maxHeight?: number;
 }
 
-export function UserSelectionPanel({ users, selectedUserId, currentYear, currentMonth, maxHeight }: UserSelectionPanelProps) {
+export function UserSelectionPanel({
+    users,
+    selectedUserId,
+    currentYear,
+    currentMonth,
+    maxHeight,
+}: UserSelectionPanelProps) {
     const { auth } = usePage<SharedData>().props;
     const handleUserSelect = (userId: number) => {
         if (userId === selectedUserId) return;
@@ -44,27 +49,33 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
                     'targetUserPriority',
                     'weeklyRequirements',
                 ],
-            }
+            },
         );
     };
 
     const panelStyle = maxHeight ? { maxHeight, height: maxHeight } : undefined;
-    const scrollAreaStyle = maxHeight ? { height: Math.max(maxHeight - 72, 200) } : undefined;
+    const scrollAreaStyle = maxHeight
+        ? { height: Math.max(maxHeight - 72, 200) }
+        : undefined;
 
     return (
         <div
-            className="rounded-lg border bg-card p-4 mb-4 h-auto overscroll-y-auto flex flex-col overflow-hidden min-h-0"
+            className="mb-4 flex h-auto min-h-0 flex-col overflow-hidden overscroll-y-auto rounded-lg border bg-card p-4"
             style={panelStyle}
         >
-            <h3 className="text-lg font-semibold mb-3">Staff List</h3>
+            <h3 className="mb-3 text-lg font-semibold">Staff List</h3>
 
-            <ScrollArea className="flex-1 min-h-0 h-full overscroll-y-auto" style={scrollAreaStyle}>
-                <div className="space-y-2 pr-4 p-1">
+            <ScrollArea
+                className="h-full min-h-0 flex-1 overscroll-y-auto"
+                style={scrollAreaStyle}
+            >
+                <div className="space-y-2 p-1 pr-4">
                     {users.map((user) => {
                         const isSelected = selectedUserId === user.id;
                         const isUnmet =
                             user.meets_current_week_requirements === false ||
-                            (user.meets_current_week_requirements as unknown) === 0;
+                            (user.meets_current_week_requirements as unknown) ===
+                                0;
 
                         return (
                             <Button
@@ -72,18 +83,48 @@ export function UserSelectionPanel({ users, selectedUserId, currentYear, current
                                 variant={isSelected ? 'default' : 'outline'}
                                 size="sm"
                                 className={cn(
-                                    'w-full justify-start cursor-pointer',
-                                    isSelected ? 'bg-[#F64E06] font-semibold' : 'bg-transparent',
-                                    user.id == auth.user.id ? 'border-destructive/30' : '',
-                                    isUnmet && [
-                                        isSelected
-                                            ? 'ring-2 ring-orange-500 ring-offset-1'
-                                            : 'border-orange-300 bg-orange-50 hover:bg-orange-100 dark:border-orange-800/60 dark:bg-orange-950/20',
-                                    ]
+                                    'flex w-full cursor-pointer items-center justify-start gap-2',
+                                    isSelected
+                                        ? 'bg-[#F64E06] font-semibold'
+                                        : 'bg-transparent',
+                                    user.id == auth.user.id
+                                        ? 'border-destructive/30'
+                                        : '',
+                                    // isUnmet && [
+                                    //     isSelected
+                                    //         ? 'ring-2 ring-orange-500 ring-offset-1'
+                                    //         : 'border-orange-300 bg-orange-50 hover:bg-orange-100 dark:border-orange-800/60 dark:bg-orange-950/20',
+                                    // ],
                                 )}
                                 onClick={() => handleUserSelect(user.id)}
                             >
-                                {user.name}
+                                <p className="flex-1 truncate text-left">
+                                    {user.name}
+                                </p>
+                                <div className="flex items-center gap-1">
+                                    {/* Current Week Requirements Meets */}
+                                    <span
+                                        className={cn(
+                                            'block h-2 w-2 rounded-full',
+                                            isUnmet && [
+                                                isSelected
+                                                    ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
+                                                    : 'bg-gray-400',
+                                            ],
+                                        )}
+                                    ></span>
+                                    {/* Next Week Requirements Meets */}
+                                    <span
+                                        className={cn(
+                                            'block h-2 w-2 rounded-full',
+                                            isUnmet && [
+                                                isSelected
+                                                    ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
+                                                    : 'bg-gray-400',
+                                            ],
+                                        )}
+                                    ></span>
+                                </div>
                             </Button>
                         );
                     })}

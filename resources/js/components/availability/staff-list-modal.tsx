@@ -33,90 +33,97 @@ export interface StaffListModalRef {
     close: () => void;
 }
 
-export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>(
-    ({ users, selectedUserId, currentYear, currentMonth }, ref) => {
-        const [isOpen, setIsOpen] = useState(false);
-        const [selectingUserId, setSelectingUserId] = useState<number | null>(null);
-        const { auth } = usePage<SharedData>().props;
+export const StaffListModal = forwardRef<
+    StaffListModalRef,
+    StaffListModalProps
+>(({ users, selectedUserId, currentYear, currentMonth }, ref) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectingUserId, setSelectingUserId] = useState<number | null>(null);
+    const { auth } = usePage<SharedData>().props;
 
-        const handleClose = () => {
+    const handleClose = () => {
+        setIsOpen(false);
+        setSelectingUserId(null);
+    };
+
+    useImperativeHandle(ref, () => ({
+        open: () => setIsOpen(true),
+        close: handleClose,
+    }));
+    const handleUserSelect = (userId: number) => {
+        if (userId === selectedUserId) {
             setIsOpen(false);
-            setSelectingUserId(null);
-        };
+            return;
+        }
 
-        useImperativeHandle(ref, () => ({
-            open: () => setIsOpen(true),
-            close: handleClose,
-        }));
-        const handleUserSelect = (userId: number) => {
-            if (userId === selectedUserId) {
-                setIsOpen(false);
-                return;
-            }
-
-            setSelectingUserId(userId);
-            router.get(
-                '/availability',
-                {
-                    user_id: userId,
-                    year: currentYear,
-                    month: currentMonth,
+        setSelectingUserId(userId);
+        router.get(
+            '/availability',
+            {
+                user_id: userId,
+                year: currentYear,
+                month: currentMonth,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: [
+                    'initialSelections',
+                    'requirements',
+                    'statistics',
+                    'selectedUserId',
+                    'targetUserPriority',
+                    'weeklyRequirements',
+                ],
+                onSuccess: () => {
+                    setIsOpen(false);
                 },
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    only: [
-                        'initialSelections',
-                        'requirements',
-                        'statistics',
-                        'selectedUserId',
-                        'targetUserPriority',
-                        'weeklyRequirements',
-                    ],
-                    onSuccess: () => {
-                        setIsOpen(false);
-                    },
-                    onError: () => {
-                        setSelectingUserId(null);
-                    },
-                }
-            );
-        };
+                onError: () => {
+                    setSelectingUserId(null);
+                },
+            },
+        );
+    };
 
-        return (
-            <Dialog open={isOpen} onOpenChange={(open) => !open && setIsOpen(false)}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="text-lg font-semibold">
-                            Staff List
-                        </DialogTitle>
-                    </DialogHeader>
+    return (
+        <Dialog
+            open={isOpen}
+            onOpenChange={(open) => !open && setIsOpen(false)}
+        >
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="text-lg font-semibold">
+                        Staff List
+                    </DialogTitle>
+                </DialogHeader>
 
-                    <ScrollArea className="max-h-[60vh]">
-                        <div className="space-y-2 py-2">
-                            {users.map((user) => {
-                                const isSelected = selectedUserId === user.id;
-                                const isUnmet =
-                                    user.meets_current_week_requirements === false ||
-                                    (user.meets_current_week_requirements as unknown) === 0;
+                <ScrollArea className="max-h-[60vh]">
+                    <div className="space-y-2 py-2">
+                        {users.map((user) => {
+                            const isSelected = selectedUserId === user.id;
+                            const isUnmet =
+                                user.meets_current_week_requirements ===
+                                    false ||
+                                (user.meets_current_week_requirements as unknown) ===
+                                    0;
 
-                                return (
-                                    <Button
-                                        key={user.id}
-                                        variant={isSelected ? 'default' : 'outline'}
-                                        size="sm"
-                                        className={cn(
-                                            'w-full justify-start text-left',
-                                            isSelected ? ' font-semibold bg-[#F64E06] ring-2 ring-offset-1' : 'bg-transparent',
-                                            user.id == auth.user.id ? 'border-destructive/30' : '',
-                                            isUnmet && [
-                                                isSelected
-                                                    ? 'ring-orange-500'
-                                                    : 'border-orange-300 bg-orange-50 hover:bg-orange-100 dark:border-orange-800/60 dark:bg-orange-950/20',
-                                            ]
-                                        )}
-                                        onClick={() => handleUserSelect(user.id)}
-                                    >
+                            return (
+                                <Button
+                                    key={user.id}
+                                    variant={isSelected ? 'default' : 'outline'}
+                                    size="sm"
+                                    className={cn(
+                                        'flex w-full items-center justify-start gap-2 text-left',
+                                        isSelected
+                                            ? 'bg-[#F64E06] font-semibold ring-2 ring-offset-1'
+                                            : 'bg-transparent',
+                                        user.id == auth.user.id
+                                            ? 'border-destructive/30'
+                                            : '',
+                                    )}
+                                    onClick={() => handleUserSelect(user.id)}
+                                >
+                                    <div className="flex flex-1 items-center gap-2 truncate text-left">
                                         {user.name}
                                         {/* {isSelected && (
                                             <span className="ml-auto text-xs opacity-70">
@@ -126,18 +133,40 @@ export const StaffListModal = forwardRef<StaffListModalRef, StaffListModalProps>
                                         {selectingUserId === user.id && (
                                             <Spinner className="ml-auto size-4 text-destructive" />
                                         )}
-                                    </Button>
-                                );
-                            })}
-                        </div>
-                    </ScrollArea>
-                    <DialogDescription>
-
-                    </DialogDescription>
-                </DialogContent>
-            </Dialog>
-        );
-    }
-);
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        {/* Current Week Requirements Meets */}
+                                        <span
+                                            className={cn(
+                                                'block h-2 w-2 rounded-full',
+                                                isUnmet && [
+                                                    isSelected
+                                                        ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
+                                                        : 'bg-gray-400',
+                                                ],
+                                            )}
+                                        ></span>
+                                        {/* Next Week Requirements Meets */}
+                                        <span
+                                            className={cn(
+                                                'block h-2 w-2 rounded-full',
+                                                isUnmet && [
+                                                    isSelected
+                                                        ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
+                                                        : 'bg-gray-400',
+                                                ],
+                                            )}
+                                        ></span>
+                                    </div>
+                                </Button>
+                            );
+                        })}
+                    </div>
+                </ScrollArea>
+                <DialogDescription></DialogDescription>
+            </DialogContent>
+        </Dialog>
+    );
+});
 
 StaffListModal.displayName = 'StaffListModal';
