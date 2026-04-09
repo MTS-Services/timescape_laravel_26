@@ -6,6 +6,7 @@ use App\Models\Availability;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Carbon\CarbonInterface;
 
 class AvailabilityService
 {
@@ -27,8 +28,8 @@ class AvailabilityService
         $availabilities = Availability::forUser($userId)
             ->whereBetween('availability_date', [$calendarStart, $calendarEnd])
             ->get()
-            ->keyBy(fn ($item) => $item->availability_date->format('Y-m-d'))
-            ->map(fn ($item) => $item->time_slot)
+            ->keyBy(fn($item) => $item->availability_date->format('Y-m-d'))
+            ->map(fn($item) => $item->time_slot)
             ->toArray();
 
         return $availabilities;
@@ -476,16 +477,16 @@ class AvailabilityService
     /**
      * Check requirements for current week only (kept for backward compatibility)
      */
-    public function checkRequirements(int $userId): array
+    public function checkRequirements(int $userId, ?Carbon $referenceDate = null): array
     {
-        $now = Carbon::now();
+        $now = $referenceDate ?? Carbon::now();
 
-        // Define the specific boundaries for the current week
-        $monday = $now->copy()->startOfWeek(Carbon::MONDAY);
-        $friday = $now->copy()->next(Carbon::FRIDAY)->setHour(23)->setMinute(59);
+        // Define the specific boundaries for the target week
+        $monday  = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $friday  = $now->copy()->startOfWeek(Carbon::MONDAY)->next(Carbon::FRIDAY)->setHour(23)->setMinute(59);
 
         $saturday = $now->copy()->startOfWeek(Carbon::MONDAY)->next(Carbon::SATURDAY);
-        $sunday = $now->copy()->endOfWeek(Carbon::SUNDAY);
+        $sunday   = $now->copy()->endOfWeek(Carbon::SUNDAY);
 
         // Fetch all records for the full week once to save database queries
         $availabilities = Availability::forUser($userId)
@@ -618,13 +619,13 @@ class AvailabilityService
      * @param  list<int>  $userIds
      * @return array<int, bool> user_id => meets_overall_status
      */
-    public function getCurrentWeekRequirementsStatusMap(array $userIds): array
+    public function getWeekRequirementsStatusMap(array $userIds, ?CarbonInterface $referenceDate = null): array
     {
         if ($userIds === []) {
             return [];
         }
 
-        $now = Carbon::now();
+        $now = $referenceDate ?? Carbon::now();
 
         $monday = $now->copy()->startOfWeek(Carbon::MONDAY);
         $friday = $now->copy()->next(Carbon::FRIDAY)->setHour(23)->setMinute(59);

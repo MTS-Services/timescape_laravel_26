@@ -184,7 +184,7 @@ class UserStatsController extends Controller
                 ->where('account_id', $currentUser->account_id)
                 ->whereIn('id', $userIds)
                 ->pluck('id')
-                ->map(fn ($id) => (int) $id)
+                ->map(fn($id) => (int) $id)
                 ->all();
 
             if (count($allowedIds) !== count($userIds)) {
@@ -243,7 +243,7 @@ class UserStatsController extends Controller
      */
     private function buildStatsRowsForUsers($users, Carbon $start, Carbon $end, AvailabilityService $availabilityService): array
     {
-        $userIds = $users->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $userIds = $users->pluck('id')->map(fn($id) => (int) $id)->all();
 
         $rows = [];
         foreach ($users as $u) {
@@ -255,6 +255,7 @@ class UserStatsController extends Controller
                 'leave_taken' => 0,
                 'upcoming_leave' => 0,
                 'meets_current_week_requirements' => false,
+                'meets_next_week_requirements' => false,
                 'date_range' => [
                     'start' => $start->format('Y-m-d'),
                     'end' => $end->format('Y-m-d'),
@@ -294,9 +295,11 @@ class UserStatsController extends Controller
             }
         }
 
-        $weekStatusMap = $availabilityService->getCurrentWeekRequirementsStatusMap($userIds);
+        $currentWeekStatusMap = $availabilityService->getWeekRequirementsStatusMap($userIds);
+        $nextWeekStatusMap = $availabilityService->getWeekRequirementsStatusMap($userIds, now()->addWeek());
         foreach ($rows as $uid => $row) {
-            $rows[$uid]['meets_current_week_requirements'] = (bool) ($weekStatusMap[(int) $uid] ?? false);
+            $rows[$uid]['meets_current_week_requirements'] = (bool) ($currentWeekStatusMap[(int) $uid] ?? false);
+            $rows[$uid]['meets_next_week_requirements'] = (bool) ($nextWeekStatusMap[(int) $uid] ?? false);
         }
 
         return $rows;

@@ -81,6 +81,9 @@ export function UserSelectionPanel({
                             user.meets_next_week_requirements === false ||
                             (user.meets_next_week_requirements as unknown) ===
                                 0;
+
+                        const isAdmin =
+                            auth.user.is_admin && user.id === auth.user.id;
                         return (
                             <Button
                                 key={user.id}
@@ -100,30 +103,28 @@ export function UserSelectionPanel({
                                 <p className="flex-1 truncate text-left">
                                     {user.name}
                                 </p>
-                                <div className="flex items-center gap-1">
-                                    {/* Current Week Requirements Meets */}
-                                    <span
-                                        className={cn(
-                                            'block h-2 w-2 rounded-full',
-                                            isCurrentWeekUnmet && [
-                                                isSelected
-                                                    ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
-                                                    : 'bg-gray-400',
-                                            ],
-                                        )}
-                                    ></span>
-                                    {/* Next Week Requirements Meets */}
-                                    <span
-                                        className={cn(
-                                            'block h-2 w-2 rounded-full',
-                                            isNextWeekUnmet && [
-                                                isSelected
-                                                    ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
-                                                    : 'bg-gray-400',
-                                            ],
-                                        )}
-                                    ></span>
-                                </div>
+                                {!isAdmin && (
+                                    <div className="flex items-center gap-1">
+                                        {/* Current Week */}
+                                        <span
+                                            className={cn(
+                                                'block h-2 w-2 rounded-full',
+                                                isCurrentWeekUnmet
+                                                    ? 'bg-gray-400'
+                                                    : 'bg-teal-500',
+                                            )}
+                                        />
+                                        {/* Next Week */}
+                                        <span
+                                            className={cn(
+                                                'block h-2 w-2 rounded-full',
+                                                isNextWeekUnmet
+                                                    ? 'bg-gray-400'
+                                                    : 'bg-teal-500',
+                                            )}
+                                        />
+                                    </div>
+                                )}
                             </Button>
                         );
                     })}

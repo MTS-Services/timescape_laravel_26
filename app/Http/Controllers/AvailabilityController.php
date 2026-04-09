@@ -90,13 +90,17 @@ class AvailabilityController extends Controller
             }
 
             $usersCollection = $query->get();
-            $weekStatusMap = $this->availabilityService->getCurrentWeekRequirementsStatusMap(
-                $usersCollection->pluck('id')->map(fn ($id) => (int) $id)->all()
+            $currentWeekStatusMap = $this->availabilityService->getWeekRequirementsStatusMap(
+                $usersCollection->pluck('id')->map(fn($id) => (int) $id)->all()
+            );
+            $nextWeekStatusMap = $this->availabilityService->getWeekRequirementsStatusMap(
+                $usersCollection->pluck('id')->map(fn($id) => (int) $id)->all(),
+                now()->addWeek()
             );
 
             $highlightAdmin = (bool) config('availability.highlight_admin_in_requirements_staff_list', false);
 
-            $users = $usersCollection->map(function ($u) use ($weekStatusMap, $highlightAdmin, $user) {
+            $users = $usersCollection->map(function ($u) use ($currentWeekStatusMap, $nextWeekStatusMap, $highlightAdmin, $user) {
                 return [
                     'id' => $u->id,
                     'name' => $u->name,
@@ -105,7 +109,10 @@ class AvailabilityController extends Controller
                     'priority' => $u->priority,
                     'meets_current_week_requirements' => (! $highlightAdmin && (int) $u->id === (int) $user->id)
                         ? true
-                        : ($weekStatusMap[(int) $u->id] ?? false),
+                        : ($currentWeekStatusMap[(int) $u->id] ?? false),
+                    'meets_next_week_requirements' => (! $highlightAdmin && (int) $u->id === (int) $user->id)
+                        ? true
+                        : ($nextWeekStatusMap[(int) $u->id] ?? false),
                 ];
             });
         }
