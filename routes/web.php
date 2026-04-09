@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\WorkLocationController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\UserSelectionController;
+use App\Http\Controllers\UserStatsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,6 +28,13 @@ Route::middleware(['auth', 'verified', 'location.selected'])->group(function () 
         Route::get('/users/list', 'getUsers')->name('users.list');
         Route::get('/users/{userId}/availability', 'getUserAvailability')->name('users.availability');
     });
+
+    Route::get('/users/stats', [UserStatsController::class, 'stats'])->middleware(['admin'])->name('admin.stats');
+
+    Route::controller(UserStatsController::class)->middleware(['admin'])->prefix('admin')->name('admin.stats.')->group(function () {
+        Route::get('/users/stats/data', 'data')->name('data');
+        Route::post('/users/stats/sync', 'sync')->name('sync');
+    });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

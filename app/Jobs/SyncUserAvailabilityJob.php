@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Availability;
 use App\Models\User;
 use App\Services\WhenIWorkAvailabilityService;
+use App\Services\WhenIWorkAvailabilitySyncService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,7 +29,7 @@ class SyncUserAvailabilityJob implements ShouldQueue
         protected ?int $month = null
     ) {}
 
-    public function handle(WhenIWorkAvailabilityService $wiwService): void
+    public function handle(WhenIWorkAvailabilityService $wiwService, WhenIWorkAvailabilitySyncService $syncService): void
     {
         $user = User::find($this->userId);
 
@@ -53,9 +54,9 @@ class SyncUserAvailabilityJob implements ShouldQueue
         $syncMode = config('availability.sync_mode', 'login');
 
         if ($syncMode === 'periodic' && $this->year && $this->month) {
-            $this->syncMonth($user, $wiwService, $token, $this->year, $this->month);
+            $this->syncMonth($user, $wiwService, $syncService, $token, $this->year, $this->month);
         } else {
-            $this->syncFullRange($user, $wiwService, $token);
+            $this->syncFullRange($user, $wiwService, $syncService, $token);
         }
     }
 
@@ -64,7 +65,7 @@ class SyncUserAvailabilityJob implements ShouldQueue
      * When I Work API only supports up to 45 days per request, so we call the API once per month:
      * 12 API calls = Jan through Dec of current year.
      */
-    protected function syncFullRange(User $user, WhenIWorkAvailabilityService $wiwService, string $token): void
+    protected function syncFullRange(User $user, WhenIWorkAvailabilityService $wiwService, WhenIWorkAvailabilitySyncService $syncService, string $token): void
     {
         $rangeStart = Carbon::now()->startOfYear();
         $rangeEnd = Carbon::now()->endOfYear();
@@ -79,6 +80,7 @@ class SyncUserAvailabilityJob implements ShouldQueue
 
         $current = $rangeStart->copy();
         $chunkIndex = 0;
+        $totals = ['created' => 0, 'updated' => 0, 'unchanged' => 0, 'skipped' => 0];
 
         while ($current->lte($rangeEnd)) {
             $chunkStart = $current->format('Y-m-d');
@@ -94,7 +96,10 @@ class SyncUserAvailabilityJob implements ShouldQueue
             ]);
 
             $events = $wiwService->fetchUserAvailabilities($user->wheniwork_id, $chunkStart, $chunkEnd, $token);
-            $this->processEvents($user, $events, $wiwService);
+            $counts = $syncService->syncEventsToLocal($user, $events);
+            foreach ($counts as $k => $v) {
+                $totals[$k] += (int) $v;
+            }
 
             $current->addMonth();
         }
@@ -102,13 +107,14 @@ class SyncUserAvailabilityJob implements ShouldQueue
         Log::info('SyncUserAvailabilityJob: Current-year sync completed', [
             'user_id' => $user->id,
             'api_calls' => $chunkIndex,
+            ...$totals,
         ]);
     }
 
     /**
      * Sync a specific month (for periodic sync mode)
      */
-    protected function syncMonth(User $user, WhenIWorkAvailabilityService $wiwService, string $token, int $year, int $month): void
+    protected function syncMonth(User $user, WhenIWorkAvailabilityService $wiwService, WhenIWorkAvailabilitySyncService $syncService, string $token, int $year, int $month): void
     {
         $startDate = Carbon::create($year, $month, 1)->startOfMonth()->format('Y-m-d');
         $endDate = Carbon::create($year, $month, 1)->addMonth()->startOfMonth()->format('Y-m-d');
@@ -124,102 +130,11 @@ class SyncUserAvailabilityJob implements ShouldQueue
 
         $events = $wiwService->fetchUserAvailabilities($user->wheniwork_id, $startDate, $endDate, $token);
 
-        $this->processEvents($user, $events, $wiwService);
-    }
-
-    /**
-     * Process fetched events and sync to local database
-     *
-     * CRITICAL: Avoid race conditions with manual updates:
-     * - Skip records updated in the last 30 seconds (likely manual update in progress)
-     * - Only update if data actually changed
-     * - Pass user timezone for correct time slot extraction
-     */
-    protected function processEvents(User $user, array $events, WhenIWorkAvailabilityService $wiwService): void
-    {
-        $created = 0;
-        $updated = 0;
-        $skipped = 0;
-        $unchanged = 0;
-
-        // Grace period: skip records updated very recently to avoid race conditions
-        $recentUpdateThreshold = Carbon::now()->subSeconds(30);
-
-        foreach ($events as $event) {
-            // Pass user timezone for correct time slot extraction
-            $localData = $wiwService->mapEventToLocal($event, $user->timezone_name);
-            $date = $localData['availability_date'];
-            $category = $wiwService->categorizeDate($date);
-
-            $existingRecord = Availability::where('user_id', $user->id)
-                ->where('availability_date', $date)
-                ->first();
-
-            if ($category === 'past' || $category === 'current') {
-                if ($existingRecord) {
-                    $skipped++;
-
-                    continue;
-                }
-
-                Availability::create([
-                    'user_id' => $user->id,
-                    'wheniwork_availability_id' => $localData['wheniwork_availability_id'],
-                    'availability_date' => $localData['availability_date'],
-                    'time_slot' => $localData['time_slot'],
-                    'status' => $localData['status'],
-                    'notes' => $localData['notes'],
-                ]);
-                $created++;
-            } elseif ($category === 'future') {
-                if ($existingRecord) {
-                    // Skip if record was updated very recently (avoid race condition)
-                    if ($existingRecord->updated_at && $existingRecord->updated_at->gt($recentUpdateThreshold)) {
-                        Log::debug('SyncUserAvailabilityJob: Skipping recently updated record', [
-                            'date' => $date,
-                            'updated_at' => $existingRecord->updated_at->toIso8601String(),
-                        ]);
-                        $skipped++;
-
-                        continue;
-                    }
-
-                    // Only update if data actually changed
-                    $hasChanges = $existingRecord->time_slot !== $localData['time_slot']
-                        || $existingRecord->wheniwork_availability_id !== $localData['wheniwork_availability_id'];
-
-                    if ($hasChanges) {
-                        $existingRecord->update([
-                            'wheniwork_availability_id' => $localData['wheniwork_availability_id'],
-                            'time_slot' => $localData['time_slot'],
-                            'status' => $localData['status'],
-                            'notes' => $localData['notes'],
-                        ]);
-                        $updated++;
-                    } else {
-                        $unchanged++;
-                    }
-                } else {
-                    Availability::create([
-                        'user_id' => $user->id,
-                        'wheniwork_availability_id' => $localData['wheniwork_availability_id'],
-                        'availability_date' => $localData['availability_date'],
-                        'time_slot' => $localData['time_slot'],
-                        'status' => $localData['status'],
-                        'notes' => $localData['notes'],
-                    ]);
-                    $created++;
-                }
-            }
-        }
-
-        Log::info('SyncUserAvailabilityJob: Sync completed', [
+        $counts = $syncService->syncEventsToLocal($user, $events);
+        Log::info('SyncUserAvailabilityJob: Sync completed (month)', [
             'user_id' => $user->id,
             'events_fetched' => count($events),
-            'created' => $created,
-            'updated' => $updated,
-            'unchanged' => $unchanged,
-            'skipped' => $skipped,
+            ...$counts,
         ]);
     }
 

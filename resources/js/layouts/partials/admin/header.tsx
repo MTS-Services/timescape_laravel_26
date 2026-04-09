@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { LogOut, Menu } from 'lucide-react';
+import { BarChart, LogOut, Menu } from 'lucide-react';
 
 import AppLogo from '@/components/app-logo';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { useResponsiveMode } from '@/hooks/use-responsive-mode';
 import { logout } from '@/routes';
 import { dashboard } from '@/routes';
 import { type SharedData } from '@/types';
+import { stats } from '@/routes/admin';
 
 
 export function AdminHeader() {
@@ -27,6 +28,11 @@ export function AdminHeader() {
         <header className='container mx-auto flex items-center justify-between py-2 lg:py-4 px-4'>
             <Link href={dashboard()} className='flex items-center gap-2'>
                 <AppLogo isMobile={isMobile} />
+            </Link>
+            <Link href={stats()}>
+                <Button variant="link" className='cursor-pointer'>
+                    Records
+                </Button>
             </Link>
             <div className='hidden md:flex items-center gap-4'>
                 <div className='flex items-center justify-end gap-2 w-full min-w-32'>
