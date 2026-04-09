@@ -10,6 +10,7 @@ interface User {
     name: string;
     email: string;
     meets_current_week_requirements?: boolean;
+    meets_next_week_requirements?: boolean;
 }
 
 interface UserSelectionPanelProps {
@@ -72,11 +73,14 @@ export function UserSelectionPanel({
                 <div className="space-y-2 p-1 pr-4">
                     {users.map((user) => {
                         const isSelected = selectedUserId === user.id;
-                        const isUnmet =
+                        const isCurrentWeekUnmet =
                             user.meets_current_week_requirements === false ||
                             (user.meets_current_week_requirements as unknown) ===
                                 0;
-
+                        const isNextWeekUnmet =
+                            user.meets_next_week_requirements === false ||
+                            (user.meets_next_week_requirements as unknown) ===
+                                0;
                         return (
                             <Button
                                 key={user.id}
@@ -90,11 +94,6 @@ export function UserSelectionPanel({
                                     user.id == auth.user.id
                                         ? 'border-destructive/30'
                                         : '',
-                                    // isUnmet && [
-                                    //     isSelected
-                                    //         ? 'ring-2 ring-orange-500 ring-offset-1'
-                                    //         : 'border-orange-300 bg-orange-50 hover:bg-orange-100 dark:border-orange-800/60 dark:bg-orange-950/20',
-                                    // ],
                                 )}
                                 onClick={() => handleUserSelect(user.id)}
                             >
@@ -106,7 +105,7 @@ export function UserSelectionPanel({
                                     <span
                                         className={cn(
                                             'block h-2 w-2 rounded-full',
-                                            isUnmet && [
+                                            isCurrentWeekUnmet && [
                                                 isSelected
                                                     ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
                                                     : 'bg-gray-400',
@@ -117,7 +116,7 @@ export function UserSelectionPanel({
                                     <span
                                         className={cn(
                                             'block h-2 w-2 rounded-full',
-                                            isUnmet && [
+                                            isNextWeekUnmet && [
                                                 isSelected
                                                     ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
                                                     : 'bg-gray-400',

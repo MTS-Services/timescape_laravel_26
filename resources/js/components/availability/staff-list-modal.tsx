@@ -19,6 +19,7 @@ interface User {
     name: string;
     email: string;
     meets_current_week_requirements?: boolean;
+    meets_next_week_requirements?: boolean;
 }
 
 interface StaffListModalProps {
@@ -101,10 +102,14 @@ export const StaffListModal = forwardRef<
                     <div className="space-y-2 py-2">
                         {users.map((user) => {
                             const isSelected = selectedUserId === user.id;
-                            const isUnmet =
+                            const isCurrentWeekUnmet =
                                 user.meets_current_week_requirements ===
                                     false ||
                                 (user.meets_current_week_requirements as unknown) ===
+                                    0;
+                            const isNextWeekUnmet =
+                                user.meets_next_week_requirements === false ||
+                                (user.meets_next_week_requirements as unknown) ===
                                     0;
 
                             return (
@@ -139,7 +144,7 @@ export const StaffListModal = forwardRef<
                                         <span
                                             className={cn(
                                                 'block h-2 w-2 rounded-full',
-                                                isUnmet && [
+                                                isCurrentWeekUnmet && [
                                                     isSelected
                                                         ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
                                                         : 'bg-gray-400',
@@ -150,7 +155,7 @@ export const StaffListModal = forwardRef<
                                         <span
                                             className={cn(
                                                 'block h-2 w-2 rounded-full',
-                                                isUnmet && [
+                                                isNextWeekUnmet && [
                                                     isSelected
                                                         ? 'bg-teal-500 ring-2 ring-orange-500 ring-offset-1'
                                                         : 'bg-gray-400',
