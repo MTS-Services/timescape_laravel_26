@@ -29,11 +29,11 @@ export function AdminHeader() {
             <Link href={dashboard()} className='flex items-center gap-2'>
                 <AppLogo isMobile={isMobile} />
             </Link>
-            <Link href={stats()}>
+            {/* <Link href={stats()}>
                 <Button variant="link" className='cursor-pointer'>
                     Records
                 </Button>
-            </Link>
+            </Link> */}
             <div className='hidden md:flex items-center gap-4'>
                 <div className='flex items-center justify-end gap-2 w-full min-w-32'>
                     <UserInfo user={auth.user} showRole={true} />
