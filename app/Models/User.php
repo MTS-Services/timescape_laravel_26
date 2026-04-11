@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
@@ -114,7 +115,7 @@ class User extends Authenticatable
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn () => trim($this->first_name.' '.$this->last_name),
+            get: fn() => trim($this->first_name . ' ' . $this->last_name),
         );
     }
 
@@ -470,5 +471,10 @@ class User extends Authenticatable
 
         // Fallback to account_id display (should not happen in normal flow)
         return $this->account_id ? "Location #{$this->account_id}" : null;
+    }
+
+    public function scopeNotSelf(Builder $query): Builder
+    {
+        return $query->where('id', '!=', Auth::user()->id);
     }
 }

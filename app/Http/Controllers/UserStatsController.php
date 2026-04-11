@@ -43,6 +43,7 @@ class UserStatsController extends Controller
         );
 
         $usersQuery = User::query()
+            ->notSelf() // Exclude the current user
             ->select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
             ->orderBy('priority', 'asc')
             ->orderBy('first_name')
