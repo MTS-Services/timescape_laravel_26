@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Availability;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Log;
 
 class AvailabilityService
 {
@@ -28,8 +28,8 @@ class AvailabilityService
         $availabilities = Availability::forUser($userId)
             ->whereBetween('availability_date', [$calendarStart, $calendarEnd])
             ->get()
-            ->keyBy(fn($item) => $item->availability_date->format('Y-m-d'))
-            ->map(fn($item) => $item->time_slot)
+            ->keyBy(fn ($item) => $item->availability_date->format('Y-m-d'))
+            ->map(fn ($item) => $item->time_slot)
             ->toArray();
 
         return $availabilities;
@@ -482,11 +482,11 @@ class AvailabilityService
         $now = $referenceDate ?? Carbon::now();
 
         // Define the specific boundaries for the target week
-        $monday  = $now->copy()->startOfWeek(Carbon::MONDAY);
-        $friday  = $now->copy()->startOfWeek(Carbon::MONDAY)->next(Carbon::FRIDAY)->setHour(23)->setMinute(59);
+        $monday = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $friday = $now->copy()->startOfWeek(Carbon::MONDAY)->next(Carbon::FRIDAY)->setHour(23)->setMinute(59);
 
         $saturday = $now->copy()->startOfWeek(Carbon::MONDAY)->next(Carbon::SATURDAY);
-        $sunday   = $now->copy()->endOfWeek(Carbon::SUNDAY);
+        $sunday = $now->copy()->endOfWeek(Carbon::SUNDAY);
 
         // Fetch all records for the full week once to save database queries
         $availabilities = Availability::forUser($userId)
@@ -619,7 +619,7 @@ class AvailabilityService
      * @param  list<int>  $userIds
      * @return array<int, bool> user_id => meets_overall_status
      */
-    public function getWeekRequirementsStatusMap(array $userIds, ?CarbonInterface $referenceDate = null): array
+    public function getWeekRequirementsStatusMap(array $userIds, ?CarbonInterface $referenceDate = null, ?int $locationId = null): array
     {
         if ($userIds === []) {
             return [];
@@ -642,6 +642,9 @@ class AvailabilityService
         $availabilities = Availability::query()
             ->whereIn('user_id', $userIds)
             ->whereBetween('availability_date', [$monday, $sunday])
+            ->when($locationId !== null, function ($q) use ($locationId): void {
+                $q->whereHas('user', fn ($uq) => $uq->activeAtLocation($locationId));
+            })
             ->get(['user_id', 'availability_date', 'time_slot']);
 
         foreach ($availabilities as $availability) {

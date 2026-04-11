@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AvailabilityService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UserSelectionController extends Controller
@@ -12,7 +14,7 @@ class UserSelectionController extends Controller
      *
      * Scoped by account_id unless CAN_MANAGE_ALL is true.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function getUsers(Request $request)
     {
@@ -31,7 +33,8 @@ class UserSelectionController extends Controller
 
         // Scope to same account_id unless CAN_MANAGE_ALL is enabled
         if (! config('availability.can_manage_all', false)) {
-            $query->where('account_id', $currentUser->account_id);
+            $query->where('account_id', $currentUser->account_id)
+                ->activeAtLocation(User::workContextLocationId($currentUser));
         }
 
         $users = $query->get()
@@ -55,7 +58,7 @@ class UserSelectionController extends Controller
      *
      * Enforces account_id scoping unless CAN_MANAGE_ALL is true.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function getUserAvailability(Request $request)
     {
@@ -84,10 +87,19 @@ class UserSelectionController extends Controller
             if ($targetUser->account_id !== $currentUser->account_id) {
                 return response()->json(['error' => 'Cannot access users from other accounts'], 403);
             }
+
+            $allowed = User::query()
+                ->whereKey($targetUser->id)
+                ->activeAtLocation(User::workContextLocationId($currentUser))
+                ->exists();
+
+            if (! $allowed) {
+                return response()->json(['error' => 'User is not active at this work location'], 403);
+            }
         }
 
         // Get availability data from the service
-        $availabilityService = app(\App\Services\AvailabilityService::class);
+        $availabilityService = app(AvailabilityService::class);
 
         $availabilities = $availabilityService->getAvailabilitiesForMonth(
             $targetUser->id,

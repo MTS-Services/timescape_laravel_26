@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Models\Location;
+use App\Models\LocationUser;
 use App\Models\User;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -26,9 +28,9 @@ class WhenIWorkUserService
         $this->logDebug('FETCH_USERS_START', ['token_length' => strlen($token)]);
 
         try {
-            $url = config('services.wheniwork.base_url') . 'users';
+            $url = config('services.wheniwork.base_url').'users';
 
-            /** @var \Illuminate\Http\Client\Response $response */
+            /** @var Response $response */
             $response = Http::withHeaders([
                 'W-Token' => $token,
             ])->get($url);
@@ -98,8 +100,28 @@ class WhenIWorkUserService
             ];
         }
 
-        // Step 1: Sync locations first (creates/updates locations table)
-        $locationsMap = $this->syncLocations($result['locations']);
+        $sync = Location::syncAllFromWhenIWorkApi($result['locations']);
+        $byWiwLocationId = $sync['by_wiw_location_id'];
+        $syncedLocalIds = $sync['synced_local_ids'];
+
+        foreach ($result['locations'] as $locationData) {
+            $accountId = $locationData['account_id'] ?? null;
+            $name = $locationData['name'] ?? null;
+            $wiwLocId = $locationData['id'] ?? null;
+            if ($accountId && $name && $wiwLocId) {
+                $this->logDebug('LOCATION_SYNCED', [
+                    'account_id' => $accountId,
+                    'wheniwork_location_id' => $wiwLocId,
+                    'name' => $name,
+                    'location_id' => $byWiwLocationId[(int) $wiwLocId] ?? null,
+                ]);
+            }
+        }
+
+        $presentByLocalLocationId = $this->buildPresentWheniworkIdsByLocalLocationId(
+            $result['users'],
+            $byWiwLocationId
+        );
 
         $created = 0;
         $updated = 0;
@@ -111,7 +133,6 @@ class WhenIWorkUserService
             'total_locations' => count($result['locations']),
         ]);
 
-        // Step 2: Sync users with location_id assignment
         foreach ($result['users'] as $userData) {
             try {
                 $wiwId = $userData['id'] ?? null;
@@ -129,8 +150,16 @@ class WhenIWorkUserService
                     ->first();
                 $wasCreated = ! $existingUser;
 
-                // Pass locationsMap to assign location_id
-                $this->syncSingleUser($userData, $token, $locationsMap);
+                $primaryLocationId = User::resolvePrimaryLocalLocationId($userData, $byWiwLocationId);
+                if ($primaryLocationId === null && $accountId !== null) {
+                    $primaryLocationId = Location::where('account_id', $accountId)
+                        ->orderByRaw('wheniwork_location_id is null asc')
+                        ->orderBy('id')
+                        ->value('id');
+                }
+
+                $user = User::syncFromWhenIWorkData($userData, $token, $primaryLocationId);
+                $user->syncLocationMembershipsFromWhenIWork($userData, $byWiwLocationId);
 
                 if ($wasCreated) {
                     $created++;
@@ -158,10 +187,17 @@ class WhenIWorkUserService
             }
         }
 
+        $softRemoved = 0;
+        foreach ($syncedLocalIds as $localLocationId) {
+            $present = $presentByLocalLocationId[$localLocationId] ?? [];
+            $softRemoved += $this->reconcileLocationMemberships($localLocationId, $present);
+        }
+
         Log::info('WhenIWork users sync completed', [
             'created' => $created,
             'updated' => $updated,
             'failed' => $failed,
+            'pivot_soft_removed' => $softRemoved,
         ]);
 
         return [
@@ -174,50 +210,73 @@ class WhenIWorkUserService
     }
 
     /**
-     * Sync locations from When I Work API response to locations table.
-     *
-     * @param  array  $locationsData  Array of location data from API
-     * @return array<int, int> Map of account_id => location.id
+     * @param  array<int, array<string, mixed>>  $users
+     * @param  array<int, int>  $byWiwLocationId
+     * @return array<int, list<int>>
      */
-    protected function syncLocations(array $locationsData): array
+    protected function buildPresentWheniworkIdsByLocalLocationId(array $users, array $byWiwLocationId): array
     {
-        $locationsMap = [];
+        $map = [];
 
-        foreach ($locationsData as $locationData) {
-            $accountId = $locationData['account_id'] ?? null;
-            $name = $locationData['name'] ?? null;
-
-            if (! $accountId || ! $name) {
+        foreach ($users as $userData) {
+            if (! isset($userData['id'])) {
+                continue;
+            }
+            $wiwUserId = (int) $userData['id'];
+            $wiwLocs = $userData['locations'] ?? [];
+            if (! is_array($wiwLocs)) {
                 continue;
             }
 
-            $location = Location::syncFromAccountId($accountId, $name);
-            $locationsMap[$accountId] = $location->id;
-
-            $this->logDebug('LOCATION_SYNCED', [
-                'account_id' => $accountId,
-                'name' => $name,
-                'location_id' => $location->id,
-            ]);
+            foreach ($wiwLocs as $wiwLocId) {
+                $localId = $byWiwLocationId[(int) $wiwLocId] ?? null;
+                if ($localId === null) {
+                    continue;
+                }
+                $map[$localId] ??= [];
+                $map[$localId][$wiwUserId] = true;
+            }
         }
 
-        return $locationsMap;
+        foreach ($map as $localId => $set) {
+            $map[$localId] = array_keys($set);
+        }
+
+        return $map;
     }
 
     /**
-     * Sync a single user from When I Work data with multi-account support.
+     * Soft-delete pivot rows for users still marked active locally but absent from the API list for this workplace.
      *
-     * Uses composite key (account_id, wheniwork_id) to identify users,
-     * allowing same person to exist in multiple accounts/work locations.
-     *
-     * @param  array<int, int>  $locationsMap  Map of account_id => location.id
+     * @param  list<int>  $presentWheniworkUserIds
      */
-    protected function syncSingleUser(array $userData, string $token, array $locationsMap = []): User
+    protected function reconcileLocationMemberships(int $localLocationId, array $presentWheniworkUserIds): int
     {
-        $accountId = $userData['account_id'] ?? null;
-        $locationId = $accountId ? ($locationsMap[$accountId] ?? null) : null;
+        $location = Location::find($localLocationId);
+        if (! $location) {
+            return 0;
+        }
 
-        return User::syncFromWhenIWorkData($userData, $token, $locationId);
+        $accountId = $location->account_id;
+        $present = array_map('intval', $presentWheniworkUserIds);
+
+        $query = LocationUser::query()
+            ->where('location_id', $localLocationId)
+            ->whereNull('deleted_at')
+            ->whereHas('user', function ($q) use ($accountId, $present): void {
+                $q->where('account_id', $accountId);
+                if ($present !== []) {
+                    $q->whereNotIn('wheniwork_id', $present);
+                }
+            });
+
+        $removed = 0;
+        foreach ($query->cursor() as $pivot) {
+            $pivot->delete();
+            $removed++;
+        }
+
+        return $removed;
     }
 
     /**

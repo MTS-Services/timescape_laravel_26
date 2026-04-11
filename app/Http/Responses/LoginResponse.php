@@ -6,8 +6,10 @@ use App\Jobs\SyncUserAvailabilityJob;
 use App\Jobs\SyncWhenIWorkUsersJob;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Symfony\Component\HttpFoundation\Response;
 
 class LoginResponse implements LoginResponseContract
 {
@@ -18,8 +20,8 @@ class LoginResponse implements LoginResponseContract
      * - If multiple accounts detected, redirect to work location selection
      * - Otherwise, proceed to dashboard
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param  Request  $request
+     * @return Response
      */
     public function toResponse($request)
     {
@@ -83,7 +85,8 @@ class LoginResponse implements LoginResponseContract
         $query = User::query()
             ->whereNotNull('wheniwork_id')
             ->whereNotNull('wheniwork_token')
-            ->where('id', '!=', $user->id);
+            ->where('id', '!=', $user->id)
+            ->activeAtLocation(User::workContextLocationId($user));
 
         if (! config('availability.can_manage_all', false)) {
             $query->where('account_id', $user->account_id);

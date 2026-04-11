@@ -12,7 +12,25 @@ class StoreAvailabilityRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+
+        $selectedUserId = (int) $this->input('user_id', $user->id);
+        if (! $user->can_manage_users || $selectedUserId === $user->id) {
+            return true;
+        }
+
+        if (config('availability.can_manage_all', false)) {
+            return true;
+        }
+
+        return User::query()
+            ->whereKey($selectedUserId)
+            ->where('account_id', $user->account_id)
+            ->activeAtLocation(User::workContextLocationId($user))
+            ->exists();
     }
 
     public function rules(): array

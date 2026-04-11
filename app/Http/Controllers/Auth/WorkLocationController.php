@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SyncUserAvailabilityJob;
 use App\Jobs\SyncWhenIWorkUsersJob;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class WorkLocationController extends Controller
 {
@@ -18,7 +20,7 @@ class WorkLocationController extends Controller
      *
      * Displays available work locations for users with multiple accounts.
      *
-     * @return \Inertia\Response|\Illuminate\Http\RedirectResponse
+     * @return Response|RedirectResponse
      */
     public function show(Request $request)
     {
@@ -57,6 +59,7 @@ class WorkLocationController extends Controller
         // Find the user record for the selected location
         $selectedUser = User::where('location_id', $selectedLocationId)
             ->where('email', $loginEmail)
+            ->activeAtAssignedLocationPivot()
             ->first();
 
         if (! $selectedUser) {
@@ -116,7 +119,8 @@ class WorkLocationController extends Controller
         $query = User::query()
             ->whereNotNull('wheniwork_id')
             ->whereNotNull('wheniwork_token')
-            ->where('id', '!=', $selectedUser->id);
+            ->where('id', '!=', $selectedUser->id)
+            ->activeAtLocation($selectedUser->location_id);
 
         if (! config('availability.can_manage_all', false)) {
             $query->where('account_id', $selectedUser->account_id);

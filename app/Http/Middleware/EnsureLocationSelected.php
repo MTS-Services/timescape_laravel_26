@@ -25,7 +25,7 @@ class EnsureLocationSelected
 
         // Check if there's a pending location selection
         if (session('pending_location_selection')) {
-            // First check if other locations 
+            // First check if other locations
 
             // Redirect to the location selection page
             return redirect()->route('auth.select-work-location');
@@ -34,16 +34,18 @@ class EnsureLocationSelected
         // Check if user has multiple locations but no selected location
         $selectedLocationId = session('selected_location_id');
 
-        if (!$selectedLocationId) {
+        if (! $selectedLocationId) {
             // Check if user has multiple accounts with same email
             $accountsCount = User::where('email', $user->email)
                 ->whereNotNull('location_id')
+                ->activeAtAssignedLocationPivot()
                 ->count();
 
             if ($accountsCount > 1) {
                 // Store available accounts for selection with location data
                 $accounts = User::where('email', $user->email)
                     ->whereNotNull('location_id')
+                    ->activeAtAssignedLocationPivot()
                     ->with('location')
                     ->get()
                     ->map(function ($u) {

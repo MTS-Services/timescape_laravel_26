@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,7 +49,8 @@ class UserStatsController extends Controller
             ->orderBy('last_name');
 
         if (! config('availability.can_manage_all', false)) {
-            $usersQuery->where('account_id', $currentUser->account_id);
+            $usersQuery->where('account_id', $currentUser->account_id)
+                ->activeAtLocation(User::workContextLocationId($currentUser));
         }
 
         $paginator = $usersQuery->paginate($perPage)->withQueryString();
@@ -65,7 +66,7 @@ class UserStatsController extends Controller
         })->values();
 
         $availabilityService = app(AvailabilityService::class);
-        $rows = $this->buildStatsRowsForUsers($users, $start, $end, $availabilityService);
+        $rows = $this->buildStatsRowsForUsers($users, $start, $end, $availabilityService, User::workContextLocationId($currentUser));
 
         return Inertia::render('availability/stats', [
             'filter' => [
@@ -124,7 +125,8 @@ class UserStatsController extends Controller
             ->orderBy('last_name');
 
         if (! config('availability.can_manage_all', false)) {
-            $usersQuery->where('account_id', $currentUser->account_id);
+            $usersQuery->where('account_id', $currentUser->account_id)
+                ->activeAtLocation(User::workContextLocationId($currentUser));
         }
 
         $paginator = $usersQuery->paginate($perPage)->withQueryString();
@@ -139,7 +141,7 @@ class UserStatsController extends Controller
             ];
         })->values();
 
-        $rows = $this->buildStatsRowsForUsers($users, $start, $end, $availabilityService);
+        $rows = $this->buildStatsRowsForUsers($users, $start, $end, $availabilityService, User::workContextLocationId($currentUser));
 
         return response()->json([
             'filter' => [
@@ -182,13 +184,14 @@ class UserStatsController extends Controller
         if (! config('availability.can_manage_all', false)) {
             $allowedIds = User::query()
                 ->where('account_id', $currentUser->account_id)
+                ->activeAtLocation(User::workContextLocationId($currentUser))
                 ->whereIn('id', $userIds)
                 ->pluck('id')
-                ->map(fn($id) => (int) $id)
+                ->map(fn ($id) => (int) $id)
                 ->all();
 
             if (count($allowedIds) !== count($userIds)) {
-                return response()->json(['error' => 'Cannot access users from other accounts'], 403);
+                return response()->json(['error' => 'Cannot access users from other accounts or location'], 403);
             }
         }
 
@@ -238,12 +241,12 @@ class UserStatsController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, array{id:int,name:string,email:string,account_id:mixed,priority:mixed}>  $users
+     * @param  Collection<int, array{id:int,name:string,email:string,account_id:mixed,priority:mixed}>  $users
      * @return array<int, array<string, mixed>>
      */
-    private function buildStatsRowsForUsers($users, Carbon $start, Carbon $end, AvailabilityService $availabilityService): array
+    private function buildStatsRowsForUsers($users, Carbon $start, Carbon $end, AvailabilityService $availabilityService, ?int $locationId = null): array
     {
-        $userIds = $users->pluck('id')->map(fn($id) => (int) $id)->all();
+        $userIds = $users->pluck('id')->map(fn ($id) => (int) $id)->all();
 
         $rows = [];
         foreach ($users as $u) {
@@ -272,6 +275,9 @@ class UserStatsController extends Controller
         $availabilities = Availability::query()
             ->whereIn('user_id', $userIds)
             ->whereBetween('availability_date', [$start, $end])
+            ->when($locationId !== null, function ($q) use ($locationId): void {
+                $q->whereHas('user', fn ($uq) => $uq->activeAtLocation($locationId));
+            })
             ->get(['user_id', 'availability_date', 'time_slot']);
 
         foreach ($availabilities as $a) {
@@ -295,8 +301,8 @@ class UserStatsController extends Controller
             }
         }
 
-        $currentWeekStatusMap = $availabilityService->getWeekRequirementsStatusMap($userIds);
-        $nextWeekStatusMap = $availabilityService->getWeekRequirementsStatusMap($userIds, now()->addWeek());
+        $currentWeekStatusMap = $availabilityService->getWeekRequirementsStatusMap($userIds, null, $locationId);
+        $nextWeekStatusMap = $availabilityService->getWeekRequirementsStatusMap($userIds, now()->addWeek(), $locationId);
         foreach ($rows as $uid => $row) {
             $rows[$uid]['meets_current_week_requirements'] = (bool) ($currentWeekStatusMap[(int) $uid] ?? false);
             $rows[$uid]['meets_next_week_requirements'] = (bool) ($nextWeekStatusMap[(int) $uid] ?? false);

@@ -35,8 +35,18 @@ class AvailabilityController extends Controller
             'selected_user_id' => $selectedUserId,
         ]);
 
-        // If user has can_manage_users permission, they can view other users' data
-        $targetUserId = $user->can_manage_users && $selectedUserId !== $user->id ? $selectedUserId : $user->id;
+        $targetUserId = $user->id;
+        if ($user->can_manage_users && $selectedUserId !== $user->id) {
+            $targetQuery = User::query()->whereKey($selectedUserId);
+            if (! config('availability.can_manage_all', false)) {
+                $targetQuery
+                    ->where('account_id', $user->account_id)
+                    ->activeAtLocation(User::workContextLocationId($user));
+            }
+            if ($targetQuery->exists()) {
+                $targetUserId = $selectedUserId;
+            }
+        }
 
         $targetUserPriority = User::query()
             ->whereKey($targetUserId)
@@ -86,16 +96,21 @@ class AvailabilityController extends Controller
 
             // Scope to same account_id unless CAN_MANAGE_ALL is enabled
             if (! config('availability.can_manage_all', false)) {
-                $query->where('account_id', $user->account_id);
+                $query->where('account_id', $user->account_id)
+                    ->activeAtLocation(User::workContextLocationId($user));
             }
 
             $usersCollection = $query->get();
+            $contextLocationId = User::workContextLocationId($user);
             $currentWeekStatusMap = $this->availabilityService->getWeekRequirementsStatusMap(
-                $usersCollection->pluck('id')->map(fn($id) => (int) $id)->all()
+                $usersCollection->pluck('id')->map(fn ($id) => (int) $id)->all(),
+                null,
+                $contextLocationId
             );
             $nextWeekStatusMap = $this->availabilityService->getWeekRequirementsStatusMap(
-                $usersCollection->pluck('id')->map(fn($id) => (int) $id)->all(),
-                now()->addWeek()
+                $usersCollection->pluck('id')->map(fn ($id) => (int) $id)->all(),
+                now()->addWeek(),
+                $contextLocationId
             );
 
             $highlightAdmin = (bool) config('availability.highlight_admin_in_requirements_staff_list', false);

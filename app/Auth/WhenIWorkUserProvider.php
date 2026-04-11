@@ -91,18 +91,20 @@ class WhenIWorkUserProvider implements UserProvider
             $fullUserData = null;
             $userAccounts = [];
             $locationsMap = [];
+            $byWiwLocationId = [];
 
             if ($apiData) {
                 $allUsersData = $apiData['users'];
                 $locationsData = $apiData['locations'];
 
-                // Sync locations to database and build map: account_id -> location.id
+                $sync = Location::syncAllFromWhenIWorkApi($locationsData);
+                $byWiwLocationId = $sync['by_wiw_location_id'];
+
                 foreach ($locationsData as $locationData) {
                     $accountId = $locationData['account_id'] ?? null;
-                    $name = $locationData['name'] ?? null;
-                    if ($accountId && $name) {
-                        $location = Location::syncFromAccountId($accountId, $name);
-                        $locationsMap[$accountId] = $location->id;
+                    $wiwLocId = $locationData['id'] ?? null;
+                    if ($accountId && $wiwLocId && isset($byWiwLocationId[(int) $wiwLocId])) {
+                        $locationsMap[(int) $accountId] = $byWiwLocationId[(int) $wiwLocId];
                     }
                 }
 
@@ -131,12 +133,18 @@ class WhenIWorkUserProvider implements UserProvider
                 $fullUserData = $this->mapLoginDataToUserData($loginData['person']);
             }
 
-            // Get location_id from the locationsMap for this user's account
             $userAccountId = $fullUserData['account_id'] ?? null;
-            $locationId = $userAccountId ? ($locationsMap[$userAccountId] ?? null) : null;
+            $locationId = User::resolvePrimaryLocalLocationId($fullUserData, $byWiwLocationId);
+            if ($locationId === null && $userAccountId !== null) {
+                $locationId = $locationsMap[$userAccountId] ?? null;
+            }
 
             // Sync and get/create the user with location_id
             $user = User::syncFromWhenIWorkData($fullUserData, $token, $locationId);
+
+            if ($byWiwLocationId !== []) {
+                $user->syncLocationMembershipsFromWhenIWork($fullUserData, $byWiwLocationId);
+            }
 
             // Store token and person ID in session
             session(['wheniwork_token' => $token]);
@@ -145,7 +153,7 @@ class WhenIWorkUserProvider implements UserProvider
             // Check for multiple accounts with same email
             $existingUsersWithEmail = User::getUsersByEmail($credentials['email']);
 
-            if ($existingUsersWithEmail->count() > 1 && !$selectedAccountId) {
+            if ($existingUsersWithEmail->count() > 1 && ! $selectedAccountId) {
                 // Store available accounts for selection page with location data from DB
                 $accountOptions = $existingUsersWithEmail->load('location')->map(function ($u) {
                     return [

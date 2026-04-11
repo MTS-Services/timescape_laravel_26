@@ -3,18 +3,21 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Log;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
@@ -111,7 +114,7 @@ class User extends Authenticatable
     protected function name(): Attribute
     {
         return Attribute::make(
-            get: fn() => trim($this->first_name . ' ' . $this->last_name),
+            get: fn () => trim($this->first_name.' '.$this->last_name),
         );
     }
 
@@ -163,6 +166,114 @@ class User extends Authenticatable
         return $this->belongsTo(Location::class);
     }
 
+    /**
+     * WhenIWork workplaces this user is assigned to (pivot soft-deletes hide removed memberships).
+     *
+     * @return BelongsToMany<Location, $this>
+     */
+    public function locations(): BelongsToMany
+    {
+        return $this->belongsToMany(Location::class)
+            ->using(LocationUser::class)
+            ->withTimestamps()
+            ->wherePivotNull('deleted_at');
+    }
+
+    /**
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeActiveAtLocation(Builder $query, ?int $locationId): Builder
+    {
+        if ($locationId === null) {
+            return $query;
+        }
+
+        return $query->whereHas('locations', function (Builder $q) use ($locationId): void {
+            $q->where('locations.id', $locationId);
+        });
+    }
+
+    /**
+     * User row has an active pivot matching assigned users.location_id (session / work-location selection).
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeActiveAtAssignedLocationPivot(Builder $query): Builder
+    {
+        return $query->whereNotNull('location_id')
+            ->whereExists(function ($q): void {
+                $q->selectRaw('1')
+                    ->from('location_user')
+                    ->whereColumn('location_user.user_id', 'users.id')
+                    ->whereColumn('location_user.location_id', 'users.location_id')
+                    ->whereNull('location_user.deleted_at');
+            });
+    }
+
+    public static function workContextLocationId(?\Illuminate\Contracts\Auth\Authenticatable $user): ?int
+    {
+        if (! $user instanceof self) {
+            return null;
+        }
+
+        $sessionId = session('selected_location_id');
+
+        return $sessionId !== null && $sessionId !== ''
+            ? (int) $sessionId
+            : $user->location_id;
+    }
+
+    /**
+     * First local location id from the user's WhenIWork `locations` array, in API order.
+     *
+     * @param  array<int, int>  $byWiwLocationId  WhenIWork workplace id => locations.id
+     */
+    public static function resolvePrimaryLocalLocationId(array $userData, array $byWiwLocationId): ?int
+    {
+        $wiwLocs = $userData['locations'] ?? [];
+        if (! is_array($wiwLocs)) {
+            return null;
+        }
+
+        foreach ($wiwLocs as $wiwLocId) {
+            $localId = $byWiwLocationId[(int) $wiwLocId] ?? null;
+            if ($localId !== null) {
+                return (int) $localId;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Upsert active pivot rows for each workplace in WhenIWork user payload (restores soft-deleted pivots).
+     *
+     * @param  array<int, int>  $byWiwLocationId
+     */
+    public function syncLocationMembershipsFromWhenIWork(array $userData, array $byWiwLocationId): void
+    {
+        $wiwLocs = $userData['locations'] ?? [];
+        if (! is_array($wiwLocs)) {
+            return;
+        }
+
+        foreach ($wiwLocs as $wiwLocId) {
+            $localId = $byWiwLocationId[(int) $wiwLocId] ?? null;
+            if ($localId === null) {
+                continue;
+            }
+
+            $pivot = LocationUser::withTrashed()->firstOrNew([
+                'user_id' => $this->id,
+                'location_id' => $localId,
+            ]);
+            $pivot->deleted_at = null;
+            $pivot->save();
+        }
+    }
+
     public function canAccessPayroll(): bool
     {
         return $this->role?->canAccessPayroll() ?? false;
@@ -176,10 +287,9 @@ class User extends Authenticatable
         }
 
         // Otherwise, check if priority exists and is less than 4
-        return ($this->priority !== null && $this->priority < 4);
+        return $this->priority !== null && $this->priority < 4;
         // return ($this->priority ?? 0) < 3;
     }
-
 
     public function getAvatarUrlAttribute(): ?string
     {
@@ -203,7 +313,6 @@ class User extends Authenticatable
         $accountId = $userData['account_id'] ?? null;
         $wiwId = $userData['id'];
         $loginId = $userData['login_id'] ?? null;
-        $email = $userData['email'];
 
         // Extract priority from notes field (e.g., "Priority=4")
         $priority = self::extractPriorityFromNotes($userData['notes'] ?? null);
@@ -213,6 +322,8 @@ class User extends Authenticatable
         $user = static::where('account_id', $accountId)
             ->where('wheniwork_id', $wiwId)
             ->first();
+
+        $email = $userData['email'] ?? ($user?->email ?? '');
 
         // Fields that are always set (core identity / session data)
         $coreAttributes = [
@@ -228,35 +339,35 @@ class User extends Authenticatable
         // These are only included when the source key exists in $userData,
         // preventing incomplete API responses from nulling out existing data.
         $apiFields = [
-            'first_name'      => ['key' => 'first_name',      'default' => ''],
-            'middle_name'     => ['key' => 'middle_name',     'default' => null],
-            'last_name'       => ['key' => 'last_name',       'default' => ''],
-            'phone_number'    => ['key' => 'phone_number',    'default' => null],
-            'employee_code'   => ['key' => 'employee_code',   'default' => null],
-            'role'            => ['key' => 'role',            'default' => 3],
+            'first_name' => ['key' => 'first_name',      'default' => ''],
+            'middle_name' => ['key' => 'middle_name',     'default' => null],
+            'last_name' => ['key' => 'last_name',       'default' => ''],
+            'phone_number' => ['key' => 'phone_number',    'default' => null],
+            'employee_code' => ['key' => 'employee_code',   'default' => null],
+            'role' => ['key' => 'role',            'default' => 3],
             'employment_type' => ['key' => 'employment_type', 'default' => 'hourly'],
-            'is_payroll'      => ['key' => 'is_payroll',      'default' => false],
-            'is_trusted'      => ['key' => 'is_trusted',      'default' => false],
-            'is_private'      => ['key' => 'is_private',      'default' => true],
-            'is_hidden'       => ['key' => 'is_hidden',       'default' => false],
-            'activated'       => ['key' => 'activated',       'default' => false],
-            'is_active'       => ['key' => 'is_active',       'default' => true],
+            'is_payroll' => ['key' => 'is_payroll',      'default' => false],
+            'is_trusted' => ['key' => 'is_trusted',      'default' => false],
+            'is_private' => ['key' => 'is_private',      'default' => true],
+            'is_hidden' => ['key' => 'is_hidden',       'default' => false],
+            'activated' => ['key' => 'activated',       'default' => false],
+            'is_active' => ['key' => 'is_active',       'default' => true],
             'hours_preferred' => ['key' => 'hours_preferred', 'default' => 0],
-            'hours_max'       => ['key' => 'hours_max',       'default' => 0],
-            'hourly_rate'     => ['key' => 'hourly_rate',     'default' => 0],
-            'notes'           => ['key' => 'notes',           'default' => null],
-            'uuid'            => ['key' => 'uuid',            'default' => null],
-            'timezone_name'   => ['key' => 'timezone_name',   'default' => null],
-            'alert_settings'  => ['key' => 'alert_settings',  'default' => null],
-            'positions'       => ['key' => 'positions',       'default' => []],
-            'locations'       => ['key' => 'locations',       'default' => []],
-            'avatar_urls'     => ['key' => 'avatar',          'default' => null],
+            'hours_max' => ['key' => 'hours_max',       'default' => 0],
+            'hourly_rate' => ['key' => 'hourly_rate',     'default' => 0],
+            'notes' => ['key' => 'notes',           'default' => null],
+            'uuid' => ['key' => 'uuid',            'default' => null],
+            'timezone_name' => ['key' => 'timezone_name',   'default' => null],
+            'alert_settings' => ['key' => 'alert_settings',  'default' => null],
+            'positions' => ['key' => 'positions',       'default' => []],
+            'locations' => ['key' => 'locations',       'default' => []],
+            'avatar_urls' => ['key' => 'avatar',          'default' => null],
         ];
 
         // Date fields that use !empty() instead of ?? for safety
         $dateFields = [
-            'start_date'    => 'start_date',
-            'hired_on'      => 'hired_on',
+            'start_date' => 'start_date',
+            'hired_on' => 'hired_on',
             'terminated_at' => 'terminated_at',
         ];
 
@@ -328,12 +439,13 @@ class User extends Authenticatable
     /**
      * Get all users with the same email address (for multi-account selection).
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, static>
+     * @return Collection<int, static>
      */
-    public static function getUsersByEmail(string $email): \Illuminate\Database\Eloquent\Collection
+    public static function getUsersByEmail(string $email): Collection
     {
         return static::where('email', $email)
             ->whereNotNull('account_id')
+            ->activeAtAssignedLocationPivot()
             ->get();
     }
 
