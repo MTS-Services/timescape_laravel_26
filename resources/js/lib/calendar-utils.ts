@@ -17,14 +17,14 @@ export function getCardBackgroundColor(
     //     return 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30';
     // }
 
-    if (selectedOption === 'holiday') {
-        return HOLIDAY_CARD_SURFACE_CLASSES;
-    }
+    // if (selectedOption === 'holiday') {
+    //     return HOLIDAY_CARD_SURFACE_CLASSES;
+    // }
 
     // Complete
-    if (isComplete && !isDisabled && canViewRequirements) {
-        return 'bg-transparent border-muted/50';
-    }
+    // if (isComplete && !isDisabled && canViewRequirements) {
+    //     return 'bg-transparent border-muted/50';
+    // }
     // if (isComplete && !isDisabled) {
     //     return 'bg-transparent border-muted/50';
     // }
@@ -40,7 +40,7 @@ export function getCardBackgroundColor(
     }
 
     // Normal weekday
-    return 'bg-card border-border';
+    return 'bg-card shadow md:shadow-xs border-border';
 }
 
 export function getOptionColorClasses(

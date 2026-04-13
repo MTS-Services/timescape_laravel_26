@@ -1,20 +1,21 @@
 import { getCardBackgroundColor } from '@/lib/calendar-utils';
-import { weekdays } from '@/lib/date-helpers';
 import {
-    formatDayNumber,
     formatDateKey,
+    formatDayNumber,
+    getIndicatorColors,
     isDateDisabled,
-    isSameMonth,
-    isWeekendDay,
     isDateInPast,
+    isSameMonth,
     isToday,
+    isWeekendDay,
+    weekdays,
 } from '@/lib/date-helpers';
 import { cn } from '@/lib/utils';
 import type { AvailabilitySelections } from '@/types/availability';
 
-import { MobileWeeklyProgress } from './mobile-weekly-progress';
-import { usePage } from '@inertiajs/react';
 import { SharedData } from '@/types';
+import { usePage } from '@inertiajs/react';
+import { MobileWeeklyProgress } from './mobile-weekly-progress';
 
 interface WeekRequirement {
     start_date: string;
@@ -65,7 +66,7 @@ export function MobileCalendarGrid({
                 const weekRequirement = weeklyRequirements[weekIndex];
 
                 return (
-                    <div className='space-y-2'>
+                    <div className="space-y-2">
                         {weekIndex === 0 && (
                             <div className="grid grid-cols-7 gap-2 px-2">
                                 {weekdays.map((day) => (
@@ -81,25 +82,40 @@ export function MobileCalendarGrid({
 
                         <div key={weekIndex} className="space-y-1">
                             {/* Weekly Progress Bar */}
-                            {auth.user.can_view_requirements && weekRequirement && (
-                            <MobileWeeklyProgress weekRequirement={weekRequirement} />
-                            )}
+                            {auth.user.can_view_requirements &&
+                                weekRequirement && (
+                                    <MobileWeeklyProgress
+                                        weekRequirement={weekRequirement}
+                                    />
+                                )}
 
                             {/* Week Days Grid */}
-                            <div className={cn('grid grid-cols-7 gap-1 relative',
-                                // weekRequirement?.is_complete && 'bg-green-500/20 rounded-md'
-                                weekRequirement?.is_complete && auth.user.can_view_requirements && 'bg-green-500/20 rounded-md'
-                            )}>
-
+                            <div
+                                className={cn(
+                                    'relative grid grid-cols-7 gap-1',
+                                    // weekRequirement?.is_complete && 'bg-green-500/20 rounded-md'
+                                    // weekRequirement?.is_complete && auth.user.can_view_requirements && 'bg-green-500/20 rounded-md'
+                                )}
+                            >
                                 {weekDays.map((date, dayIndex) => {
                                     const dateKey = formatDateKey(date);
-                                    const isCurrentMonthDay = isSameMonth(date, currentMonth);
-                                    const isPastDate = isDateInPast(date, canEditToday);
+                                    const isCurrentMonthDay = isSameMonth(
+                                        date,
+                                        currentMonth,
+                                    );
+                                    const isPastDate = isDateInPast(
+                                        date,
+                                        canEditToday,
+                                    );
                                     const isTodayDate = isToday(date);
                                     const isWeekend = isWeekendDay(date);
                                     const hasData = !!selections[dateKey];
                                     const isSelected = selectedDate === dateKey;
-                                    const isDisabled = isDateDisabled(date, currentMonth, canEditToday);
+                                    const isDisabled = isDateDisabled(
+                                        date,
+                                        currentMonth,
+                                        canEditToday,
+                                    );
 
                                     // Indicator logic:
                                     // 🟢 Green: has data (any date)
@@ -107,26 +123,37 @@ export function MobileCalendarGrid({
                                     // ⚪️ Gray: current/past with no data
                                     // No indicator: current/future with no data
                                     const showGreenIndicator = hasData;
-                                    const showRedIndicator = isPastDate && !hasData && isCurrentMonthDay;
-                                    const showGrayIndicator = isPastDate && !isCurrentMonthDay && !hasData;
+                                    const showRedIndicator =
+                                        isPastDate &&
+                                        !hasData &&
+                                        isCurrentMonthDay;
+                                    const showGrayIndicator =
+                                        isPastDate &&
+                                        !isCurrentMonthDay &&
+                                        !hasData;
 
-                                    const selectedOption = selections[dateKey] ?? null;
+                                    const selectedOption =
+                                        selections[dateKey] ?? null;
                                     const bgColor = getCardBackgroundColor(
                                         isWeekend,
                                         isDisabled,
                                         isCurrentMonthDay,
                                         weekRequirement?.is_complete || false,
-                                        auth.user.can_view_requirements || false,
-                                        selectedOption
+                                        auth.user.can_view_requirements ||
+                                            false,
+                                        selectedOption,
                                     );
+                                    const [dot1, dot2, dot3] =
+                                        getIndicatorColors(selectedOption);
 
                                     const handleDateClick = () => {
                                         onDateSelect(dateKey);
 
                                         if (!isPastDate) {
-                                            const element = document.getElementById(
-                                                `date-card-${dateKey}`,
-                                            );
+                                            const element =
+                                                document.getElementById(
+                                                    `date-card-${dateKey}`,
+                                                );
                                             if (element) {
                                                 element.scrollIntoView({
                                                     behavior: 'smooth',
@@ -143,27 +170,59 @@ export function MobileCalendarGrid({
                                             onClick={handleDateClick}
                                             disabled={!isCurrentMonthDay}
                                             className={cn(
-                                                'flex flex-col items-center justify-center p-1 rounded-lg transition-all min-h-10',
+                                                'flex min-h-10 flex-col items-center justify-center rounded-lg p-1 transition-all',
                                                 bgColor,
-                                                isDisabled && 'cursor-not-allowed',
-                                                isCurrentMonthDay ? 'cursor-pointer' : 'cursor-not-allowed opacity-70',
-                                                isSelected && 'ring-2 ring-primary/50 ring-offset-1',
-                                                isTodayDate && 'border border-destructive/20',
+                                                isDisabled &&
+                                                    'cursor-not-allowed',
+                                                isCurrentMonthDay
+                                                    ? 'cursor-pointer'
+                                                    : 'cursor-not-allowed opacity-70',
+                                                isSelected &&
+                                                    'ring-2 ring-primary/50 ring-offset-1',
+                                                isTodayDate &&
+                                                    'border border-destructive/20',
                                             )}
                                         >
                                             <span
                                                 className={cn(
                                                     'text-sm font-medium',
-                                                    !isCurrentMonthDay && 'text-muted-foreground',
-                                                    isTodayDate && 'text-primary font-bold',
-                                                    isPastDate && isCurrentMonthDay && !isTodayDate && 'text-muted-foreground'
+                                                    !isCurrentMonthDay &&
+                                                        'text-muted-foreground',
+                                                    isTodayDate &&
+                                                        'font-bold text-primary',
+                                                    isPastDate &&
+                                                        isCurrentMonthDay &&
+                                                        !isTodayDate &&
+                                                        'text-muted-foreground',
                                                 )}
                                             >
                                                 {formatDayNumber(date)}
                                             </span>
 
+                                            {/* Indicators */}
+                                            <div className="flex items-center justify-center gap-1">
+                                                <div
+                                                    className={cn(
+                                                        'h-1.5 w-1.5 rounded-full',
+                                                        dot1,
+                                                    )}
+                                                />
+                                                <div
+                                                    className={cn(
+                                                        'h-1.5 w-1.5 rounded-full',
+                                                        dot2,
+                                                    )}
+                                                />
+                                                <div
+                                                    className={cn(
+                                                        'h-1.5 w-1.5 rounded-full',
+                                                        dot3,
+                                                    )}
+                                                />
+                                            </div>
+
                                             {/* Indicator dot */}
-                                            {(showGreenIndicator || showRedIndicator || showGrayIndicator) && (
+                                            {/* {(showGreenIndicator || showRedIndicator || showGrayIndicator) && (
                                                 <div className="mt-1 h-1.5 w-1.5 rounded-full">
                                                     {showGreenIndicator && (
                                                         <div className="h-full w-full rounded-full bg-teal-500" />
@@ -172,13 +231,12 @@ export function MobileCalendarGrid({
                                                         <div className="h-full w-full rounded-full bg-destructive" />
                                                     )}
                                                 </div>
-                                            )}
+                                            )} */}
                                         </button>
                                     );
                                 })}
                             </div>
                         </div>
-
                     </div>
                 );
             })}

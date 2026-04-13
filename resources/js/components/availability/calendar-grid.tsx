@@ -88,7 +88,7 @@ export function CalendarGrid({
                             {/* Week Days Grid */}
                             <div className={cn(
                                 'grid grid-cols-7 gap-2 sm:gap-3 lg:gap-4 relative',
-                                weekRequirement?.is_complete && auth.user.can_view_requirements && 'bg-green-500/20 rounded-md'
+                                // weekRequirement?.is_complete && auth.user.can_view_requirements && 'bg-green-500/20 rounded-md'
                                 // weekRequirement?.is_complete && 'bg-green-500/20 rounded-md'
                             )}>
                                 {weekDays.map((date, dayIndex) => {

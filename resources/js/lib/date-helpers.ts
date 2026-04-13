@@ -52,6 +52,26 @@ const AVAILABILITY_SLOT_LABELS: Record<string, string> = {
 };
 
 /**
+ * Get indicator states for a calendar day based on the selected availability option.
+ * Returns active color classes for each of the 3 indicator dots.
+ */
+export function getIndicatorColors(selectedOption: string | null): [string, string, string] {
+    const muted = 'bg-muted-foreground';
+    const teal  = 'bg-teal-500';
+    const red   = 'bg-destructive';
+
+    switch (selectedOption) {
+        case '9:30-4:30':
+        case '9:30-5:30':  return [teal,  muted, muted];
+        case '3:30-10:30':
+        case '2:00-10:00': return [muted, teal,  muted];
+        case 'all-day':    return [teal,  teal,  muted];
+        case 'holiday':    return [muted, muted, red  ];
+        default:           return [muted, muted, muted];
+    }
+}
+
+/**
  * Create a date in local timezone without time component
  */
 function createLocalDate(year: number, month: number, day: number): Date {

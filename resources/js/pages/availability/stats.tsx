@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -30,6 +30,7 @@ import {
 import AdminLayout from '@/layouts/admin-layout';
 import { AdminHeader } from '@/layouts/partials/admin/header';
 import { cn } from '@/lib/utils';
+import { dashboard } from '@/routes';
 import { stats } from '@/routes/admin';
 import type { SharedData, User } from '@/types';
 
@@ -101,12 +102,49 @@ function unAuthorized() {
         <AdminLayout>
             <Head title="Unauthorized" />
             <AdminHeader />
-            <div className="container mx-auto max-w-7xl px-4 py-6 sm:px-6">
-                <div className="flex h-screen items-center justify-center">
-                    <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
-                        Unauthorized
-                    </h1>
-                </div>
+
+            <div className="container mx-auto flex min-h-[80vh] max-w-7xl items-center justify-center px-4 py-6 sm:px-6">
+                <Card className="w-full max-w-md rounded-2xl border border-gray-200 shadow-sm">
+                    <CardContent className="flex flex-col items-center px-6 py-10 text-center">
+                        {/* Icon */}
+                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6 text-red-600"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={1.8}
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M18.364 5.636l-12.728 12.728M6.343 6.343l11.314 11.314"
+                                />
+                            </svg>
+                        </div>
+
+                        {/* Title */}
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            Access Denied
+                        </h2>
+
+                        {/* Description */}
+                        <p className="mt-2 text-sm text-gray-500">
+                            You don’t have permission to access this page.
+                            <br />
+                            Please contact your administrator if you believe
+                            this is a mistake.
+                        </p>
+
+                        {/* Actions */}
+                        <Link href={dashboard()} className="mt-6">
+                            <Button className="cursor-pointer text-xs">
+                                Go Back
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
             </div>
         </AdminLayout>
     );
@@ -136,7 +174,7 @@ export default function StatsPage() {
         () => new Set(),
     );
     const [isLoading, setIsLoading] = useState(false);
-    const [filtersOpen, setFiltersOpen] = useState(true);
+    const [filtersOpen, setFiltersOpen] = useState(false);
     const [perPage, setPerPage] = useState<number>(filter.per_page ?? 10);
 
     const rowsByUserId = useMemo(() => {
@@ -433,9 +471,9 @@ export default function StatsPage() {
                 </div>
 
                 {/* ── Main Card ── */}
-                <Card className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+                <Card className="gap-0 overflow-hidden rounded-xl border border-gray-200 shadow-sm">
                     {/* ── Toolbar ── */}
-                    <CardHeader className="border-b border-gray-100 bg-white px-5 py-4">
+                    <CardHeader className="border-b border-gray-100 bg-white px-5">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             {/* Left side: filter toggle + per-page */}
                             <div className="flex items-center gap-2.5">
@@ -533,8 +571,8 @@ export default function StatsPage() {
                             open={filtersOpen}
                             onOpenChange={setFiltersOpen}
                         >
-                            <CollapsibleContent>
-                                <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50/60 p-4">
+                            <CollapsibleContent className="pb-4 lg:pt-2">
+                                <div className="rounded-lg border border-gray-100 bg-gray-50/60 p-4">
                                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
                                         {/* Period type */}
                                         <div className="space-y-1.5 lg:col-span-2">
@@ -676,10 +714,10 @@ export default function StatsPage() {
                     {/* ── Table ── */}
                     <CardContent className="p-0">
                         <div className="overflow-x-auto">
-                            <Table>
+                            <Table className="p-0">
                                 <TableHeader>
                                     <TableRow className="border-b border-gray-100 bg-gray-50/80 hover:bg-gray-50/80">
-                                        <TableHead className="w-12 pr-3 pl-5 border-r border-gray-100">
+                                        <TableHead className="block w-9 content-center border-r border-gray-100 md:table-cell">
                                             <Checkbox
                                                 checked={
                                                     allSelected
@@ -697,21 +735,21 @@ export default function StatsPage() {
                                                 className="cursor-pointer border-gray-300"
                                             />
                                         </TableHead>
-                                        <TableHead className="py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-r border-gray-100">
+                                        <TableHead className="border-r border-gray-100 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             User
                                         </TableHead>
-                                        <TableHead className="text-right text-xs font-semibold tracking-wide text-gray-500 uppercase border-r border-gray-100">
+                                        <TableHead className="border-r border-gray-100 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             Duty Days
                                         </TableHead>
-                                        <TableHead className="text-right text-xs font-semibold tracking-wide text-gray-500 uppercase border-r border-gray-100">
+                                        <TableHead className="border-r border-gray-100 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             Leave Taken
                                         </TableHead>
-                                        <TableHead className="text-right text-xs font-semibold tracking-wide text-gray-500 uppercase border-r border-gray-100">
+                                        <TableHead className="border-r border-gray-100 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             Upcoming Leave
                                         </TableHead>
                                         <TableHead className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             Requirements
-                                        </TableHead>                                       
+                                        </TableHead>
                                         {/* <TableHead className="pr-5 text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             Date Range
                                         </TableHead> */}
@@ -753,9 +791,9 @@ export default function StatsPage() {
                                             return (
                                                 <TableRow
                                                     key={u.id}
-                                                    className={`border-b border-gray-50 transition-colors ${isSelected ? 'bg-red-50/40' : 'hover:bg-gray-50/50'}`}
+                                                    className={`border-b border-gray-100 transition-colors ${isSelected ? 'bg-red-50/40' : 'hover:bg-gray-50/50'}`}
                                                 >
-                                                    <TableCell className="pr-3 pl-5 border-r border-gray-100">
+                                                    <TableCell className="border-r border-gray-100">
                                                         <Checkbox
                                                             checked={isSelected}
                                                             onCheckedChange={(
@@ -772,7 +810,7 @@ export default function StatsPage() {
                                                     </TableCell>
 
                                                     {/* User cell */}
-                                                    <TableCell className="py-3.5 border-r border-gray-100">
+                                                    <TableCell className="border-r border-gray-100 py-3.5">
                                                         <div className="flex items-center gap-2.5">
                                                             {/* Avatar placeholder */}
                                                             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-semibold text-red-700 select-none">
@@ -803,7 +841,7 @@ export default function StatsPage() {
                                                     </TableCell>
 
                                                     {/* Numeric stat cells */}
-                                                    <TableCell className="text-right border-r border-gray-100">
+                                                    <TableCell className="border-r border-gray-100 text-right">
                                                         <span className="text-sm font-semibold text-gray-800 tabular-nums">
                                                             {r ? (
                                                                 r.total_duty_days
@@ -814,7 +852,7 @@ export default function StatsPage() {
                                                             )}
                                                         </span>
                                                     </TableCell>
-                                                    <TableCell className="text-right border-r border-gray-100">
+                                                    <TableCell className="border-r border-gray-100 text-right">
                                                         <span className="text-sm font-semibold text-gray-800 tabular-nums">
                                                             {r ? (
                                                                 r.leave_taken
@@ -825,7 +863,7 @@ export default function StatsPage() {
                                                             )}
                                                         </span>
                                                     </TableCell>
-                                                    <TableCell className="text-right border-r border-gray-100">
+                                                    <TableCell className="border-r border-gray-100 text-right">
                                                         <span className="text-sm font-semibold text-gray-800 tabular-nums">
                                                             {r ? (
                                                                 r.upcoming_leave
@@ -962,7 +1000,7 @@ export default function StatsPage() {
                         </div>
 
                         {/* ── Pagination ── */}
-                        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/40 px-5 py-3.5">
+                        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/40 px-5 pt-3.5">
                             <p className="text-xs text-gray-400">
                                 Showing{' '}
                                 <span className="font-medium text-gray-600">

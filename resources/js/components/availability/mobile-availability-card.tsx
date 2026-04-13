@@ -71,7 +71,7 @@ export function MobileAvailabilityCard({
             <div
                 className={cn(
                     'rounded-lg border overflow-hidden',
-                    selectedOption === 'holiday' ? HOLIDAY_CARD_SURFACE_CLASSES : 'bg-card border-border'
+                    // selectedOption === 'holiday' ? HOLIDAY_CARD_SURFACE_CLASSES : 'bg-card border-border'
                 )}
             >
                 {allowCollapse ? (

@@ -32,7 +32,7 @@ class UserStatsController extends Controller
         $now = now();
         $year = (int) ($validated['year'] ?? $now->year);
         $month = (int) ($validated['month'] ?? $now->month);
-        $perPage = (int) ($validated['per_page'] ?? 10);
+        $perPage = (int) ($validated['per_page'] ?? 15);
 
         [$start, $end] = $this->resolveDateRange(
             $filterType,
