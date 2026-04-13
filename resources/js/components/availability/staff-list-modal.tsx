@@ -75,6 +75,7 @@ export const StaffListModal = forwardRef<
                     'selectedUserId',
                     'targetUserPriority',
                     'weeklyRequirements',
+                    'users',
                 ],
                 onSuccess: () => {
                     setIsOpen(false);

@@ -628,9 +628,9 @@ class AvailabilityService
         $now = $referenceDate ?? Carbon::now();
 
         $monday = $now->copy()->startOfWeek(Carbon::MONDAY);
-        $friday = $now->copy()->next(Carbon::FRIDAY)->setHour(23)->setMinute(59);
-        $saturday = $now->copy()->startOfWeek(Carbon::MONDAY)->next(Carbon::SATURDAY);
-        $sunday = $now->copy()->endOfWeek(Carbon::SUNDAY);
+        $friday = $monday->copy()->addDays(4)->setTime(23, 59, 59);
+        $saturday = $monday->copy()->addDays(5)->startOfDay();
+        $sunday = $monday->copy()->endOfWeek(Carbon::SUNDAY);
 
         $shiftSlots = ['9:30-4:30', '3:30-10:30', '9:30-5:30', '2:00-10:00'];
 

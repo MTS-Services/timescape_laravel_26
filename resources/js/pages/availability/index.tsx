@@ -336,7 +336,7 @@ export default function AvailabilityScheduler() {
             {
                 preserveState: true,
                 preserveScroll: true,
-                only: ['weeklyRequirements'],
+                only: ['weeklyRequirements', 'users', 'requirements'],
                 onSuccess: (page) => {
                     const pageFlash = (page as unknown as { flash?: PageProps['flash'] }).flash;
                     if (pageFlash?.success) toast.success(pageFlash.success);

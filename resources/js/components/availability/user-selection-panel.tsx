@@ -49,6 +49,7 @@ export function UserSelectionPanel({
                     'selectedUserId',
                     'targetUserPriority',
                     'weeklyRequirements',
+                    'users',
                 ],
             },
         );
