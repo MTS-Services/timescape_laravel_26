@@ -4,8 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     Collapsible,
     CollapsibleContent,
@@ -29,7 +28,6 @@ import {
 } from '@/components/ui/table';
 import AdminLayout from '@/layouts/admin-layout';
 import { AdminHeader } from '@/layouts/partials/admin/header';
-import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { stats } from '@/routes/admin';
 import type { SharedData, User } from '@/types';
@@ -42,6 +40,7 @@ interface StatsRow {
     total_duty_days: number;
     leave_taken: number;
     upcoming_leave: number;
+    total_holidays: number;
     meets_current_week_requirements: boolean;
     meets_next_week_requirements: boolean;
     date_range: { start: string; end: string };
@@ -58,6 +57,9 @@ interface PageProps {
     };
     users: Array<Pick<User, 'id' | 'name' | 'email' | 'priority'>>;
     rows: StatsRow[];
+    summary: {
+        total_holidays: number;
+    };
     pagination: {
         current_page: number;
         last_page: number;
@@ -151,7 +153,8 @@ function unAuthorized() {
 }
 
 export default function StatsPage() {
-    const { filter, users, rows, pagination } = usePage<PageProps>().props;
+    const { filter, users, rows, summary, pagination } =
+        usePage<PageProps>().props;
     const { auth } = usePage<SharedData>().props;
 
     if (!auth.user.can_manage_users) {
@@ -175,7 +178,6 @@ export default function StatsPage() {
     );
     const [isLoading, setIsLoading] = useState(false);
     const [filtersOpen, setFiltersOpen] = useState(false);
-    const [perPage, setPerPage] = useState<number>(filter.per_page ?? 10);
 
     const rowsByUserId = useMemo(() => {
         const map = new Map<number, StatsRow>();
@@ -212,7 +214,7 @@ export default function StatsPage() {
         router.get(stats(), params as Record<string, any>, {
             preserveState: true,
             preserveScroll: true,
-            only: ['filter', 'users', 'rows', 'pagination'],
+            only: ['filter', 'users', 'rows', 'summary', 'pagination'],
             onFinish: () => setIsLoading(false),
         });
     }, []);
@@ -263,8 +265,12 @@ export default function StatsPage() {
     }, [filter.end_date, filter.start_date, selectedUserIds]);
 
     const years = useMemo(() => {
-        const y = new Date().getFullYear();
-        return [y - 1, y, y + 1];
+        const minYear = 2020;
+        const maxYear = new Date().getFullYear() + 5;
+        return Array.from(
+            { length: maxYear - minYear + 1 },
+            (_, i) => minYear + i,
+        );
     }, []);
     const months = useMemo(
         () => Array.from({ length: 12 }).map((_, i) => i + 1),
@@ -284,10 +290,8 @@ export default function StatsPage() {
             filter_type: 'custom',
             start_date: toYmd(customStart),
             end_date: toYmd(customEnd),
-            per_page: perPage,
-            page: 1,
         });
-    }, [customEnd, customStart, perPage, reloadInertia]);
+    }, [customEnd, customStart, reloadInertia]);
 
     const handleFilterTypeChange = useCallback(
         (v: FilterType) => {
@@ -297,18 +301,14 @@ export default function StatsPage() {
                     filter_type: 'month',
                     year: selectedYear,
                     month: selectedMonth,
-                    per_page: perPage,
-                    page: 1,
                 });
             else if (v === 'year')
                 reloadInertia({
                     filter_type: 'year',
                     year: selectedYear,
-                    per_page: perPage,
-                    page: 1,
                 });
         },
-        [perPage, reloadInertia, selectedMonth, selectedYear],
+        [reloadInertia, selectedMonth, selectedYear],
     );
 
     const handleYearChange = useCallback(
@@ -320,18 +320,14 @@ export default function StatsPage() {
                     filter_type: 'month',
                     year: y,
                     month: selectedMonth,
-                    per_page: perPage,
-                    page: 1,
                 });
             else if (filterType === 'year')
                 reloadInertia({
                     filter_type: 'year',
                     year: y,
-                    per_page: perPage,
-                    page: 1,
                 });
         },
-        [filterType, perPage, reloadInertia, selectedMonth],
+        [filterType, reloadInertia, selectedMonth],
     );
 
     const handleMonthChange = useCallback(
@@ -343,83 +339,14 @@ export default function StatsPage() {
                     filter_type: 'month',
                     year: selectedYear,
                     month: m,
-                    per_page: perPage,
-                    page: 1,
                 });
         },
-        [filterType, perPage, reloadInertia, selectedYear],
+        [filterType, reloadInertia, selectedYear],
     );
 
-    const handlePerPageChange = useCallback(
-        (v: string) => {
-            const pp = Number(v);
-            setPerPage(pp);
-            if (filterType === 'month')
-                reloadInertia({
-                    filter_type: 'month',
-                    year: selectedYear,
-                    month: selectedMonth,
-                    per_page: pp,
-                    page: 1,
-                });
-            else if (filterType === 'year')
-                reloadInertia({
-                    filter_type: 'year',
-                    year: selectedYear,
-                    per_page: pp,
-                    page: 1,
-                });
-            else
-                reloadInertia({
-                    filter_type: 'custom',
-                    start_date: filter.start_date,
-                    end_date: filter.end_date,
-                    per_page: pp,
-                    page: 1,
-                });
-        },
-        [
-            filter.end_date,
-            filter.start_date,
-            filterType,
-            reloadInertia,
-            selectedMonth,
-            selectedYear,
-        ],
-    );
-
-    const goToPage = useCallback(
-        (nextPage: number) => {
-            const base: Record<string, unknown> = {
-                per_page: perPage,
-                page: nextPage,
-                filter_type: filterType,
-            };
-            if (filterType === 'month')
-                reloadInertia({
-                    ...base,
-                    year: selectedYear,
-                    month: selectedMonth,
-                });
-            else if (filterType === 'year')
-                reloadInertia({ ...base, year: selectedYear });
-            else
-                reloadInertia({
-                    ...base,
-                    start_date: filter.start_date,
-                    end_date: filter.end_date,
-                });
-        },
-        [
-            filter.end_date,
-            filter.start_date,
-            filterType,
-            perPage,
-            reloadInertia,
-            selectedMonth,
-            selectedYear,
-        ],
-    );
+    // Pagination is intentionally disabled for stats.
+    // const handlePerPageChange = useCallback(() => {}, []);
+    // const goToPage = useCallback(() => {}, []);
 
     const selectionCount = selectedUserIds.size;
 
@@ -442,16 +369,21 @@ export default function StatsPage() {
                                     {rangeLabel}
                                 </span>
                             </p>
+                            {/* <p className="mt-1 text-sm text-gray-500">
+                                Total Holidays&nbsp;
+                                <span className="font-medium text-red-700 tabular-nums">
+                                    {summary.total_holidays ?? 0}
+                                </span>
+                            </p> */}
                         </div>
 
                         {/* Primary action — always visible */}
-                        <Button
+                        {/* <Button
                             size="sm"
                             className="h-9 cursor-pointer gap-2 bg-red-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-red-700 active:bg-red-800"
                             onClick={fetchFromWhenIWork}
                             disabled={isLoading}
                         >
-                            {/* cloud-arrow-down icon */}
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 className="h-4 w-4"
@@ -466,58 +398,57 @@ export default function StatsPage() {
                                 />
                             </svg>
                             Sync from When I Work
-                        </Button>
+                        </Button> */}
+                        <Collapsible
+                            open={filtersOpen}
+                            onOpenChange={setFiltersOpen}
+                        >
+                            <CollapsibleTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 cursor-pointer gap-1.5 border-gray-200 text-xs font-medium text-gray-600 hover:border-gray-300 hover:text-gray-900"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-3.5 w-3.5"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 0 1 .628.74v2.288a2.25 2.25 0 0 1-.659 1.59l-4.682 4.683a2.25 2.25 0 0 0-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 0 1 8 18.25v-5.757a2.25 2.25 0 0 0-.659-1.591L2.659 6.22A2.25 2.25 0 0 1 2 4.629V2.34a.75.75 0 0 1 .628-.74Z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                    Filters
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`h-3 w-3 transition-transform ${filtersOpen ? 'rotate-180' : ''}`}
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                </Button>
+                            </CollapsibleTrigger>
+                        </Collapsible>
                     </div>
                 </div>
 
                 {/* ── Main Card ── */}
-                <Card className="gap-0 overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+                <div className="space-y-0">
                     {/* ── Toolbar ── */}
-                    <CardHeader className="border-b border-gray-100 bg-white px-5">
+                    <div>
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             {/* Left side: filter toggle + per-page */}
                             <div className="flex items-center gap-2.5">
-                                <Collapsible
-                                    open={filtersOpen}
-                                    onOpenChange={setFiltersOpen}
-                                >
-                                    <CollapsibleTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 cursor-pointer gap-1.5 border-gray-200 text-xs font-medium text-gray-600 hover:border-gray-300 hover:text-gray-900"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className="h-3.5 w-3.5"
-                                                viewBox="0 0 20 20"
-                                                fill="currentColor"
-                                            >
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 0 1 .628.74v2.288a2.25 2.25 0 0 1-.659 1.59l-4.682 4.683a2.25 2.25 0 0 0-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 0 1 8 18.25v-5.757a2.25 2.25 0 0 0-.659-1.591L2.659 6.22A2.25 2.25 0 0 1 2 4.629V2.34a.75.75 0 0 1 .628-.74Z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                            Filters
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                className={`h-3 w-3 transition-transform ${filtersOpen ? 'rotate-180' : ''}`}
-                                                viewBox="0 0 20 20"
-                                                fill="currentColor"
-                                            >
-                                                <path
-                                                    fillRule="evenodd"
-                                                    d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
-                                                    clipRule="evenodd"
-                                                />
-                                            </svg>
-                                        </Button>
-                                    </CollapsibleTrigger>
-                                </Collapsible>
-
-                                <div className="h-4 w-px bg-gray-200" />
-
+                                {/* Pagination is intentionally disabled for stats view. */}
+                                {/* <div className="h-4 w-px bg-gray-200" />
                                 <Select
                                     value={String(perPage)}
                                     onValueChange={handlePerPageChange}
@@ -536,11 +467,11 @@ export default function StatsPage() {
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
-                                </Select>
+                                </Select> */}
                             </div>
 
                             {/* Right side: selection controls */}
-                            <div className="flex items-center gap-2">
+                            {/* <div className="flex items-center gap-2">
                                 {selectionCount > 0 && (
                                     <span className="text-xs text-gray-500">
                                         <span className="font-semibold text-red-700">
@@ -563,7 +494,7 @@ export default function StatsPage() {
                                         ? 'Deselect all'
                                         : 'Select all'}
                                 </Button>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* ── Filters panel ── */}
@@ -572,7 +503,7 @@ export default function StatsPage() {
                             onOpenChange={setFiltersOpen}
                         >
                             <CollapsibleContent className="pb-4 lg:pt-2">
-                                <div className="rounded-lg border border-gray-100 bg-gray-50/60 p-4">
+                                <Card className="rounded-a1 border border-gray-100 bg-gray-50/60 p-4">
                                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
                                         {/* Period type */}
                                         <div className="space-y-1.5 lg:col-span-2">
@@ -706,18 +637,18 @@ export default function StatsPage() {
                                             </>
                                         )}
                                     </div>
-                                </div>
+                                </Card>
                             </CollapsibleContent>
                         </Collapsible>
-                    </CardHeader>
+                    </div>
 
                     {/* ── Table ── */}
-                    <CardContent className="p-0">
+                    <Card className="overflow-hidden rounded-xl border border-gray-200 p-0 shadow-sm">
                         <div className="overflow-x-auto">
                             <Table className="p-0">
                                 <TableHeader>
                                     <TableRow className="border-b border-gray-100 bg-gray-50/80 hover:bg-gray-50/80">
-                                        <TableHead className="block w-9 content-center border-r border-gray-100 md:table-cell">
+                                        {/* <TableHead className="block w-9 content-center border-r border-gray-100 md:table-cell">
                                             <Checkbox
                                                 checked={
                                                     allSelected
@@ -734,22 +665,25 @@ export default function StatsPage() {
                                                 aria-label="Select all users"
                                                 className="cursor-pointer border-gray-300"
                                             />
-                                        </TableHead>
+                                        </TableHead> */}
                                         <TableHead className="border-r border-gray-100 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             User
                                         </TableHead>
-                                        <TableHead className="border-r border-gray-100 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                                        {/* <TableHead className="border-r border-gray-100 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             Duty Days
+                                        </TableHead> */}
+                                        <TableHead className="border-r border-gray-100 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                                            Holidays Taken
                                         </TableHead>
                                         <TableHead className="border-r border-gray-100 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                                            Leave Taken
+                                            Upcoming Holidays
                                         </TableHead>
                                         <TableHead className="border-r border-gray-100 text-right text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                                            Upcoming Leave
+                                            Total Holidays
                                         </TableHead>
-                                        <TableHead className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
+                                        {/* <TableHead className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             Requirements
-                                        </TableHead>
+                                        </TableHead> */}
                                         {/* <TableHead className="pr-5 text-xs font-semibold tracking-wide text-gray-500 uppercase">
                                             Date Range
                                         </TableHead> */}
@@ -793,7 +727,7 @@ export default function StatsPage() {
                                                     key={u.id}
                                                     className={`border-b border-gray-100 transition-colors ${isSelected ? 'bg-red-50/40' : 'hover:bg-gray-50/50'}`}
                                                 >
-                                                    <TableCell className="border-r border-gray-100">
+                                                    {/* <TableCell className="border-r border-gray-100">
                                                         <Checkbox
                                                             checked={isSelected}
                                                             onCheckedChange={(
@@ -807,13 +741,13 @@ export default function StatsPage() {
                                                             aria-label={`Select ${u.name}`}
                                                             className="cursor-pointer border-gray-300"
                                                         />
-                                                    </TableCell>
+                                                    </TableCell> */}
 
                                                     {/* User cell */}
                                                     <TableCell className="border-r border-gray-100 py-3.5">
                                                         <div className="flex items-center gap-2.5">
                                                             {/* Avatar placeholder */}
-                                                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-semibold text-red-700 select-none">
+                                                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-semibold text-red-700 select-none">
                                                                 {u.name
                                                                     .charAt(0)
                                                                     .toUpperCase()}
@@ -841,7 +775,7 @@ export default function StatsPage() {
                                                     </TableCell>
 
                                                     {/* Numeric stat cells */}
-                                                    <TableCell className="border-r border-gray-100 text-right">
+                                                    {/* <TableCell className="border-r border-gray-100 text-right">
                                                         <span className="text-sm font-semibold text-gray-800 tabular-nums">
                                                             {r ? (
                                                                 r.total_duty_days
@@ -851,7 +785,7 @@ export default function StatsPage() {
                                                                 </span>
                                                             )}
                                                         </span>
-                                                    </TableCell>
+                                                    </TableCell> */}
                                                     <TableCell className="border-r border-gray-100 text-right">
                                                         <span className="text-sm font-semibold text-gray-800 tabular-nums">
                                                             {r ? (
@@ -874,9 +808,20 @@ export default function StatsPage() {
                                                             )}
                                                         </span>
                                                     </TableCell>
+                                                    <TableCell className="border-r border-gray-100 text-right">
+                                                        <span className="text-sm font-semibold text-gray-800 tabular-nums">
+                                                            {r ? (
+                                                                r.total_holidays
+                                                            ) : (
+                                                                <span className="font-normal text-gray-300">
+                                                                    —
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    </TableCell>
 
                                                     {/* Requirements badge */}
-                                                    <TableCell className="border-r border-gray-100">
+                                                    {/* <TableCell className="border-r border-gray-100">
                                                         {r ? (
                                                             <div className="flex w-auto gap-1">
                                                                 <div
@@ -940,7 +885,7 @@ export default function StatsPage() {
                                                                 —
                                                             </span>
                                                         )}
-                                                    </TableCell>
+                                                    </TableCell> */}
 
                                                     {/* Date range */}
                                                     {/* <TableCell className="pr-5">
@@ -970,7 +915,7 @@ export default function StatsPage() {
                                     ) : (
                                         <TableRow>
                                             <TableCell
-                                                colSpan={7}
+                                                colSpan={8}
                                                 className="h-40 text-center"
                                             >
                                                 <div className="flex flex-col items-center gap-2">
@@ -999,8 +944,8 @@ export default function StatsPage() {
                             </Table>
                         </div>
 
-                        {/* ── Pagination ── */}
-                        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/40 px-5 pt-3.5">
+                        {/* ── Pagination (disabled by request) ── */}
+                        {/* <div className="flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/40 px-5 pt-3.5">
                             <p className="text-xs text-gray-400">
                                 Showing{' '}
                                 <span className="font-medium text-gray-600">
@@ -1066,9 +1011,9 @@ export default function StatsPage() {
                                     Next →
                                 </Button>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </div> */}
+                    </Card>
+                </div>
             </div>
         </AdminLayout>
     );

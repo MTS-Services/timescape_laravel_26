@@ -29,7 +29,7 @@ export const STANDARD_AVAILABILITY_OPTIONS: AvailabilityOptionItem[] = [
 export const PRIORITY_ONE_AVAILABILITY_OPTIONS: AvailabilityOptionItem[] = [
     { id: '9:30-5:30', label: '9:30 AM - 5:30 PM', color: 'teal' },
     { id: '2:00-10:00', label: '2:00 PM - 10:00 PM', color: 'gray' },
-    { id: 'all-day', label: 'All Day', color: 'gray' },
+    // { id: 'all-day', label: 'All Day', color: 'gray' },
     { id: 'holiday', label: 'Holiday', color: 'gray' },
 ];
 

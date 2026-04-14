@@ -9,14 +9,15 @@ use App\Services\AvailabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UserStatsController extends Controller
 {
-    public function stats(): Response
+    public function stats(Request $request, AvailabilityService $availabilityService): Response
     {
-        $request = request();
         $currentUser = $request->user();
 
         $validated = $request->validate([
@@ -54,9 +55,8 @@ class UserStatsController extends Controller
                 ->activeAtLocation(User::workContextLocationId($currentUser));
         }
 
-        $paginator = $usersQuery->paginate($perPage)->withQueryString();
-
-        $users = collect($paginator->items())->map(function ($u) {
+        $usersCollection = $usersQuery->get();
+        $users = $usersCollection->map(function ($u) {
             return [
                 'id' => (int) $u->id,
                 'name' => $u->name,
@@ -66,8 +66,9 @@ class UserStatsController extends Controller
             ];
         })->values();
 
-        $availabilityService = app(AvailabilityService::class);
         $rows = $this->buildStatsRowsForUsers($users, $start, $end, $availabilityService, User::workContextLocationId($currentUser));
+        $this->autoDispatchRangeSyncIfNeeded($request, $currentUser, $usersCollection, $start, $end);
+        $totalHolidays = collect($rows)->sum('total_holidays');
 
         return Inertia::render('availability/stats', [
             'filter' => [
@@ -80,13 +81,16 @@ class UserStatsController extends Controller
             ],
             'users' => $users,
             'rows' => array_values($rows),
+            'summary' => [
+                'total_holidays' => (int) $totalHolidays,
+            ],
             'pagination' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $usersCollection->count(),
+                'total' => $usersCollection->count(),
+                'from' => $usersCollection->isEmpty() ? null : 1,
+                'to' => $usersCollection->isEmpty() ? null : $usersCollection->count(),
             ],
         ]);
     }
@@ -130,9 +134,8 @@ class UserStatsController extends Controller
                 ->activeAtLocation(User::workContextLocationId($currentUser));
         }
 
-        $paginator = $usersQuery->paginate($perPage)->withQueryString();
-
-        $users = collect($paginator->items())->map(function ($u) {
+        $usersCollection = $usersQuery->get();
+        $users = $usersCollection->map(function ($u) {
             return [
                 'id' => (int) $u->id,
                 'name' => $u->name,
@@ -143,6 +146,7 @@ class UserStatsController extends Controller
         })->values();
 
         $rows = $this->buildStatsRowsForUsers($users, $start, $end, $availabilityService, User::workContextLocationId($currentUser));
+        $totalHolidays = collect($rows)->sum('total_holidays');
 
         return response()->json([
             'filter' => [
@@ -155,13 +159,16 @@ class UserStatsController extends Controller
             ],
             'users' => $users,
             'rows' => array_values($rows),
+            'summary' => [
+                'total_holidays' => (int) $totalHolidays,
+            ],
             'pagination' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $usersCollection->count(),
+                'total' => $usersCollection->count(),
+                'from' => $usersCollection->isEmpty() ? null : 1,
+                'to' => $usersCollection->isEmpty() ? null : $usersCollection->count(),
             ],
         ]);
     }
@@ -258,6 +265,7 @@ class UserStatsController extends Controller
                 'total_duty_days' => 0,
                 'leave_taken' => 0,
                 'upcoming_leave' => 0,
+                'total_holidays' => 0,
                 'meets_current_week_requirements' => false,
                 'meets_next_week_requirements' => false,
                 'date_range' => [
@@ -299,6 +307,8 @@ class UserStatsController extends Controller
                 } elseif ($availabilityService->isDateFuture($a->availability_date)) {
                     $rows[$uid]['upcoming_leave']++;
                 }
+
+                $rows[$uid]['total_holidays']++;
             }
         }
 
@@ -310,5 +320,55 @@ class UserStatsController extends Controller
         }
 
         return $rows;
+    }
+
+    /**
+     * Dispatch sync jobs once per date range per admin/session in one hour.
+     *
+     * @param  Collection<int, User>  $users
+     */
+    private function autoDispatchRangeSyncIfNeeded(Request $request, User $currentUser, Collection $users, Carbon $start, Carbon $end): void
+    {
+        if (! $currentUser->can_manage_users) {
+            return;
+        }
+
+        if ($users->isEmpty()) {
+            return;
+        }
+
+        $sessionKey = $this->buildAutoSyncSessionKey(
+            (int) $currentUser->id,
+            $start->format('Y-m-d'),
+            $end->format('Y-m-d')
+        );
+
+        $lastDispatchedAt = Session::get($sessionKey);
+        if (is_string($lastDispatchedAt) && Carbon::parse($lastDispatchedAt)->addHour()->isFuture()) {
+            return;
+        }
+
+        foreach ($users as $user) {
+            SyncUserAvailabilityRangeJob::dispatch(
+                userId: (int) $user->id,
+                startDate: $start->format('Y-m-d'),
+                endDate: $end->format('Y-m-d')
+            );
+        }
+
+        Session::put($sessionKey, now()->toIso8601String());
+
+        Log::info('Auto-dispatched When I Work stats sync jobs', [
+            'admin_user_id' => $currentUser->id,
+            'start_date' => $start->format('Y-m-d'),
+            'end_date' => $end->format('Y-m-d'),
+            'queued_users' => $users->count(),
+            'session_key' => $sessionKey,
+        ]);
+    }
+
+    private function buildAutoSyncSessionKey(int $adminUserId, string $startDate, string $endDate): string
+    {
+        return "admin_stats_auto_sync_{$adminUserId}_{$startDate}_{$endDate}";
     }
 }

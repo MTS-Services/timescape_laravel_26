@@ -22,11 +22,15 @@ class AvailabilityController extends Controller
 
     public function index(Request $request): Response
     {
+
         $user = $request->user();
         $now = now();
         $year = (int) $request->get('year', $now->year);
         $month = (int) $request->get('month', $now->month);
-        $selectedUserId = (int) $request->get('user_id', $user->id);
+
+        $firstUser = $this->getLocationFirstUser($user);
+
+        $selectedUserId = (int) $request->get('user_id', $firstUser->id);
 
         Log::info('Loading availability page', [
             'user_id' => $user->id,
@@ -90,7 +94,8 @@ class AvailabilityController extends Controller
         $users = [];
         if ($user->can_manage_users) {
             $query = User::select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
-                ->orderBy('priority', 'asc')
+                ->notSelf()
+                ->orderBy('priority', 'desc')
                 ->orderBy('first_name')
                 ->orderBy('last_name');
 
@@ -282,5 +287,10 @@ class AvailabilityController extends Controller
             'requirements' => $requirements,
             'weeklyRequirements' => $weeklyRequirements,
         ])->back();
+    }
+
+    public function getLocationFirstUser(User $user): User
+    {
+        return User::query()->notSelf()->where('account_id', $user->account_id)->activeAtLocation(User::workContextLocationId($user))->orderBy('priority', 'desc')->first();
     }
 }
