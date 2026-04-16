@@ -46,6 +46,7 @@ class UserStatsController extends Controller
         $usersQuery = User::query()
             ->notSelf() // Exclude the current user
             ->select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
+            ->orderByRaw("CASE WHEN priority IS NULL OR priority = '' THEN 1 ELSE 0 END ASC")
             ->orderBy('priority', 'asc')
             ->orderBy('first_name')
             ->orderBy('last_name');
@@ -125,6 +126,7 @@ class UserStatsController extends Controller
 
         $usersQuery = User::query()
             ->select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
+            ->orderByRaw("CASE WHEN priority IS NULL OR priority = '' THEN 1 ELSE 0 END ASC")
             ->orderBy('priority', 'asc')
             ->orderBy('first_name')
             ->orderBy('last_name');
@@ -195,7 +197,7 @@ class UserStatsController extends Controller
                 ->activeAtLocation(User::workContextLocationId($currentUser))
                 ->whereIn('id', $userIds)
                 ->pluck('id')
-                ->map(fn ($id) => (int) $id)
+                ->map(fn($id) => (int) $id)
                 ->all();
 
             if (count($allowedIds) !== count($userIds)) {
@@ -254,7 +256,7 @@ class UserStatsController extends Controller
      */
     private function buildStatsRowsForUsers($users, Carbon $start, Carbon $end, AvailabilityService $availabilityService, ?int $locationId = null): array
     {
-        $userIds = $users->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $userIds = $users->pluck('id')->map(fn($id) => (int) $id)->all();
 
         $rows = [];
         foreach ($users as $u) {
@@ -285,7 +287,7 @@ class UserStatsController extends Controller
             ->whereIn('user_id', $userIds)
             ->whereBetween('availability_date', [$start, $end])
             ->when($locationId !== null, function ($q) use ($locationId): void {
-                $q->whereHas('user', fn ($uq) => $uq->activeAtLocation($locationId));
+                $q->whereHas('user', fn($uq) => $uq->activeAtLocation($locationId));
             })
             ->get(['user_id', 'availability_date', 'time_slot']);
 

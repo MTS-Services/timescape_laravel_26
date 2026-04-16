@@ -27,6 +27,7 @@ class UserSelectionController extends Controller
 
         // Build query with account_id scoping based on CAN_MANAGE_ALL config
         $query = User::select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
+            ->orderByRaw("CASE WHEN priority IS NULL OR priority = '' THEN 1 ELSE 0 END ASC")
             ->orderBy('priority', 'asc')
             ->orderBy('first_name')
             ->orderBy('last_name');

@@ -95,7 +95,8 @@ class AvailabilityController extends Controller
         if ($user->can_manage_users) {
             $query = User::select('id', 'first_name', 'last_name', 'email', 'account_id', 'priority')
                 ->notSelf()
-                ->orderBy('priority', 'desc')
+                ->orderByRaw("CASE WHEN priority IS NULL OR priority = '' THEN 1 ELSE 0 END ASC")
+                ->orderBy('priority', 'asc')
                 ->orderBy('first_name')
                 ->orderBy('last_name');
 
@@ -108,12 +109,12 @@ class AvailabilityController extends Controller
             $usersCollection = $query->get();
             $contextLocationId = User::workContextLocationId($user);
             $currentWeekStatusMap = $this->availabilityService->getWeekRequirementsStatusMap(
-                $usersCollection->pluck('id')->map(fn ($id) => (int) $id)->all(),
+                $usersCollection->pluck('id')->map(fn($id) => (int) $id)->all(),
                 null,
                 $contextLocationId
             );
             $nextWeekStatusMap = $this->availabilityService->getWeekRequirementsStatusMap(
-                $usersCollection->pluck('id')->map(fn ($id) => (int) $id)->all(),
+                $usersCollection->pluck('id')->map(fn($id) => (int) $id)->all(),
                 now()->addWeek(),
                 $contextLocationId
             );
@@ -291,6 +292,7 @@ class AvailabilityController extends Controller
 
     public function getLocationFirstUser(User $user): User
     {
-        return User::query()->notSelf()->where('account_id', $user->account_id)->activeAtLocation(User::workContextLocationId($user))->orderBy('priority', 'desc')->first();
+        return User::query()->notSelf()->where('account_id', $user->account_id)->activeAtLocation(User::workContextLocationId($user))->orderByRaw("CASE WHEN priority IS NULL OR priority = '' THEN 1 ELSE 0 END ASC")
+            ->orderBy('priority', 'asc')->first();
     }
 }

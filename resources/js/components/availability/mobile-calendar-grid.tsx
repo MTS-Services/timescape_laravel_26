@@ -200,27 +200,28 @@ export function MobileCalendarGrid({
                                             </span>
 
                                             {/* Indicators */}
-                                            <div className="flex items-center justify-center gap-1">
-                                                <div
-                                                    className={cn(
-                                                        'h-1.5 w-1.5 rounded-full',
-                                                        dot1,
-                                                    )}
-                                                />
-                                                <div
-                                                    className={cn(
-                                                        'h-1.5 w-1.5 rounded-full',
-                                                        dot2,
-                                                    )}
-                                                />
-                                                <div
-                                                    className={cn(
-                                                        'h-1.5 w-1.5 rounded-full',
-                                                        dot3,
-                                                    )}
-                                                />
-                                            </div>
-
+                                            {auth.user.is_admin && (
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <div
+                                                        className={cn(
+                                                            'h-1.5 w-1.5 rounded-full',
+                                                            dot1,
+                                                        )}
+                                                    />
+                                                    <div
+                                                        className={cn(
+                                                            'h-1.5 w-1.5 rounded-full',
+                                                            dot2,
+                                                        )}
+                                                    />
+                                                    <div
+                                                        className={cn(
+                                                            'h-1.5 w-1.5 rounded-full',
+                                                            dot3,
+                                                        )}
+                                                    />
+                                                </div>
+                                            )}
                                             {/* Indicator dot */}
                                             {/* {(showGreenIndicator || showRedIndicator || showGrayIndicator) && (
                                                 <div className="mt-1 h-1.5 w-1.5 rounded-full">
