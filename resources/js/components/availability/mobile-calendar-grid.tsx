@@ -66,7 +66,7 @@ export function MobileCalendarGrid({
                 const weekRequirement = weeklyRequirements[weekIndex];
 
                 return (
-                    <div className="space-y-2">
+                    <div className="space-y-2" key={weekIndex}>
                         {weekIndex === 0 && (
                             <div className="grid grid-cols-7 gap-2 px-2">
                                 {weekdays.map((day) => (

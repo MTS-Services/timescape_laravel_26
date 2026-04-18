@@ -34,6 +34,7 @@ import {
     formatMonthYear,
     generateCalendarDays,
     getAvailabilityOptionsForPriority,
+    getToday,
     isDateDisabled,
     isDateInPast,
     isSameMonth,
@@ -169,6 +170,7 @@ export default function AvailabilityScheduler() {
         null,
     );
     const staffListModalRef = useRef<StaffListModalRef>(null);
+    const mobileCardsScrollRef = useRef<HTMLDivElement | null>(null);
 
     // Mobile calendar collapsible state
     const [isCalendarOpen, setIsCalendarOpen] = useState(true);
@@ -435,6 +437,37 @@ export default function AvailabilityScheduler() {
             .map((date) => formatDateKey(date));
     }, [calendarDays, currentDate, isMobile, canEditToday]);
 
+    useLayoutEffect(() => {
+        if (!isMobile) {
+            return;
+        }
+
+        const anchorScroll = () => {
+            if (isSameMonth(currentDate, getToday())) {
+                const todayKey = formatDateKey(getToday());
+                const element = document.getElementById(`card-${todayKey}`);
+                if (element) {
+                    element.scrollIntoView({
+                        behavior: 'auto',
+                        block: 'start',
+                    });
+                } else {
+                    mobileCardsScrollRef.current?.scrollTo({
+                        top: 0,
+                        behavior: 'auto',
+                    });
+                }
+            } else {
+                mobileCardsScrollRef.current?.scrollTo({
+                    top: 0,
+                    behavior: 'auto',
+                });
+            }
+        };
+
+        requestAnimationFrame(anchorScroll);
+    }, [isMobile, currentDate, selectedUserId, mobileExpandedDates]);
+
     return (
         <AdminLayout>
             <Head title="Availability Scheduler" />
@@ -499,6 +532,7 @@ export default function AvailabilityScheduler() {
 
                             {/* Availability Cards */}
                             <div
+                                ref={mobileCardsScrollRef}
                                 className="relative overflow-x-hidden overflow-y-auto pt-4 pb-6"
                                 style={
                                     stickyHeaderHeight
